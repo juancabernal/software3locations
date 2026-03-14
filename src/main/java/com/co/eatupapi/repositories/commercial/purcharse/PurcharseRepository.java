@@ -1,4 +1,4 @@
 package com.co.eatupapi.repositories.commercial.purcharse;
 
-public interface PurcharseRepositories {
+public interface PurcharseRepository {
 }

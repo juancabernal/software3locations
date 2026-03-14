@@ -1,9 +1,10 @@
 package com.co.eatupapi.services.commercial.provider;
 
-import com.co.eatupapi.repositories.commercial.provider.ProviderRepository;
+
 import com.co.eatupapi.domain.commercial.provider.ProviderDomain;
 import com.co.eatupapi.domain.commercial.provider.ProviderStatus;
 import com.co.eatupapi.dto.commercial.provider.ProviderDTO;
+import com.co.eatupapi.repositories.commercial.provider.ProviderRepository;
 import com.co.eatupapi.utils.commercial.provider.exceptions.BusinessException;
 import com.co.eatupapi.utils.commercial.provider.exceptions.ResourceNotFoundException;
 import com.co.eatupapi.utils.commercial.provider.exceptions.ValidationException;
@@ -15,8 +16,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Service
 public class ProviderService {
@@ -28,7 +27,7 @@ public class ProviderService {
 
     private final ProviderRepository providerRepository;
     private final ProviderMapper providerMapper;
-    private final List<ProviderDomain> providerDomains = new ArrayList<>();
+    private final List<ProviderDomain> providers = new ArrayList<>();
 
     public ProviderService(ProviderRepository providerRepository, ProviderMapper providerMapper) {
         this.providerRepository = providerRepository;
@@ -37,11 +36,11 @@ public class ProviderService {
 
     @PostConstruct
     public void initData() {
-        providerDomains.clear();
-        providerDomains.addAll(providerRepository.loadInitialProviders());
+        providers.clear();
+        providers.addAll(providerRepository.loadInitialProviders());
     }
 
-    public Mono<ProviderDTO> createProvider(ProviderDTO request) {
+    public ProviderDTO createProvider(ProviderDTO request) {
         validateProviderPayload(request);
 
         ProviderDomain providerDomain = providerMapper.toDomain(request);
@@ -50,67 +49,67 @@ public class ProviderService {
         providerDomain.setCreatedDate(LocalDateTime.now());
         providerDomain.setModifiedDate(LocalDateTime.now());
 
-        providerDomains.add(providerDomain);
-        return Mono.just(providerMapper.toDto(providerDomain));
+        providers.add(providerDomain);
+        return providerMapper.toDto(providerDomain);
     }
 
-    public Mono<ProviderDTO> getProviderById(String providerId) {
-        return findProviderById(providerId)
-                .map(providerMapper::toDto);
+    public ProviderDTO getProviderById(String providerId) {
+        ProviderDomain provider = findProviderById(providerId);
+        return providerMapper.toDto(provider);
     }
 
-    public Flux<ProviderDTO> getProviders(String status) {
+    public List<ProviderDTO> getProviders(String status) {
         ProviderStatus parsedStatus = parseStatus(status);
 
-        Flux<ProviderDomain> source = Flux.fromIterable(providerDomains);
-        if (parsedStatus != null) {
-            source = source.filter(providerDomain -> providerDomain.getStatus() == parsedStatus);
+        List<ProviderDTO> result = new ArrayList<>();
+        for (ProviderDomain provider : providers) {
+            if (parsedStatus == null || provider.getStatus() == parsedStatus) {
+                result.add(providerMapper.toDto(provider));
+            }
         }
 
-        return source.map(providerMapper::toDto);
+        return result;
     }
 
-    public Mono<ProviderDTO> updateProvider(String providerId, ProviderDTO request) {
+    public ProviderDTO updateProvider(String providerId, ProviderDTO request) {
         validateProviderPayload(request);
 
-        return findProviderById(providerId)
-                .map(existing -> {
-                    validateImmutableEmail(existing.getEmail(), request.getEmail());
+        ProviderDomain existing = findProviderById(providerId);
+        validateImmutableEmail(existing.getEmail(), request.getEmail());
 
-                    existing.setBusinessName(request.getBusinessName());
-                    existing.setDocumentTypeId(request.getDocumentTypeId());
-                    existing.setDocumentNumber(request.getDocumentNumber());
-                    existing.setTaxRegimeId(request.getTaxRegimeId());
-                    existing.setResponsibleFirstName(request.getResponsibleFirstName());
-                    existing.setResponsibleLastName(request.getResponsibleLastName());
-                    existing.setPhone(request.getPhone());
-                    existing.setDepartmentId(request.getDepartmentId());
-                    existing.setCityId(request.getCityId());
-                    existing.setAddress(request.getAddress());
-                    existing.setBranchId(request.getBranchId());
-                    existing.setModifiedDate(LocalDateTime.now());
+        existing.setBusinessName(request.getBusinessName());
+        existing.setDocumentTypeId(request.getDocumentTypeId());
+        existing.setDocumentNumber(request.getDocumentNumber());
+        existing.setTaxRegimeId(request.getTaxRegimeId());
+        existing.setResponsibleFirstName(request.getResponsibleFirstName());
+        existing.setResponsibleLastName(request.getResponsibleLastName());
+        existing.setPhone(request.getPhone());
+        existing.setDepartmentId(request.getDepartmentId());
+        existing.setCityId(request.getCityId());
+        existing.setAddress(request.getAddress());
+        existing.setBranchId(request.getBranchId());
+        existing.setModifiedDate(LocalDateTime.now());
 
-                    return providerMapper.toDto(existing);
-                });
+        return providerMapper.toDto(existing);
     }
 
-    public Mono<ProviderDTO> updateStatus(String providerId, String status) {
+    public ProviderDTO updateStatus(String providerId, String status) {
         ProviderStatus newStatus = parseRequiredStatus(status);
 
-        return findProviderById(providerId)
-                .map(existing -> {
-                    existing.setStatus(newStatus);
-                    existing.setModifiedDate(LocalDateTime.now());
-                    return providerMapper.toDto(existing);
-                });
+        ProviderDomain existing = findProviderById(providerId);
+        existing.setStatus(newStatus);
+        existing.setModifiedDate(LocalDateTime.now());
+        return providerMapper.toDto(existing);
     }
 
-    private Mono<ProviderDomain> findProviderById(String providerId) {
-        return Flux.fromIterable(providerDomains)
-                .filter(providerDomain -> providerDomain.getId().equals(providerId))
-                .next()
-                .switchIfEmpty(Mono.error(
-                        new ResourceNotFoundException("Provider not found with id: " + providerId)));
+    private ProviderDomain findProviderById(String providerId) {
+        for (ProviderDomain provider : providers) {
+            if (provider.getId().equals(providerId)) {
+                return provider;
+            }
+        }
+
+        throw new ResourceNotFoundException("Provider not found with id: " + providerId);
     }
 
     private ProviderStatus parseStatus(String status) {
@@ -190,4 +189,3 @@ public class ProviderService {
         }
     }
 }
-

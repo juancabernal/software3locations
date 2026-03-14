@@ -1,18 +1,18 @@
 package com.descuentos.descuentos_mio.service;
 
 import com.descuentos.descuentos_mio.dto.DiscountsDto;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface DiscountsService {
 
-    Flux<DiscountsDto> getAllDiscounts();
+    List<DiscountsDto> getAllDiscounts();
 
-    Mono<DiscountsDto> getDiscountById(UUID id);
+    Optional<DiscountsDto> getDiscountById(UUID id);
 
-    Mono<DiscountsDto> createDiscount(DiscountsDto discount);
+    DiscountsDto createDiscount(DiscountsDto discount);
 
-    Mono<DiscountsDto> updateDiscount(UUID id, DiscountsDto discount);
+    Optional<DiscountsDto> updateDiscount(UUID id, DiscountsDto discount);
 }

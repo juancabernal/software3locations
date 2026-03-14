@@ -1,4 +1,4 @@
-package com.co.eatupapi.controllers.commercial.provider;
+package com.co.eatupapi.controllers.comercial.clients;
 
 import org.springframework.web.bind.annotation.RestController;
 

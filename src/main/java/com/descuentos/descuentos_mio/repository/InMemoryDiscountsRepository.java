@@ -2,10 +2,11 @@ package com.descuentos.descuentos_mio.repository;
 
 import com.descuentos.descuentos_mio.domain.DiscountsDomain;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,30 +37,30 @@ public class InMemoryDiscountsRepository implements DiscountsRepository {
     }
 
     @Override
-    public Flux<DiscountsDomain> findAll() {
-        return Flux.fromIterable(storage.values());
+    public List<DiscountsDomain> findAll() {
+        return new ArrayList<>(storage.values());
     }
 
     @Override
-    public Mono<DiscountsDomain> findById(UUID id) {
-        return Mono.justOrEmpty(storage.get(id));
+    public Optional<DiscountsDomain> findById(UUID id) {
+        return Optional.ofNullable(storage.get(id));
     }
 
     @Override
-    public Mono<DiscountsDomain> save(DiscountsDomain discount) {
+    public DiscountsDomain save(DiscountsDomain discount) {
         UUID id = discount.getId() != null ? discount.getId() : UUID.randomUUID();
         discount.setId(id);
         storage.put(id, discount);
-        return Mono.just(discount);
+        return discount;
     }
 
     @Override
-    public Mono<DiscountsDomain> update(UUID id, DiscountsDomain discount) {
+    public Optional<DiscountsDomain> update(UUID id, DiscountsDomain discount) {
         if (!storage.containsKey(id)) {
-            return Mono.empty();
+            return Optional.empty();
         }
         discount.setId(id);
         storage.put(id, discount);
-        return Mono.just(discount);
+        return Optional.of(discount);
     }
 }

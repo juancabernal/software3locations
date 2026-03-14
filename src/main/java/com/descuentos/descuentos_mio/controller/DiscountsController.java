@@ -1,13 +1,19 @@
-package com.descuentos.descuentos_mio.controllers;
+package com.descuentos.descuentos_mio.controller;
 
 import com.descuentos.descuentos_mio.dto.DiscountsDto;
 import com.descuentos.descuentos_mio.service.DiscountsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,31 +28,31 @@ public class DiscountsController {
     }
 
     @GetMapping
-    public Flux<DiscountsDto> getAllDiscounts() {
+    public List<DiscountsDto> getAllDiscounts() {
         return discountsService.getAllDiscounts();
     }
 
     @GetMapping("/{discountId}")
-    public Mono<ResponseEntity<DiscountsDto>> getDiscountById(@PathVariable UUID discountId) {
+    public ResponseEntity<DiscountsDto> getDiscountById(@PathVariable UUID discountId) {
         return discountsService.getDiscountById(discountId)
                 .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Mono<ResponseEntity<DiscountsDto>> createDiscount(@RequestBody DiscountsDto discountsDto) {
-        return discountsService.createDiscount(discountsDto)
-                .map(saved -> ResponseEntity.status(HttpStatus.CREATED).body(saved));
+    public ResponseEntity<DiscountsDto> createDiscount(@RequestBody DiscountsDto discountsDto) {
+        DiscountsDto created = discountsService.createDiscount(discountsDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{discountId}")
-    public Mono<ResponseEntity<DiscountsDto>> updateDiscount(
+    public ResponseEntity<DiscountsDto> updateDiscount(
             @PathVariable UUID discountId,
             @RequestBody DiscountsDto discountsDto
     ) {
         return discountsService.updateDiscount(discountId, discountsDto)
                 .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

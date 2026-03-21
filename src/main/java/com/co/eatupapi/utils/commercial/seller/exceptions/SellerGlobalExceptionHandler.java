@@ -28,7 +28,7 @@ public class SellerGlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("message", "Ocurrió un error inesperado, intente de nuevo");
+        body.put("message", "An unexpected error occurred, please try again");
         body.put("errorCode", "INTERNAL_ERROR");
         body.put("status", 500);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);

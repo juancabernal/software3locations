@@ -8,11 +8,9 @@ import com.co.eatupapi.utils.commercial.seller.exceptions.SellerBusinessExceptio
 import com.co.eatupapi.utils.commercial.seller.exceptions.SellerNotFoundException;
 import com.co.eatupapi.utils.commercial.seller.exceptions.SellerValidationException;
 import com.co.eatupapi.utils.commercial.seller.mapper.SellerMapper;
-import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -22,25 +20,16 @@ public class SellerService {
 
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-
     private static final Pattern DIGITS_PATTERN = Pattern.compile("^\\d+$");
-
     private static final double MAX_COMMISSION = 30.0;
     private static final double MIN_COMMISSION = 0.0;
 
     private final SellerRepository sellerRepository;
     private final SellerMapper sellerMapper;
-    private final List<SellerDomain> sellers = new ArrayList<>();
 
     public SellerService(SellerRepository sellerRepository, SellerMapper sellerMapper) {
         this.sellerRepository = sellerRepository;
         this.sellerMapper = sellerMapper;
-    }
-
-    @PostConstruct
-    public void initData() {
-        sellers.clear();
-        sellers.addAll(sellerRepository.loadInitialSellers());
     }
 
     public SellerDTO createSeller(SellerDTO request) {
@@ -54,7 +43,7 @@ public class SellerService {
         sellerDomain.setCreatedDate(LocalDateTime.now());
         sellerDomain.setModifiedDate(LocalDateTime.now());
 
-        sellers.add(sellerDomain);
+        sellerRepository.save(sellerDomain);
         return sellerMapper.toDto(sellerDomain);
     }
 
@@ -64,15 +53,14 @@ public class SellerService {
     }
 
     public List<SellerDTO> getSellers(String status) {
-        SellerStatus parsedStatus = parseStatus(status);
-
-        List<SellerDTO> result = new ArrayList<>();
-        for (SellerDomain seller : sellers) {
-            if (parsedStatus == null || seller.getStatus() == parsedStatus) {
-                result.add(sellerMapper.toDto(seller));
-            }
+        List<SellerDomain> result;
+        if (status == null || status.isBlank()) {
+            result = sellerRepository.findAll();
+        } else {
+            SellerStatus parsedStatus = parseStatus(status);
+            result = sellerRepository.findByStatus(parsedStatus);
         }
-        return result;
+        return result.stream().map(sellerMapper::toDto).toList();
     }
 
     public SellerDTO updateSeller(String sellerId, SellerDTO request) {
@@ -90,6 +78,7 @@ public class SellerService {
         existing.setCommissionPercentage(request.getCommissionPercentage());
         existing.setModifiedDate(LocalDateTime.now());
 
+        sellerRepository.save(existing);
         return sellerMapper.toDto(existing);
     }
 
@@ -99,22 +88,17 @@ public class SellerService {
         SellerDomain existing = findSellerById(sellerId);
         existing.setStatus(newStatus);
         existing.setModifiedDate(LocalDateTime.now());
+
+        sellerRepository.save(existing);
         return sellerMapper.toDto(existing);
     }
 
     private SellerDomain findSellerById(String sellerId) {
-        for (SellerDomain seller : sellers) {
-            if (seller.getId().equals(sellerId)) {
-                return seller;
-            }
-        }
-        throw new SellerNotFoundException("Seller not found with id: " + sellerId);
+        return sellerRepository.findById(sellerId)
+                .orElseThrow(() -> new SellerNotFoundException("Seller not found with id: " + sellerId));
     }
 
     private SellerStatus parseStatus(String status) {
-        if (status == null || status.isBlank()) {
-            return null;
-        }
         try {
             return SellerStatus.valueOf(status.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
@@ -123,11 +107,10 @@ public class SellerService {
     }
 
     private SellerStatus parseRequiredStatus(String status) {
-        SellerStatus parsedStatus = parseStatus(status);
-        if (parsedStatus == null) {
+        if (status == null || status.isBlank()) {
             throw new SellerValidationException("Seller status is required");
         }
-        return parsedStatus;
+        return parseStatus(status);
     }
 
     private void validateSellerPayload(SellerDTO request) {
@@ -159,7 +142,9 @@ public class SellerService {
 
     private void validateEmail(String email) {
         if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new SellerValidationException("Invalid email format: " + email);
+            throw new SellerValidationException(
+                    "Invalid email format: '" + email + "'. Expected format: example@domain.com"
+            );
         }
     }
 
@@ -173,6 +158,9 @@ public class SellerService {
     }
 
     private void validateCommissionPercentage(Double commission) {
+        if (commission == null) {
+            throw new SellerValidationException("Field 'commissionPercentage' is required and cannot be empty");
+        }
         if (commission < MIN_COMMISSION) {
             throw new SellerValidationException("Commission percentage cannot be negative");
         }
@@ -182,18 +170,14 @@ public class SellerService {
     }
 
     private void validateDuplicateEmail(String email) {
-        for (SellerDomain seller : sellers) {
-            if (seller.getEmail().equals(email)) {
-                throw new SellerBusinessException("A seller with email '" + email + "' already exists");
-            }
+        if (sellerRepository.existsByEmail(email)) {
+            throw new SellerBusinessException("A seller with email '" + email + "' already exists");
         }
     }
 
     private void validateDuplicateIdentification(String identificationNumber) {
-        for (SellerDomain seller : sellers) {
-            if (seller.getIdentificationNumber().equals(identificationNumber)) {
-                throw new SellerBusinessException("A seller with identification number '" + identificationNumber + "' already exists");
-            }
+        if (sellerRepository.existsByIdentificationNumber(identificationNumber)) {
+            throw new SellerBusinessException("A seller with identification number '" + identificationNumber + "' already exists");
         }
     }
 

@@ -1,18 +1,22 @@
 package com.descuentos.descuentos_mio.repository;
 
 import com.descuentos.descuentos_mio.domain.DiscountsDomain;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface DiscountsRepository {
 
-    Flux<DiscountsDomain> findAll();
+    List<DiscountsDomain> findAll();
 
-    Mono<DiscountsDomain> findById(UUID id);
+    Optional<DiscountsDomain> findById(UUID id);
 
-    Mono<DiscountsDomain> save(DiscountsDomain discount);
+    DiscountsDomain save(DiscountsDomain discount);
 
-    Mono<DiscountsDomain> update(UUID id, DiscountsDomain discount);
+    Optional<DiscountsDomain> update(UUID id, DiscountsDomain discount);
+
+    Optional<DiscountsDomain> updateStatus(UUID id, Boolean status);
+
+    boolean deleteById(UUID id);
 }

@@ -19,21 +19,12 @@ import java.util.UUID;
 @Service
 public class CashReceiptServiceImpl implements CashReceiptService {
 
-<<<<<<< HEAD
-    //private final CashReceiptRepository cashReceiptRepository;
-    private final CashReceiptMapper cashReceiptMapper;
-
-    public CashReceiptServiceImpl(/*CashReceiptRepository cashReceiptRepository,*/
-                                  CashReceiptMapper cashReceiptMapper) {
-        //this.cashReceiptRepository = cashReceiptRepository;
-=======
     private final CashReceiptRepository cashReceiptRepository;
     private final CashReceiptMapper cashReceiptMapper;
 
     public CashReceiptServiceImpl(CashReceiptRepository cashReceiptRepository,
                                   CashReceiptMapper cashReceiptMapper) {
         this.cashReceiptRepository = cashReceiptRepository;
->>>>>>> origin/develop
         this.cashReceiptMapper = cashReceiptMapper;
     }
 
@@ -48,42 +39,19 @@ public class CashReceiptServiceImpl implements CashReceiptService {
         receipt.setStatus(CashReceiptStatus.PAID);
         receipt.setCreatedAt(LocalDateTime.now());
 
-<<<<<<< HEAD
-        //return cashReceiptMapper.toResponse(cashReceiptRepository.save(receipt));
-        return cashReceiptMapper.toResponse(receipt);
-=======
         return cashReceiptMapper.toResponse(cashReceiptRepository.save(receipt));
-
->>>>>>> origin/develop
     }
 
     @Override
     public Page<CashReceiptResponse> getCashReceiptsBySite(UUID siteId, Pageable pageable) {
 
-<<<<<<< HEAD
-        return Page.empty();
-        /*
         return cashReceiptRepository
                 .findBySiteId(siteId, pageable)
                 .map(cashReceiptMapper::toResponse);
-         */
-=======
-
-
-        return cashReceiptRepository
-                .findBySiteId(siteId, pageable)
-                .map(cashReceiptMapper::toResponse);
-
->>>>>>> origin/develop
     }
 
     @Override
     public CashReceiptResponse cancelCashReceipt(UUID siteId, UUID receiptId) {
-<<<<<<< HEAD
-        /*
-=======
-
->>>>>>> origin/develop
         CashReceipt receipt = cashReceiptRepository
                 .findById(receiptId)
                 .orElseThrow(() -> new CashReceiptNotFoundException("Cash receipt not found"));
@@ -106,11 +74,5 @@ public class CashReceiptServiceImpl implements CashReceiptService {
         receipt.setCancelledAt(LocalDateTime.now());
 
         return cashReceiptMapper.toResponse(cashReceiptRepository.save(receipt));
-
-<<<<<<< HEAD
-         */
-        return  null;
-=======
->>>>>>> origin/develop
     }
 }

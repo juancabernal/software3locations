@@ -1,14 +1,18 @@
 package com.co.eatupapi.repositories.inventory.product;
 
 import com.co.eatupapi.domain.inventory.product.Product;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
-public interface ProductRepository {
-    List<Product> findAll();
-    Optional<Product> findById(UUID id);
-    Product save(Product product);
-    void deleteById(UUID id);
-    boolean existsById(UUID id);
+@Repository
+public interface ProductRepository extends JpaRepository<Product, UUID> {
+
+    @Query("SELECT COUNT(p) FROM Product p WHERE LOWER(p.name) = LOWER(:name) AND LOWER(p.location) = LOWER(:location)")
+    Long countByNameAndLocation(@Param("name") String name, @Param("location") String location);
+
+    @Query("SELECT COUNT(p) FROM Product p WHERE LOWER(p.name) = LOWER(:name) AND LOWER(p.location) = LOWER(:location) AND p.id <> :id")
+    Long countByNameAndLocationAndIdNot(@Param("name") String name, @Param("location") String location, @Param("id") UUID id);
 }

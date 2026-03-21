@@ -2,11 +2,9 @@ package com.co.eatupapi.dto.inventory.product;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
-public class ProductDTO {
+public class ProductRequestDTO {
 
-    private UUID id;
     private String name;
     private String category;
     private String location;
@@ -14,9 +12,6 @@ public class ProductDTO {
     private BigDecimal salePrice;
     private BigDecimal stock;
     private LocalDate startDate;
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

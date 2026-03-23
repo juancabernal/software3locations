@@ -1,7 +1,7 @@
 package com.co.eatupapi.domain.inventory.transfer;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; 
 
 @Entity
 @Table(name = "transfers")

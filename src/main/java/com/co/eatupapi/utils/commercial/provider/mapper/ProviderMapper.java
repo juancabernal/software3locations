@@ -1,5 +1,4 @@
 package com.co.eatupapi.utils.commercial.provider.mapper;
-
 import com.co.eatupapi.domain.commercial.provider.ProviderDomain;
 import com.co.eatupapi.dto.commercial.provider.ProviderDTO;
 import org.springframework.stereotype.Component;
@@ -7,46 +6,48 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProviderMapper {
 
-    public ProviderDTO toDto(ProviderDomain providerDomain) {
-        ProviderDTO providerDTO = new ProviderDTO();
-        providerDTO.setId(providerDomain.getId());
-        providerDTO.setBusinessName(providerDomain.getBusinessName());
-        providerDTO.setDocumentTypeId(providerDomain.getDocumentTypeId());
-        providerDTO.setDocumentNumber(providerDomain.getDocumentNumber());
-        providerDTO.setTaxRegimeId(providerDomain.getTaxRegimeId());
-        providerDTO.setResponsibleFirstName(providerDomain.getResponsibleFirstName());
-        providerDTO.setResponsibleLastName(providerDomain.getResponsibleLastName());
-        providerDTO.setPhone(providerDomain.getPhone());
-        providerDTO.setEmail(providerDomain.getEmail());
-        providerDTO.setDepartmentId(providerDomain.getDepartmentId());
-        providerDTO.setCityId(providerDomain.getCityId());
-        providerDTO.setAddress(providerDomain.getAddress());
-        providerDTO.setBranchId(providerDomain.getBranchId());
-        providerDTO.setStatus(providerDomain.getStatus());
-        providerDTO.setCreatedDate(providerDomain.getCreatedDate());
-        providerDTO.setModifiedDate(providerDomain.getModifiedDate());
-        return providerDTO;
+    public ProviderDTO toDto(ProviderDomain provider) {
+        ProviderDTO dto = new ProviderDTO();
+        dto.setId(provider.getId() == null ? null : provider.getId().toString());
+        dto.setBusinessName(provider.getBusinessName());
+        dto.setDocumentTypeId(provider.getDocumentTypeId());
+        dto.setDocumentNumber(provider.getDocumentNumber());
+        dto.setTaxRegimeId(provider.getTaxRegimeId());
+        dto.setResponsibleFirstName(provider.getResponsibleFirstName());
+        dto.setResponsibleLastName(provider.getResponsibleLastName());
+        dto.setPhone(provider.getPhone());
+        dto.setEmail(provider.getEmail());
+        dto.setDepartmentId(provider.getDepartmentId());
+        dto.setCityId(provider.getCityId());
+        dto.setAddress(provider.getAddress());
+        dto.setBranchId(provider.getBranchId());
+        dto.setStatus(provider.getStatus());
+        dto.setCreatedDate(provider.getCreatedAt());
+        dto.setModifiedDate(provider.getModifiedAt());
+        return dto;
     }
 
     public ProviderDomain toDomain(ProviderDTO dto) {
-        ProviderDomain providerDomain = new ProviderDomain();
-        providerDomain.setId(dto.getId());
-        providerDomain.setBusinessName(dto.getBusinessName());
-        providerDomain.setDocumentTypeId(dto.getDocumentTypeId());
-        providerDomain.setDocumentNumber(dto.getDocumentNumber());
-        providerDomain.setTaxRegimeId(dto.getTaxRegimeId());
-        providerDomain.setResponsibleFirstName(dto.getResponsibleFirstName());
-        providerDomain.setResponsibleLastName(dto.getResponsibleLastName());
-        providerDomain.setPhone(dto.getPhone());
-        providerDomain.setEmail(dto.getEmail());
-        providerDomain.setDepartmentId(dto.getDepartmentId());
-        providerDomain.setCityId(dto.getCityId());
-        providerDomain.setAddress(dto.getAddress());
-        providerDomain.setBranchId(dto.getBranchId());
-        providerDomain.setStatus(dto.getStatus());
-        providerDomain.setCreatedDate(dto.getCreatedDate());
-        providerDomain.setModifiedDate(dto.getModifiedDate());
-        return providerDomain;
+        ProviderDomain provider = new ProviderDomain();
+        updateDomain(provider, dto);
+        provider.setStatus(dto.getStatus());
+        provider.setCreatedAt(dto.getCreatedDate());
+        provider.setModifiedAt(dto.getModifiedDate());
+        return provider;
+    }
+
+    public void updateDomain(ProviderDomain provider, ProviderDTO dto) {
+        provider.setBusinessName(dto.getBusinessName());
+        provider.setDocumentTypeId(dto.getDocumentTypeId());
+        provider.setDocumentNumber(dto.getDocumentNumber());
+        provider.setTaxRegimeId(dto.getTaxRegimeId());
+        provider.setResponsibleFirstName(dto.getResponsibleFirstName());
+        provider.setResponsibleLastName(dto.getResponsibleLastName());
+        provider.setPhone(dto.getPhone());
+        provider.setEmail(dto.getEmail());
+        provider.setDepartmentId(dto.getDepartmentId());
+        provider.setCityId(dto.getCityId());
+        provider.setAddress(dto.getAddress());
+        provider.setBranchId(dto.getBranchId());
     }
 }
-

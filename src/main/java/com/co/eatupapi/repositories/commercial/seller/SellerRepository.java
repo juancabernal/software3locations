@@ -1,4 +1,15 @@
 package com.co.eatupapi.repositories.commercial.seller;
 
-public interface SellerRepository {
+import com.co.eatupapi.domain.commercial.seller.SellerDomain;
+import com.co.eatupapi.domain.commercial.seller.SellerStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface SellerRepository extends JpaRepository<SellerDomain, String> {
+    boolean existsByEmail(String email);
+    boolean existsByIdentificationNumber(String identificationNumber);
+    List<SellerDomain> findByStatus(SellerStatus status);
 }

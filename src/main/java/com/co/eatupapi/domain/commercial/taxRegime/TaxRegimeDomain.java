@@ -1,23 +1,44 @@
 package com.co.eatupapi.domain.commercial.taxRegime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
+@Entity
+@Table(name = "tax_regimes")
 public class TaxRegimeDomain {
 
-    private String id;
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TaxRegimeStatus status;
-    private LocalDateTime createdDate;
-    private LocalDateTime modifiedDate;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column
+    private LocalDateTime modifiedAt;
 
     public TaxRegimeDomain() {
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -37,19 +58,19 @@ public class TaxRegimeDomain {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public LocalDateTime getModifiedDate() {
-        return modifiedDate;
+    public LocalDateTime getModifiedAt() {
+        return modifiedAt;
     }
 
-    public void setModifiedDate(LocalDateTime modifiedDate) {
-        this.modifiedDate = modifiedDate;
+    public void setModifiedAt(LocalDateTime modifiedAt) {
+        this.modifiedAt = modifiedAt;
     }
 }

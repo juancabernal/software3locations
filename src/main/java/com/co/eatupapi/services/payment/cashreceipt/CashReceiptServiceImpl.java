@@ -40,23 +40,18 @@ public class CashReceiptServiceImpl implements CashReceiptService {
         receipt.setCreatedAt(LocalDateTime.now());
 
         return cashReceiptMapper.toResponse(cashReceiptRepository.save(receipt));
-
     }
 
     @Override
     public Page<CashReceiptResponse> getCashReceiptsBySite(UUID siteId, Pageable pageable) {
 
-
-
         return cashReceiptRepository
                 .findBySiteId(siteId, pageable)
                 .map(cashReceiptMapper::toResponse);
-
     }
 
     @Override
     public CashReceiptResponse cancelCashReceipt(UUID siteId, UUID receiptId) {
-
         CashReceipt receipt = cashReceiptRepository
                 .findById(receiptId)
                 .orElseThrow(() -> new CashReceiptNotFoundException("Cash receipt not found"));
@@ -79,6 +74,5 @@ public class CashReceiptServiceImpl implements CashReceiptService {
         receipt.setCancelledAt(LocalDateTime.now());
 
         return cashReceiptMapper.toResponse(cashReceiptRepository.save(receipt));
-
     }
 }

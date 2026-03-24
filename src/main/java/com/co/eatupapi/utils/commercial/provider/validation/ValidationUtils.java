@@ -31,6 +31,7 @@ public final class ValidationUtils {
         }
     }
 
+
     public static void validatePhone(String phone) {
         validateNumericValue(phone, "Phone number must contain only digits");
         if (phone.length() != 10) {

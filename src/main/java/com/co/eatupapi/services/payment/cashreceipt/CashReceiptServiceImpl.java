@@ -35,7 +35,7 @@ public class CashReceiptServiceImpl implements CashReceiptService {
         receipt.setSiteId(siteId);
         receipt.setInvoiceId(request.getInvoiceId());
         receipt.setAmount(request.getAmount());
-        receipt.setPaymentMethod(request.getPaymentMethod());
+        receipt.setPaymentMethodId(request.getPaymentMethodId());
         receipt.setStatus(CashReceiptStatus.PAID);
         receipt.setCreatedAt(LocalDateTime.now());
 

@@ -14,8 +14,8 @@ public class LocationRequestDTO {
     @NotBlank(message = "address is required")
     private String address;
 
-    @NotBlank(message = "active is required")
-    private boolean active;
+    @NotNull(message = "active is required")
+    private Boolean active;
 
     @NotBlank(message = "email is required")
     @Email(message = "email is not valid")
@@ -46,7 +46,7 @@ public class LocationRequestDTO {
         return address;
     }
 
-    public boolean isActive() {
+    public Boolean getActive() {
         return active;
     }
 

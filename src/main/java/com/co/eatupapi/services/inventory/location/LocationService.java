@@ -1,7 +1,16 @@
 package com.co.eatupapi.services.inventory.location;
 
-import org.springframework.stereotype.Service;
+import com.co.eatupapi.dto.inventory.location.LocationRequestDTO;
+import com.co.eatupapi.dto.inventory.location.LocationResponseDTO;
 
-@Service //Working...
-public class LocationService {
+import java.util.List;
+
+public interface LocationService {
+    List<LocationResponseDTO> findAll();
+
+    LocationResponseDTO findById(String id);
+
+    LocationResponseDTO create(LocationRequestDTO request);
+
+    LocationResponseDTO update(String id, LocationRequestDTO request);
 }

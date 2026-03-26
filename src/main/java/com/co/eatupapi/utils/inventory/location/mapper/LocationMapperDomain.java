@@ -5,9 +5,9 @@ import com.co.eatupapi.dto.inventory.location.LocationRequestDTO;
 
 import java.util.UUID;
 
-public class LocationMapper {
+public class LocationMapperDomain {
 
-    private LocationMapper() {}
+    private LocationMapperDomain() {}
 
     public static LocationDomain toDomain(LocationRequestDTO dto) {
         return new LocationDomain(
@@ -15,7 +15,7 @@ public class LocationMapper {
                 dto.getName(),
                 dto.getCity(),
                 dto.getAddress(),
-                dto.isActive(),
+                dto.getActive(),
                 dto.getEmail(),
                 dto.getPhoneNumber(),
                 dto.getStartTime(),
@@ -29,7 +29,7 @@ public class LocationMapper {
                 dto.getName(),
                 dto.getCity(),
                 dto.getAddress(),
-                dto.isActive(),
+                dto.getActive(),
                 dto.getEmail(),
                 dto.getPhoneNumber(),
                 dto.getStartTime(),

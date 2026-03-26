@@ -13,7 +13,7 @@ public class LocationResponseDTO {
     private String startTime;
     private String endTime;
 
-    public LocationResponseDTO fromDomain(LocationDomain domain){
+    public static LocationResponseDTO fromDomain(LocationDomain domain){
         LocationResponseDTO dto = new LocationResponseDTO();
         dto.id = domain.getId();
         dto.name = domain.getName();

@@ -1,15 +1,42 @@
 package com.descuentos.descuentos_mio.domain;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Entity
+@Table(name = "customer_discounts")
 public class CustomerDiscountDomain {
 
+    @Id
+    @GeneratedValue
     private UUID id;
+
+    @Column(nullable = false)
     private UUID locationId;
+
+    @Column(nullable = false)
     private UUID customerId;
+
+    @Column(nullable = false)
     private UUID discountId;
+
+    @Column(nullable = false)
     private LocalDate assignedAt;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column
+    private LocalDateTime modifiedAt;
 
     public CustomerDiscountDomain() {
     }
@@ -20,6 +47,16 @@ public class CustomerDiscountDomain {
         this.customerId = customerId;
         this.discountId = discountId;
         this.assignedAt = assignedAt;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.modifiedAt = LocalDateTime.now();
     }
 
     public UUID getId() {
@@ -60,5 +97,21 @@ public class CustomerDiscountDomain {
 
     public void setAssignedAt(LocalDate assignedAt) {
         this.assignedAt = assignedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getModifiedAt() {
+        return modifiedAt;
+    }
+
+    public void setModifiedAt(LocalDateTime modifiedAt) {
+        this.modifiedAt = modifiedAt;
     }
 }

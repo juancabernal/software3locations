@@ -5,6 +5,7 @@ import com.descuentos.descuentos_mio.dto.DiscountsDto;
 import com.descuentos.descuentos_mio.repository.DiscountsRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,14 +32,25 @@ public class DiscountsServiceImpl implements DiscountsService {
     @Override
     public DiscountsDto createDiscount(DiscountsDto discount) {
         DiscountsDto validated = validate(discount);
-        DiscountsDomain saved = discountsRepository.save(toDomain(validated));
+        DiscountsDomain domain = toDomain(validated);
+        domain.setCreatedAt(LocalDateTime.now());
+        DiscountsDomain saved = discountsRepository.save(domain);
         return toDto(saved);
     }
 
     @Override
     public Optional<DiscountsDto> updateDiscount(UUID id, DiscountsDto discount) {
         DiscountsDto validated = validate(discount);
-        return discountsRepository.update(id, toDomain(validated)).map(this::toDto);
+        return discountsRepository.findById(id)
+                .map(existing -> {
+                    existing.setCategoryId(validated.getCategoryId());
+                    existing.setPercentage(validated.getPercentage());
+                    existing.setDescription(validated.getDescription());
+                    existing.setStatus(validated.getStatus());
+                    existing.setModifiedAt(LocalDateTime.now());
+                    return discountsRepository.save(existing);
+                })
+                .map(this::toDto);
     }
 
     @Override
@@ -46,12 +58,22 @@ public class DiscountsServiceImpl implements DiscountsService {
         if (status == null) {
             throw new IllegalArgumentException("status es obligatorio");
         }
-        return discountsRepository.updateStatus(id, status).map(this::toDto);
+        return discountsRepository.findById(id)
+                .map(existing -> {
+                    existing.setStatus(status);
+                    existing.setModifiedAt(LocalDateTime.now());
+                    return discountsRepository.save(existing);
+                })
+                .map(this::toDto);
     }
 
     @Override
     public boolean deleteDiscount(UUID id) {
-        return discountsRepository.deleteById(id);
+        if (!discountsRepository.existsById(id)) {
+            return false;
+        }
+        discountsRepository.deleteById(id);
+        return true;
     }
 
     private DiscountsDto validate(DiscountsDto discount) {
@@ -81,9 +103,8 @@ public class DiscountsServiceImpl implements DiscountsService {
     }
 
     private DiscountsDomain toDomain(DiscountsDto dto) {
-        UUID id = dto.getId();
         return new DiscountsDomain(
-                id,
+                dto.getId(),
                 dto.getCategoryId(),
                 dto.getPercentage(),
                 dto.getDescription(),

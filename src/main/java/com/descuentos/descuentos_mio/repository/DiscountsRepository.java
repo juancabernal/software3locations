@@ -1,22 +1,12 @@
 package com.descuentos.descuentos_mio.repository;
 
 import com.descuentos.descuentos_mio.domain.DiscountsDomain;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-public interface DiscountsRepository {
+public interface DiscountsRepository extends JpaRepository<DiscountsDomain, UUID> {
 
-    List<DiscountsDomain> findAll();
-
-    Optional<DiscountsDomain> findById(UUID id);
-
-    DiscountsDomain save(DiscountsDomain discount);
-
-    Optional<DiscountsDomain> update(UUID id, DiscountsDomain discount);
-
-    Optional<DiscountsDomain> updateStatus(UUID id, Boolean status);
-
-    boolean deleteById(UUID id);
+    List<DiscountsDomain> findByStatus(Boolean status);
 }

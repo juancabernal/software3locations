@@ -9,6 +9,7 @@ import com.descuentos.descuentos_mio.repository.DiscountsRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,19 +50,34 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
     @Override
     public CustomerDiscountDto createCustomerDiscount(CustomerDiscountDto customerDiscount) {
         CustomerDiscountDto validated = validate(customerDiscount);
-        CustomerDiscountDomain saved = customerDiscountRepository.save(toDomain(validated));
+        CustomerDiscountDomain domain = toDomain(validated);
+        domain.setCreatedAt(LocalDateTime.now());
+        CustomerDiscountDomain saved = customerDiscountRepository.save(domain);
         return toDto(saved);
     }
 
     @Override
     public Optional<CustomerDiscountDto> updateCustomerDiscount(UUID id, CustomerDiscountDto customerDiscount) {
         CustomerDiscountDto validated = validate(customerDiscount);
-        return customerDiscountRepository.update(id, toDomain(validated)).map(this::toDto);
+        return customerDiscountRepository.findById(id)
+                .map(existing -> {
+                    existing.setLocationId(validated.getLocationId());
+                    existing.setCustomerId(validated.getCustomerId());
+                    existing.setDiscountId(validated.getDiscountId());
+                    existing.setAssignedAt(validated.getAssignedAt());
+                    existing.setModifiedAt(LocalDateTime.now());
+                    return customerDiscountRepository.save(existing);
+                })
+                .map(this::toDto);
     }
 
     @Override
     public boolean deleteCustomerDiscount(UUID id) {
-        return customerDiscountRepository.deleteById(id);
+        if (!customerDiscountRepository.existsById(id)) {
+            return false;
+        }
+        customerDiscountRepository.deleteById(id);
+        return true;
     }
 
     private CustomerDiscountDto validate(CustomerDiscountDto customerDiscount) {

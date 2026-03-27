@@ -14,33 +14,32 @@ public class SaleMapper {
         if (domain == null) return null;
 
         SaleResponseDTO dto = new SaleResponseDTO();
-//        dto.setId(domain.getId());
-//        dto.setSellerId(domain.getSeller().getId());
-//        dto.setSellerName(domain.getSeller().getFirstName() + " " + domain.getSeller().getLastName());
-//        dto.setTableId(domain.getTableId());
-//        dto.setStatus(domain.getStatus());
-//        dto.setTotalAmount(domain.getTotalAmount());
-//        dto.setCreatedDate(domain.getCreatedDate());
+        dto.setId(domain.getId());
+        dto.setSellerId(domain.getSeller().getId());
+        dto.setSellerName(domain.getSeller().getFirstName() + " " + domain.getSeller().getLastName());
+        dto.setTableId(domain.getTableId());
+        dto.setStatus(domain.getStatus());
+        dto.setTotalAmount(domain.getTotalAmount());
+        dto.setCreatedDate(domain.getCreatedDate());
 
         if (domain.getDetails() != null) {
-//            dto.setDetails(domain.getDetails().stream()
-//                    .map(this::toDetailDto)
-//                    .collect(Collectors.toList()));
+            dto.setDetails(domain.getDetails().stream()
+                    .map(this::toDetailDto)
+                    .collect(Collectors.toList()));
         }
 
         return dto;
     }
 
     public SaleDetailDTO toDetailDto(SaleDetailDomain detail) {
-//        if (detail == null) return null;
-//
-//        SaleDetailDTO dto = new SaleDetailDTO();
-//        dto.setProductId(detail.getProduct().getId());
-//        dto.setProductName(detail.getProduct().getName());
-//        dto.setQuantity(detail.getQuantity());
-//        dto.setUnitPrice(detail.getUnitPrice());
-//        dto.setSubtotal(detail.getSubtotal());
-//        return dto;
-        return null;
+        if (detail == null) return null;
+
+        SaleDetailDTO dto = new SaleDetailDTO();
+        dto.setProductId(detail.getProduct().getId());
+        dto.setProductName(detail.getProduct().getName());
+        dto.setQuantity(detail.getQuantity());
+        dto.setUnitPrice(detail.getUnitPrice());
+        dto.setSubtotal(detail.getSubtotal());
+        return dto;
     }
 }

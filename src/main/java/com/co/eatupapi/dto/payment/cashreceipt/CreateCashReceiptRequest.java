@@ -1,6 +1,5 @@
 package com.co.eatupapi.dto.payment.cashreceipt;
 
-import com.co.eatupapi.domain.payment.cashreceipt.PaymentMethod;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -26,7 +25,7 @@ public class CreateCashReceiptRequest {
     @Positive(message = "Amount must be greater than zero")
     private BigDecimal amount;
 
-    @Schema(description = "Medio de pago", example = "CASH", allowableValues = {"CASH", "CARD", "TRANSFER"})
-    @NotNull(message = "Payment method is required")
-    private PaymentMethod paymentMethod;
+    @Schema(description = "ID del método de pago", example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
+    @NotNull(message = "Payment method ID is required")
+    private UUID paymentMethodId;
 }

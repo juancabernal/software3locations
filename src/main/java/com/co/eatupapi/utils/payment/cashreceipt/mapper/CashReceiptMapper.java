@@ -8,7 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface CashReceiptMapper {
 
-    @Mapping(target = "paymentMethod", expression = "java(receipt.getPaymentMethod().name())")
     @Mapping(target = "status", expression = "java(receipt.getStatus().name())")
     CashReceiptResponse toResponse(CashReceipt receipt);
 

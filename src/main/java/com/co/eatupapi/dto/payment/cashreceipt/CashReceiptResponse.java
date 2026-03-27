@@ -24,8 +24,8 @@ public class CashReceiptResponse {
     @Schema(description = "Monto pagado", example = "1250.50")
     private BigDecimal amount;
 
-    @Schema(description = "Medio de pago utilizado", example = "CASH")
-    private String paymentMethod;
+    @Schema(description = "ID del método de pago utilizado")
+    private UUID paymentMethodId;
 
     @Schema(description = "Estado del recibo", example = "PAID")
     private String status;

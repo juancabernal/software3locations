@@ -1,4 +1,6 @@
 package com.co.eatupapi.domain.inventory.categories;
 
-public class Categories {
+public enum CategoryStatus {
+    ACTIVE,
+    INACTIVE
 }

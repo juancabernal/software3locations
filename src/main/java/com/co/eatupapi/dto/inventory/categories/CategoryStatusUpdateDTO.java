@@ -1,6 +1,6 @@
-package com.co.eatupapi.dto.payment.invoice;
+package com.co.eatupapi.dto.inventory.categories;
 
-public class InvoiceStatusUpdateDTO {
+public class CategoryStatusUpdateDTO {
 
     private String status;
 

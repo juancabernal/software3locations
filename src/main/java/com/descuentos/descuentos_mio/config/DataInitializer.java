@@ -1,9 +1,9 @@
 package com.descuentos.descuentos_mio.config;
 
 import com.descuentos.descuentos_mio.domain.CustomerDiscountDomain;
-import com.descuentos.descuentos_mio.domain.DiscountsDomain;
+import com.descuentos.descuentos_mio.domain.DiscountDomain;
 import com.descuentos.descuentos_mio.repository.CustomerDiscountRepository;
-import com.descuentos.descuentos_mio.repository.DiscountsRepository;
+import com.descuentos.descuentos_mio.repository.DiscountRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,10 +26,10 @@ public class DataInitializer {
     private static final UUID CUSTOMER_ID_1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @Bean
-    CommandLineRunner seedData(DiscountsRepository discountsRepository, CustomerDiscountRepository customerDiscountRepository) {
+    CommandLineRunner seedData(DiscountRepository discountRepository, CustomerDiscountRepository customerDiscountRepository) {
         return args -> {
-            if (!discountsRepository.existsById(DISCOUNT_ID_1)) {
-                DiscountsDomain firstDiscount = new DiscountsDomain(
+            if (!discountRepository.existsById(DISCOUNT_ID_1)) {
+                DiscountDomain firstDiscount = new DiscountDomain(
                         DISCOUNT_ID_1,
                         CATEGORY_ID_1,
                         10,
@@ -37,11 +37,11 @@ public class DataInitializer {
                         true
                 );
                 firstDiscount.setCreatedAt(LocalDateTime.now());
-                discountsRepository.save(firstDiscount);
+                discountRepository.save(firstDiscount);
             }
 
-            if (!discountsRepository.existsById(DISCOUNT_ID_2)) {
-                DiscountsDomain secondDiscount = new DiscountsDomain(
+            if (!discountRepository.existsById(DISCOUNT_ID_2)) {
+                DiscountDomain secondDiscount = new DiscountDomain(
                         DISCOUNT_ID_2,
                         CATEGORY_ID_2,
                         25,
@@ -49,7 +49,7 @@ public class DataInitializer {
                         true
                 );
                 secondDiscount.setCreatedAt(LocalDateTime.now());
-                discountsRepository.save(secondDiscount);
+                discountRepository.save(secondDiscount);
             }
 
             if (!customerDiscountRepository.existsById(CUSTOMER_DISCOUNT_ID_1)) {

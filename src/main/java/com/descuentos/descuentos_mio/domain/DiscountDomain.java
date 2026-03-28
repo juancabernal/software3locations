@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "discounts")
-public class DiscountsDomain {
+public class DiscountDomain {
 
     @Id
     @GeneratedValue
@@ -37,10 +37,10 @@ public class DiscountsDomain {
     @Column
     private LocalDateTime modifiedAt;
 
-    public DiscountsDomain() {
+    public DiscountDomain() {
     }
 
-    public DiscountsDomain(UUID id, UUID categoryId, Integer percentage, String description, Boolean status) {
+    public DiscountDomain(UUID id, UUID categoryId, Integer percentage, String description, Boolean status) {
         this.id = id;
         this.categoryId = categoryId;
         this.percentage = percentage;

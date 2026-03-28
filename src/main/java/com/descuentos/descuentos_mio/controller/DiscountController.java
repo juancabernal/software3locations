@@ -1,7 +1,7 @@
 package com.descuentos.descuentos_mio.controller;
 
-import com.descuentos.descuentos_mio.dto.DiscountsDto;
-import com.descuentos.descuentos_mio.service.DiscountsService;
+import com.descuentos.descuentos_mio.dto.DiscountDTO;
+import com.descuentos.descuentos_mio.service.DiscountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,55 +12,55 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/comercial/api/v1/discounts")
-public class DiscountsController {
+public class DiscountController {
 
-    private final DiscountsService discountsService;
+    private final DiscountService discountService;
 
-    public DiscountsController(DiscountsService discountsService) {
-        this.discountsService = discountsService;
+    public DiscountController(DiscountService discountService) {
+        this.discountService = discountService;
     }
 
     @GetMapping
-    public List<DiscountsDto> getAllDiscounts() {
-        return discountsService.getAllDiscounts();
+    public List<DiscountDTO> getAllDiscounts() {
+        return discountService.getAllDiscounts();
     }
 
     @GetMapping("/{discountId}")
-    public ResponseEntity<DiscountsDto> getDiscountById(@PathVariable UUID discountId) {
-        return discountsService.getDiscountById(discountId)
+    public ResponseEntity<DiscountDTO> getDiscountById(@PathVariable UUID discountId) {
+        return discountService.getDiscountById(discountId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<DiscountsDto> createDiscount(@RequestBody DiscountsDto discountsDto) {
-        DiscountsDto created = discountsService.createDiscount(discountsDto);
+    public ResponseEntity<DiscountDTO> createDiscount(@RequestBody DiscountDTO discountDto) {
+        DiscountDTO created = discountService.createDiscount(discountDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{discountId}")
-    public ResponseEntity<DiscountsDto> updateDiscount(
+    public ResponseEntity<DiscountDTO> updateDiscount(
             @PathVariable UUID discountId,
-            @RequestBody DiscountsDto discountsDto
+            @RequestBody DiscountDTO discountDto
     ) {
-        return discountsService.updateDiscount(discountId, discountsDto)
+        return discountService.updateDiscount(discountId, discountDto)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PatchMapping("/{discountId}/status")
-    public ResponseEntity<DiscountsDto> updateDiscountStatus(
+    public ResponseEntity<DiscountDTO> updateDiscountStatus(
             @PathVariable UUID discountId,
             @RequestBody Map<String, Boolean> request
     ) {
-        return discountsService.updateDiscountStatus(discountId, request.get("status"))
+        return discountService.updateDiscountStatus(discountId, request.get("status"))
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{discountId}")
     public ResponseEntity<Void> deleteDiscount(@PathVariable UUID discountId) {
-        if (discountsService.deleteDiscount(discountId)) {
+        if (discountService.deleteDiscount(discountId)) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();

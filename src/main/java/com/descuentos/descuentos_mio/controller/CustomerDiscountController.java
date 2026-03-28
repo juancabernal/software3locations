@@ -1,6 +1,6 @@
 package com.descuentos.descuentos_mio.controller;
 
-import com.descuentos.descuentos_mio.dto.CustomerDiscountDto;
+import com.descuentos.descuentos_mio.dto.CustomerDiscountDTO;
 import com.descuentos.descuentos_mio.service.CustomerDiscountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,26 +29,26 @@ public class CustomerDiscountController {
     }
 
     @GetMapping("/customer-discounts")
-    public List<CustomerDiscountDto> getAllCustomerDiscounts() {
+    public List<CustomerDiscountDTO> getAllCustomerDiscounts() {
         return customerDiscountService.getAllCustomerDiscounts();
     }
 
     @GetMapping("/customers/{customerId}/discounts")
-    public ResponseEntity<List<CustomerDiscountDto>> getDiscountsByCustomerId(@PathVariable UUID customerId) {
-        List<CustomerDiscountDto> discounts = customerDiscountService.getDiscountsByCustomerId(customerId);
+    public ResponseEntity<List<CustomerDiscountDTO>> getDiscountsByCustomerId(@PathVariable UUID customerId) {
+        List<CustomerDiscountDTO> discounts = customerDiscountService.getDiscountsByCustomerId(customerId);
         return ResponseEntity.ok(discounts);
     }
 
     @PostMapping("/customer-discounts")
-    public ResponseEntity<CustomerDiscountDto> createCustomerDiscount(@RequestBody CustomerDiscountDto customerDiscountDto) {
-        CustomerDiscountDto created = customerDiscountService.createCustomerDiscount(customerDiscountDto);
+    public ResponseEntity<CustomerDiscountDTO> createCustomerDiscount(@RequestBody CustomerDiscountDTO customerDiscountDto) {
+        CustomerDiscountDTO created = customerDiscountService.createCustomerDiscount(customerDiscountDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/customer-discounts/{id}")
-    public ResponseEntity<CustomerDiscountDto> updateCustomerDiscount(
+    public ResponseEntity<CustomerDiscountDTO> updateCustomerDiscount(
             @PathVariable UUID id,
-            @RequestBody CustomerDiscountDto customerDiscountDto
+            @RequestBody CustomerDiscountDTO customerDiscountDto
     ) {
         return customerDiscountService.updateCustomerDiscount(id, customerDiscountDto)
                 .map(ResponseEntity::ok)

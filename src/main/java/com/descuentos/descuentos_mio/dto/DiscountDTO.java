@@ -2,7 +2,7 @@ package com.descuentos.descuentos_mio.dto;
 
 import java.util.UUID;
 
-public class DiscountsDto {
+public class DiscountDTO {
 
     private UUID id;
     private UUID categoryId;
@@ -10,10 +10,10 @@ public class DiscountsDto {
     private String description;
     private Boolean status;
 
-    public DiscountsDto() {
+    public DiscountDTO() {
     }
 
-    public DiscountsDto(UUID id, UUID categoryId, Integer percentage, String description, Boolean status) {
+    public DiscountDTO(UUID id, UUID categoryId, Integer percentage, String description, Boolean status) {
         this.id = id;
         this.categoryId = categoryId;
         this.percentage = percentage;

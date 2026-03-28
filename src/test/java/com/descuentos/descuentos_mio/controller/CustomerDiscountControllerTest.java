@@ -1,6 +1,6 @@
 package com.descuentos.descuentos_mio.controller;
 
-import com.descuentos.descuentos_mio.dto.CustomerDiscountDto;
+import com.descuentos.descuentos_mio.dto.CustomerDiscountDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ class CustomerDiscountControllerTest {
 
     @Test
     void shouldCreateCustomerDiscount() throws Exception {
-        CustomerDiscountDto request = new CustomerDiscountDto(
+        CustomerDiscountDTO request = new CustomerDiscountDTO(
                 null,
                 LOCATION_ID_1,
                 CUSTOMER_ID_2,
@@ -72,7 +72,7 @@ class CustomerDiscountControllerTest {
 
     @Test
     void shouldUpdateCustomerDiscount() throws Exception {
-        CustomerDiscountDto request = new CustomerDiscountDto(
+        CustomerDiscountDTO request = new CustomerDiscountDTO(
                 null,
                 LOCATION_ID_1,
                 CUSTOMER_ID_1,

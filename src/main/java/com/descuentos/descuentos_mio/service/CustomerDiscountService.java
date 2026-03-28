@@ -1,6 +1,6 @@
 package com.descuentos.descuentos_mio.service;
 
-import com.descuentos.descuentos_mio.dto.CustomerDiscountDto;
+import com.descuentos.descuentos_mio.dto.CustomerDiscountDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,13 +8,13 @@ import java.util.UUID;
 
 public interface CustomerDiscountService {
 
-    List<CustomerDiscountDto> getAllCustomerDiscounts();
+    List<CustomerDiscountDTO> getAllCustomerDiscounts();
 
-    List<CustomerDiscountDto> getDiscountsByCustomerId(UUID customerId);
+    List<CustomerDiscountDTO> getDiscountsByCustomerId(UUID customerId);
 
-    CustomerDiscountDto createCustomerDiscount(CustomerDiscountDto customerDiscount);
+    CustomerDiscountDTO createCustomerDiscount(CustomerDiscountDTO customerDiscount);
 
-    Optional<CustomerDiscountDto> updateCustomerDiscount(UUID id, CustomerDiscountDto customerDiscount);
+    Optional<CustomerDiscountDTO> updateCustomerDiscount(UUID id, CustomerDiscountDTO customerDiscount);
 
     boolean deleteCustomerDiscount(UUID id);
 }

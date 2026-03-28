@@ -3,7 +3,7 @@ package com.descuentos.descuentos_mio.dto;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class CustomerDiscountDto {
+public class CustomerDiscountDTO {
 
     private UUID id;
     private UUID locationId;
@@ -11,10 +11,10 @@ public class CustomerDiscountDto {
     private UUID discountId;
     private LocalDate assignedAt;
 
-    public CustomerDiscountDto() {
+    public CustomerDiscountDTO() {
     }
 
-    public CustomerDiscountDto(UUID id, UUID locationId, UUID customerId, UUID discountId, LocalDate assignedAt) {
+    public CustomerDiscountDTO(UUID id, UUID locationId, UUID customerId, UUID discountId, LocalDate assignedAt) {
         this.id = id;
         this.locationId = locationId;
         this.customerId = customerId;

@@ -6,6 +6,7 @@ import com.descuentos.descuentos_mio.domain.CustomerDiscountDomain;
 import com.descuentos.descuentos_mio.dto.CustomerDiscountDTO;
 import com.descuentos.descuentos_mio.repository.CustomerDiscountRepository;
 import com.descuentos.descuentos_mio.repository.DiscountRepository;
+import com.descuentos.descuentos_mio.utils.customerdiscount.mapper.CustomerDiscountMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,22 +22,25 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
     private final CustomerServiceClient customerServiceClient;
     private final LocationServiceClient locationServiceClient;
     private final DiscountRepository discountRepository;
+    private final CustomerDiscountMapper customerDiscountMapper;
 
     public CustomerDiscountServiceImpl(
             CustomerDiscountRepository customerDiscountRepository,
             CustomerServiceClient customerServiceClient,
             LocationServiceClient locationServiceClient,
-            DiscountRepository discountRepository
+            DiscountRepository discountRepository,
+            CustomerDiscountMapper customerDiscountMapper
     ) {
         this.customerDiscountRepository = customerDiscountRepository;
         this.customerServiceClient = customerServiceClient;
         this.locationServiceClient = locationServiceClient;
         this.discountRepository = discountRepository;
+        this.customerDiscountMapper = customerDiscountMapper;
     }
 
     @Override
     public List<CustomerDiscountDTO> getAllCustomerDiscounts() {
-        return customerDiscountRepository.findAll().stream().map(this::toDto).toList();
+        return customerDiscountRepository.findAll().stream().map(customerDiscountMapper::toDto).toList();
     }
 
     @Override
@@ -44,16 +48,16 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
         if (customerServiceClient.findCustomerById(customerId).isEmpty()) {
             throw new IllegalArgumentException("customerId no existe en el servicio externo");
         }
-        return customerDiscountRepository.findByCustomerId(customerId).stream().map(this::toDto).toList();
+        return customerDiscountRepository.findByCustomerId(customerId).stream().map(customerDiscountMapper::toDto).toList();
     }
 
     @Override
     public CustomerDiscountDTO createCustomerDiscount(CustomerDiscountDTO customerDiscount) {
         CustomerDiscountDTO validated = validate(customerDiscount);
-        CustomerDiscountDomain domain = toDomain(validated);
+        CustomerDiscountDomain domain = customerDiscountMapper.toDomain(validated);
         domain.setCreatedAt(LocalDateTime.now());
         CustomerDiscountDomain saved = customerDiscountRepository.save(domain);
-        return toDto(saved);
+        return customerDiscountMapper.toDto(saved);
     }
 
     @Override
@@ -61,14 +65,11 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
         CustomerDiscountDTO validated = validate(customerDiscount);
         return customerDiscountRepository.findById(id)
                 .map(existing -> {
-                    existing.setLocationId(validated.getLocationId());
-                    existing.setCustomerId(validated.getCustomerId());
-                    existing.setDiscountId(validated.getDiscountId());
-                    existing.setAssignedAt(validated.getAssignedAt());
+                    customerDiscountMapper.updateDomain(existing, validated);
                     existing.setModifiedAt(LocalDateTime.now());
                     return customerDiscountRepository.save(existing);
                 })
-                .map(this::toDto);
+                .map(customerDiscountMapper::toDto);
     }
 
     @Override
@@ -103,25 +104,5 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
             customerDiscount.setAssignedAt(LocalDate.now());
         }
         return customerDiscount;
-    }
-
-    private CustomerDiscountDTO toDto(CustomerDiscountDomain domain) {
-        return new CustomerDiscountDTO(
-                domain.getId(),
-                domain.getLocationId(),
-                domain.getCustomerId(),
-                domain.getDiscountId(),
-                domain.getAssignedAt()
-        );
-    }
-
-    private CustomerDiscountDomain toDomain(CustomerDiscountDTO dto) {
-        return new CustomerDiscountDomain(
-                dto.getId(),
-                dto.getLocationId(),
-                dto.getCustomerId(),
-                dto.getDiscountId(),
-                dto.getAssignedAt()
-        );
     }
 }

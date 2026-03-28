@@ -3,6 +3,7 @@ package com.descuentos.descuentos_mio.service;
 import com.descuentos.descuentos_mio.domain.DiscountDomain;
 import com.descuentos.descuentos_mio.dto.DiscountDTO;
 import com.descuentos.descuentos_mio.repository.DiscountRepository;
+import com.descuentos.descuentos_mio.utils.discount.mapper.DiscountMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,28 +15,30 @@ import java.util.UUID;
 public class DiscountServiceImpl implements DiscountService {
 
     private final DiscountRepository discountRepository;
+    private final DiscountMapper discountMapper;
 
-    public DiscountServiceImpl(DiscountRepository discountRepository) {
+    public DiscountServiceImpl(DiscountRepository discountRepository, DiscountMapper discountMapper) {
         this.discountRepository = discountRepository;
+        this.discountMapper = discountMapper;
     }
 
     @Override
     public List<DiscountDTO> getAllDiscounts() {
-        return discountRepository.findAll().stream().map(this::toDto).toList();
+        return discountRepository.findAll().stream().map(discountMapper::toDto).toList();
     }
 
     @Override
     public Optional<DiscountDTO> getDiscountById(UUID id) {
-        return discountRepository.findById(id).map(this::toDto);
+        return discountRepository.findById(id).map(discountMapper::toDto);
     }
 
     @Override
     public DiscountDTO createDiscount(DiscountDTO discount) {
         DiscountDTO validated = validate(discount);
-        DiscountDomain domain = toDomain(validated);
+        DiscountDomain domain = discountMapper.toDomain(validated);
         domain.setCreatedAt(LocalDateTime.now());
         DiscountDomain saved = discountRepository.save(domain);
-        return toDto(saved);
+        return discountMapper.toDto(saved);
     }
 
     @Override
@@ -43,14 +46,11 @@ public class DiscountServiceImpl implements DiscountService {
         DiscountDTO validated = validate(discount);
         return discountRepository.findById(id)
                 .map(existing -> {
-                    existing.setCategoryId(validated.getCategoryId());
-                    existing.setPercentage(validated.getPercentage());
-                    existing.setDescription(validated.getDescription());
-                    existing.setStatus(validated.getStatus());
+                    discountMapper.updateDomain(existing, validated);
                     existing.setModifiedAt(LocalDateTime.now());
                     return discountRepository.save(existing);
                 })
-                .map(this::toDto);
+                .map(discountMapper::toDto);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class DiscountServiceImpl implements DiscountService {
                     existing.setModifiedAt(LocalDateTime.now());
                     return discountRepository.save(existing);
                 })
-                .map(this::toDto);
+                .map(discountMapper::toDto);
     }
 
     @Override
@@ -90,25 +90,5 @@ public class DiscountServiceImpl implements DiscountService {
             discount.setStatus(Boolean.TRUE);
         }
         return discount;
-    }
-
-    private DiscountDTO toDto(DiscountDomain domain) {
-        return new DiscountDTO(
-                domain.getId(),
-                domain.getCategoryId(),
-                domain.getPercentage(),
-                domain.getDescription(),
-                domain.getStatus()
-        );
-    }
-
-    private DiscountDomain toDomain(DiscountDTO dto) {
-        return new DiscountDomain(
-                dto.getId(),
-                dto.getCategoryId(),
-                dto.getPercentage(),
-                dto.getDescription(),
-                dto.getStatus()
-        );
     }
 }

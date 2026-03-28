@@ -1,0 +1,142 @@
+{
+  "info": {
+    "name": "EatUp API - Categories",
+    "_postman_id": "2c3c8a7f-6c6d-4f77-a5ab-9c7b2c9f1001",
+    "description": "Pruebas del modulo de categorias",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Category",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"BEBIDAS\",\n  \"name\": \"Gaseosas\",\n  \"entryDate\": \"2026-03-28\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/inventory/api/v1/categories",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "api",
+            "v1",
+            "categories"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All Categories",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/api/v1/categories",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "api",
+            "v1",
+            "categories"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Categories By Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/api/v1/categories?status=ACTIVE",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "api",
+            "v1",
+            "categories"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "ACTIVE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Category By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/api/v1/categories/{{categoryId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "api",
+            "v1",
+            "categories",
+            "{{categoryId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Category Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/inventory/api/v1/categories/{{categoryId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventory",
+            "api",
+            "v1",
+            "categories",
+            "{{categoryId}}",
+            "status"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "categoryId",
+      "value": "reemplaza-por-un-uuid-real"
+    }
+  ]
+}

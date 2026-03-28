@@ -1,5 +1,7 @@
 package com.co.eatupapi.config.user;
 
+import com.co.eatupapi.domain.user.UserStatus;
+import com.co.eatupapi.repositories.user.UserRepository;
 import com.co.eatupapi.services.user.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,9 +19,11 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -38,9 +42,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (jwtService.isTokenValid(token)) {
             String email = jwtService.extractEmail(token);
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(email, null, List.of());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            boolean authenticated = userRepository.findByEmailIgnoreCase(email)
+                    .filter(user -> user.getStatus() == UserStatus.ACTIVE)
+                    .map(user -> {
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(email, null, List.of());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        return true;
+                    })
+                    .orElse(false);
+
+            if (!authenticated) {
+                SecurityContextHolder.clearContext();
+            }
+        } else {
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

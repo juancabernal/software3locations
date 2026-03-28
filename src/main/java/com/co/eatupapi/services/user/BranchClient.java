@@ -1,6 +1,8 @@
 package com.co.eatupapi.services.user;
 
 import com.co.eatupapi.utils.user.exceptions.UserValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -13,11 +15,13 @@ import java.util.UUID;
  * <p><b>Limitation:</b> There is no known branch/sede endpoint in the current project.
  * This client is prepared to call a configurable URL. If the URL is not configured
  * or the external service is unreachable, branch validation is skipped with a warning log.
- * This is a transitional design — once a branch service exists, configure the URL
+ * This is a transitional design - once a branch service exists, configure the URL
  * via the environment variable BRANCH_SERVICE_URL.</p>
  */
 @Component
 public class BranchClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BranchClient.class);
 
     private final RestClient restClient;
     private final String branchServiceUrl;
@@ -35,9 +39,11 @@ public class BranchClient {
      * @throws UserValidationException if the branch does not exist
      */
     public void validateBranchExists(UUID branchId) {
+        if (branchId == null) {
+            throw new UserValidationException("Field 'branchId' is required");
+        }
+
         if (branchServiceUrl == null || branchServiceUrl.isBlank()) {
-            // Branch service URL not configured — skipping validation.
-            // Configure BRANCH_SERVICE_URL to enable real validation.
             return;
         }
 
@@ -47,9 +53,8 @@ public class BranchClient {
                     .retrieve()
                     .toBodilessEntity();
         } catch (Exception ex) {
-            throw new UserValidationException(
-                    "Branch validation failed for branchId '" + branchId + "': " + ex.getMessage()
-            );
+            LOGGER.warn("Branch validation failed for branchId {}", branchId, ex);
+            throw new UserValidationException("Selected branch could not be validated");
         }
     }
 
@@ -63,8 +68,6 @@ public class BranchClient {
         }
 
         try {
-            // Attempt to fetch branch name — simplified: returns UUID as fallback.
-            // A real implementation would parse the JSON response body.
             return branchId != null ? branchId.toString() : null;
         } catch (Exception ex) {
             return branchId != null ? branchId.toString() : null;

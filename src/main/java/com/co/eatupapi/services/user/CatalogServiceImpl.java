@@ -72,6 +72,11 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
+    public boolean cityBelongsToDepartment(UUID cityId, UUID departmentId) {
+        return cityRepository.existsByIdAndDepartmentId(cityId, departmentId);
+    }
+
+    @Override
     public String getDocumentTypeName(UUID id) {
         return documentTypeRepository.findById(id)
                 .map(DocumentType::getName)

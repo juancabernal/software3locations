@@ -21,6 +21,8 @@ public interface CatalogService {
 
     boolean cityExists(UUID id);
 
+    boolean cityBelongsToDepartment(UUID cityId, UUID departmentId);
+
     String getDocumentTypeName(UUID id);
 
     String getDepartmentName(UUID id);

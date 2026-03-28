@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.UUID;
 
 @Entity
@@ -121,7 +122,16 @@ public class UserDomain {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        String normalizedEmail = normalizeEmail(email);
+
+        if (this.email != null && normalizedEmail != null && !this.email.equals(normalizedEmail)) {
+            throw new IllegalStateException("Email cannot be modified once the user has been created");
+        }
+        if (this.email != null && normalizedEmail == null) {
+            throw new IllegalStateException("Email cannot be removed once the user has been created");
+        }
+
+        this.email = normalizedEmail;
     }
 
     public String getPassword() {
@@ -194,5 +204,12 @@ public class UserDomain {
 
     public void setModifiedAt(LocalDateTime modifiedAt) {
         this.modifiedAt = modifiedAt;
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

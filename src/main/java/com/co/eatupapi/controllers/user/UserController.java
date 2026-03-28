@@ -6,6 +6,7 @@ import com.co.eatupapi.dto.user.UpdateUserStatusRequest;
 import com.co.eatupapi.dto.user.UserResponse;
 import com.co.eatupapi.dto.user.UserSummaryResponse;
 import com.co.eatupapi.services.user.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,14 +32,17 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         UserResponse saved = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @GetMapping
-    public ResponseEntity<List<UserSummaryResponse>> getUsers(@RequestParam(required = false) String status) {
-        List<UserSummaryResponse> users = userService.getUsers(status);
+    public ResponseEntity<List<UserSummaryResponse>> getUsers(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size) {
+        List<UserSummaryResponse> users = userService.getUsers(status, page, size);
         return ResponseEntity.ok(users);
     }
 
@@ -50,7 +54,7 @@ public class UserController {
 
     @PutMapping("/{userId}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable String userId,
-                                                   @RequestBody UpdateUserRequest request) {
+                                                   @Valid @RequestBody UpdateUserRequest request) {
         UserResponse updated = userService.updateUser(userId, request);
         return ResponseEntity.ok(updated);
     }

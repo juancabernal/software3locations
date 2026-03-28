@@ -1,6 +1,7 @@
 package com.co.eatupapi.services.user;
 
 import com.co.eatupapi.domain.user.UserDomain;
+import com.co.eatupapi.domain.user.UserStatus;
 import com.co.eatupapi.dto.user.LoginRequest;
 import com.co.eatupapi.dto.user.LoginResponse;
 import com.co.eatupapi.repositories.user.UserRepository;
@@ -8,6 +9,8 @@ import com.co.eatupapi.utils.user.exceptions.UserBusinessException;
 import com.co.eatupapi.utils.user.exceptions.UserValidationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Locale;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -28,10 +31,15 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         validateLoginPayload(request);
 
-        UserDomain user = userRepository.findByEmail(request.getEmail())
+        String normalizedEmail = normalizeEmail(request.getEmail());
+        UserDomain user = userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseThrow(() -> new UserBusinessException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UserBusinessException("Invalid credentials");
+        }
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
             throw new UserBusinessException("Invalid credentials");
         }
 
@@ -40,11 +48,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void validateLoginPayload(LoginRequest request) {
+        if (request == null) {
+            throw new UserValidationException("Request body is required");
+        }
         if (request.getEmail() == null || request.getEmail().isBlank()) {
             throw new UserValidationException("Field 'email' is required and cannot be empty");
         }
         if (request.getPassword() == null || request.getPassword().isBlank()) {
             throw new UserValidationException("Field 'password' is required and cannot be empty");
         }
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

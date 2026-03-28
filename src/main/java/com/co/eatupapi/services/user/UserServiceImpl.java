@@ -11,11 +11,17 @@ import com.co.eatupapi.utils.user.exceptions.UserBusinessException;
 import com.co.eatupapi.utils.user.exceptions.UserNotFoundException;
 import com.co.eatupapi.utils.user.exceptions.UserValidationException;
 import com.co.eatupapi.utils.user.mapper.UserMapper;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -25,7 +31,8 @@ public class UserServiceImpl implements UserService {
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     private static final Pattern DIGITS_PATTERN = Pattern.compile("^\\d+$");
-
+    private static final Pattern PASSWORD_LETTER_PATTERN = Pattern.compile(".*[A-Za-z].*");
+    private static final Pattern PASSWORD_DIGIT_PATTERN = Pattern.compile(".*\\d.*");
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -45,7 +52,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponse createUser(CreateUserRequest request) {
+        normalizeCreatePayload(request);
         validateCreatePayload(request);
         validateDuplicateEmail(request.getEmail());
         validateCatalogReferences(request.getDocumentTypeId(), request.getDepartmentId(), request.getCityId());
@@ -57,39 +66,31 @@ public class UserServiceImpl implements UserService {
         user.setCreatedAt(LocalDateTime.now());
         user.setModifiedAt(LocalDateTime.now());
 
-        userRepository.save(user);
+        saveNewUser(user);
         return enrichResponse(userMapper.toResponse(user), user);
     }
 
     @Override
     public UserResponse getUserById(String userId) {
-        UUID id = parseUUID(userId);
-        UserDomain user = findUserById(id);
+        UserDomain user = getAuthenticatedUser();
         return enrichResponse(userMapper.toResponse(user), user);
     }
 
     @Override
-    public List<UserSummaryResponse> getUsers(String status) {
-        List<UserDomain> result;
-        if (status == null || status.isBlank()) {
-            result = userRepository.findAll();
-        } else {
-            UserStatus parsedStatus = parseStatus(status);
-            result = userRepository.findByStatus(parsedStatus);
-        }
-        return result.stream().map(u -> {
-            UserSummaryResponse summary = userMapper.toSummaryResponse(u);
-            summary.setBranch(branchClient.getBranchName(u.getBranchId()));
-            return summary;
-        }).toList();
+    public List<UserSummaryResponse> getUsers(String status, Integer page, Integer size) {
+        UserDomain user = getAuthenticatedUser();
+        UserSummaryResponse summary = userMapper.toSummaryResponse(user);
+        summary.setBranch(branchClient.getBranchName(user.getBranchId()));
+        return List.of(summary);
     }
 
     @Override
+    @Transactional
     public UserResponse updateUser(String userId, UpdateUserRequest request) {
-        UUID id = parseUUID(userId);
+        normalizeUpdatePayload(request);
         validateUpdatePayload(request);
 
-        UserDomain existing = findUserById(id);
+        UserDomain existing = getAuthenticatedUser();
         validateImmutableEmail(existing.getEmail(), request.getEmail());
         validateCatalogReferences(request.getDocumentTypeId(), request.getDepartmentId(), request.getCityId());
         branchClient.validateBranchExists(request.getBranchId());
@@ -106,43 +107,45 @@ public class UserServiceImpl implements UserService {
         existing.setBranchId(request.getBranchId());
         existing.setModifiedAt(LocalDateTime.now());
 
-        userRepository.save(existing);
+        userRepository.saveAndFlush(existing);
         return enrichResponse(userMapper.toResponse(existing), existing);
     }
 
     @Override
+    @Transactional
     public UserResponse updateStatus(String userId, String status) {
-        UUID id = parseUUID(userId);
         UserStatus newStatus = parseRequiredStatus(status);
 
-        UserDomain existing = findUserById(id);
+        UserDomain existing = getAuthenticatedUser();
         existing.setStatus(newStatus);
         existing.setModifiedAt(LocalDateTime.now());
 
-        userRepository.save(existing);
+        userRepository.saveAndFlush(existing);
         return enrichResponse(userMapper.toResponse(existing), existing);
     }
 
-    // ── Internal helpers ──────────────────────────────────────────
-
     private UserDomain findUserById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
-    private UUID parseUUID(String value) {
-        try {
-            return UUID.fromString(value);
-        } catch (IllegalArgumentException ex) {
-            throw new UserValidationException("Invalid UUID format: " + value);
+    private UserDomain getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new UserBusinessException("Authenticated user context is not available");
         }
+
+        String authenticatedEmail = normalizeEmail(authentication.getName());
+        return userRepository.findByEmailIgnoreCase(authenticatedEmail)
+                .filter(user -> user.getStatus() == UserStatus.ACTIVE)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     private UserStatus parseStatus(String status) {
         try {
-            return UserStatus.valueOf(status.trim().toUpperCase());
+            return UserStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            throw new UserValidationException("Invalid user status value: " + status);
+            throw new UserValidationException("Invalid user status value");
         }
     }
 
@@ -153,9 +156,11 @@ public class UserServiceImpl implements UserService {
         return parseStatus(status);
     }
 
-    // ── Validation helpers ────────────────────────────────────────
-
     private void validateCreatePayload(CreateUserRequest request) {
+        if (request == null) {
+            throw new UserValidationException("Request body is required");
+        }
+
         validateRequiredText(request.getFirstName(), "firstName");
         validateRequiredText(request.getLastName(), "lastName");
         validateRequiredObject(request.getDocumentTypeId(), "documentTypeId");
@@ -171,23 +176,29 @@ public class UserServiceImpl implements UserService {
 
         validateEmail(request.getEmail());
         validatePhone(request.getPhone());
+        validateBirthDate(request.getBirthDate());
+        validatePasswordStrength(request.getPassword());
     }
 
     private void validateUpdatePayload(UpdateUserRequest request) {
+        if (request == null) {
+            throw new UserValidationException("Request body is required");
+        }
+
         validateRequiredText(request.getFirstName(), "firstName");
         validateRequiredText(request.getLastName(), "lastName");
         validateRequiredObject(request.getDocumentTypeId(), "documentTypeId");
         validateRequiredText(request.getDocumentNumber(), "documentNumber");
         validateRequiredText(request.getPhone(), "phone");
-        validateRequiredText(request.getEmail(), "email");
         validateRequiredObject(request.getBirthDate(), "birthDate");
         validateRequiredObject(request.getDepartmentId(), "departmentId");
         validateRequiredObject(request.getCityId(), "cityId");
         validateRequiredText(request.getAddress(), "address");
         validateRequiredObject(request.getBranchId(), "branchId");
 
-        validateEmail(request.getEmail());
+        validateOptionalEmail(request.getEmail());
         validatePhone(request.getPhone());
+        validateBirthDate(request.getBirthDate());
     }
 
     private void validateRequiredText(String value, String fieldName) {
@@ -204,10 +215,18 @@ public class UserServiceImpl implements UserService {
 
     private void validateEmail(String email) {
         if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new UserValidationException(
-                    "Invalid email format: '" + email + "'. Expected format: example@domain.com"
-            );
+            throw new UserValidationException("Invalid email format");
         }
+    }
+
+    private void validateOptionalEmail(String email) {
+        if (email == null) {
+            return;
+        }
+        if (email.isBlank()) {
+            throw new UserValidationException("Field 'email' cannot be empty");
+        }
+        validateEmail(email);
     }
 
     private void validatePhone(String phone) {
@@ -219,40 +238,100 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    private void validateBirthDate(LocalDate birthDate) {
+        if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
+            throw new UserValidationException("Birth date must be a past date");
+        }
+    }
+
+    private void validatePasswordStrength(String password) {
+        if (password == null || password.length() < 8 || password.length() > 72) {
+            throw new UserValidationException("Password must contain between 8 and 72 characters");
+        }
+        if (!PASSWORD_LETTER_PATTERN.matcher(password).matches()
+                || !PASSWORD_DIGIT_PATTERN.matcher(password).matches()) {
+            throw new UserValidationException("Password must contain at least one letter and one digit");
+        }
+    }
+
     private void validateDuplicateEmail(String email) {
-        if (userRepository.existsByEmail(email)) {
-            throw new UserBusinessException("A user with email '" + email + "' already exists");
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw new UserBusinessException("A user with that email already exists");
         }
     }
 
     private void validateImmutableEmail(String currentEmail, String requestedEmail) {
-        if (requestedEmail != null && !currentEmail.equals(requestedEmail)) {
+        if (requestedEmail == null) {
+            return;
+        }
+
+        if (!normalizeEmail(currentEmail).equals(normalizeEmail(requestedEmail))) {
             throw new UserBusinessException("Email address cannot be modified once the user has been created");
         }
     }
 
     private void validateCatalogReferences(UUID documentTypeId, UUID departmentId, UUID cityId) {
         if (!catalogService.documentTypeExists(documentTypeId)) {
-            throw new UserValidationException("Document type not found with id: " + documentTypeId);
+            throw new UserValidationException("Selected document type does not exist");
         }
         if (!catalogService.departmentExists(departmentId)) {
-            throw new UserValidationException("Department not found with id: " + departmentId);
+            throw new UserValidationException("Selected department does not exist");
         }
         if (!catalogService.cityExists(cityId)) {
-            throw new UserValidationException("City not found with id: " + cityId);
+            throw new UserValidationException("Selected city does not exist");
+        }
+        if (!catalogService.cityBelongsToDepartment(cityId, departmentId)) {
+            throw new UserValidationException("Selected city does not belong to the selected department");
         }
     }
 
-    // ── Response enrichment ───────────────────────────────────────
-
-    /**
-     * Enriches UserResponse with resolved names for documentType, department, city, and branch.
-     */
     private UserResponse enrichResponse(UserResponse response, UserDomain user) {
         response.setDocumentType(catalogService.getDocumentTypeName(user.getDocumentTypeId()));
         response.setDepartment(catalogService.getDepartmentName(user.getDepartmentId()));
         response.setCity(catalogService.getCityName(user.getCityId()));
         response.setBranch(branchClient.getBranchName(user.getBranchId()));
         return response;
+    }
+
+    private void saveNewUser(UserDomain user) {
+        try {
+            userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException ex) {
+            throw new UserBusinessException("A user with that email already exists");
+        }
+    }
+
+    private void normalizeCreatePayload(CreateUserRequest request) {
+        if (request == null) {
+            return;
+        }
+
+        request.setFirstName(normalizeText(request.getFirstName()));
+        request.setLastName(normalizeText(request.getLastName()));
+        request.setDocumentNumber(normalizeText(request.getDocumentNumber()));
+        request.setPhone(normalizeText(request.getPhone()));
+        request.setEmail(normalizeEmail(request.getEmail()));
+        request.setAddress(normalizeText(request.getAddress()));
+    }
+
+    private void normalizeUpdatePayload(UpdateUserRequest request) {
+        if (request == null) {
+            return;
+        }
+
+        request.setFirstName(normalizeText(request.getFirstName()));
+        request.setLastName(normalizeText(request.getLastName()));
+        request.setDocumentNumber(normalizeText(request.getDocumentNumber()));
+        request.setPhone(normalizeText(request.getPhone()));
+        request.setEmail(request.getEmail() == null ? null : normalizeEmail(request.getEmail()));
+        request.setAddress(normalizeText(request.getAddress()));
+    }
+
+    private String normalizeText(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

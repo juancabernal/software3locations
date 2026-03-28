@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface CityRepository extends JpaRepository<City, UUID> {
     List<City> findByDepartmentId(UUID departmentId);
+    boolean existsByIdAndDepartmentId(UUID id, UUID departmentId);
 }

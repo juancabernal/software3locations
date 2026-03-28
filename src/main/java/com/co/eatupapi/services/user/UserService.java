@@ -13,7 +13,7 @@ public interface UserService {
 
     UserResponse getUserById(String userId);
 
-    List<UserSummaryResponse> getUsers(String status);
+    List<UserSummaryResponse> getUsers(String status, Integer page, Integer size);
 
     UserResponse updateUser(String userId, UpdateUserRequest request);
 

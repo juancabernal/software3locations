@@ -17,20 +17,14 @@ public class CategoryDomain {
     @Id
     private UUID id;
 
+    @Column(unique = true)
+    private Long cns;
+
     @Column(nullable = false)
     private String type;
 
     @Column(nullable = false, unique = true)
     private String name;
-
-    // `branchId` puede venir null desde el front; el backend permite crearlo
-    // sin asignación explícita (si tu BD actualiza el esquema con ddl-auto=update).
-    @Column(nullable = true)
-    private Long branchId;
-
-    // Durante pruebas el token/usuario puede llegar nulo; en ese caso se permite.
-    @Column(nullable = true)
-    private String createdBy;
 
     @Column(nullable = false)
     private LocalDate entryDate;
@@ -56,6 +50,14 @@ public class CategoryDomain {
         this.id = id;
     }
 
+    public Long getCns() {
+        return cns;
+    }
+
+    public void setCns(Long cns) {
+        this.cns = cns;
+    }
+
     public String getType() {
         return type;
     }
@@ -70,22 +72,6 @@ public class CategoryDomain {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Long getBranchId() {
-        return branchId;
-    }
-
-    public void setBranchId(Long branchId) {
-        this.branchId = branchId;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
     }
 
     public LocalDate getEntryDate() {

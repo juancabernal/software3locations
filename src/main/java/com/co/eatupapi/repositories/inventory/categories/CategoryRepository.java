@@ -11,5 +11,7 @@ public interface CategoryRepository extends JpaRepository<CategoryDomain, UUID> 
 
     Optional<CategoryDomain> findByName(String name);
 
+    Optional<CategoryDomain> findTopByOrderByCnsDesc();
+
     List<CategoryDomain> findByStatus(CategoryStatus status);
 }

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,18 +26,17 @@ public class CategoryService {
         this.categoryMapper = categoryMapper;
     }
 
-    public CategoryDTO createCategory(CategoryDTO request, String username) {
+    public CategoryDTO createCategory(CategoryDTO request) {
         validateCategoryPayload(request);
         validateCategoryNameDoesNotExist(request.getName());
 
-        CategoryDomain categoryDomain = categoryMapper.toDomain(request);
+        CategoryDomain categoryDomain = categoryMapper.toNewEntity(request);
         categoryDomain.setId(UUID.randomUUID());
-        categoryDomain.setCreatedBy(username);
         categoryDomain.setStatus(CategoryStatus.ACTIVE);
         categoryDomain.setCreatedDate(LocalDateTime.now());
         categoryDomain.setModifiedDate(LocalDateTime.now());
 
-        CategoryDomain savedCategory = categoryRepository.save(categoryDomain);
+        CategoryDomain savedCategory = persistNewCategory(categoryDomain, request.getName());
         return categoryMapper.toDto(savedCategory);
     }
 
@@ -100,6 +100,7 @@ public class CategoryService {
     }
 
     private void validateCategoryPayload(CategoryDTO request) {
+        validateRequiredObject(request, "request");
         validateRequiredText(request.getType(), "type");
         validateRequiredText(request.getName(), "name");
         validateRequiredObject(request.getEntryDate(), "entryDate");
@@ -122,5 +123,27 @@ public class CategoryService {
                 .ifPresent(category -> {
                     throw new BusinessException("A category with this name already exists");
                 });
+    }
+
+    private Long nextCns() {
+        return categoryRepository.findTopByOrderByCnsDesc()
+                .map(CategoryDomain::getCns)
+                .map(current -> current + 1)
+                .orElse(1L);
+    }
+
+    private CategoryDomain persistNewCategory(CategoryDomain categoryDomain, String categoryName) {
+        for (int attempt = 0; attempt < 3; attempt++) {
+            categoryDomain.setCns(nextCns());
+            try {
+                return categoryRepository.saveAndFlush(categoryDomain);
+            } catch (DataIntegrityViolationException ex) {
+                if (categoryRepository.findByName(categoryName).isPresent()) {
+                    throw new BusinessException("A category with this name already exists");
+                }
+            }
+        }
+
+        throw new BusinessException("The category could not be created due to a concurrent save conflict");
     }
 }

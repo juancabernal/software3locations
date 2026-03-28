@@ -3,7 +3,6 @@ package com.co.eatupapi.controllers.inventory.categories;
 import com.co.eatupapi.dto.inventory.categories.CategoryDTO;
 import com.co.eatupapi.dto.inventory.categories.CategoryStatusUpdateDTO;
 import com.co.eatupapi.services.inventory.categories.CategoryService;
-import java.security.Principal;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,12 +26,8 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory(
-            @RequestBody CategoryDTO request,
-            Principal principal
-    ) {
-        String username = principal.getName();
-        CategoryDTO saved = categoryService.createCategory(request, username);
+    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO request) {
+        CategoryDTO saved = categoryService.createCategory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
@@ -49,15 +43,6 @@ public class CategoryController {
         return ResponseEntity.ok(categories);
     }
 
-    @PutMapping("/{categoryId}")
-    public ResponseEntity<CategoryDTO> updateCategory(
-            @PathVariable String categoryId,
-            @RequestBody CategoryStatusUpdateDTO request
-    ) {
-        CategoryDTO updated = categoryService.updateStatus(categoryId, request.getStatus());
-        return ResponseEntity.ok(updated);
-    }
-
     @PatchMapping("/{categoryId}/status")
     public ResponseEntity<CategoryDTO> updateStatus(
             @PathVariable String categoryId,
@@ -65,20 +50,5 @@ public class CategoryController {
     ) {
         CategoryDTO updated = categoryService.updateStatus(categoryId, request.getStatus());
         return ResponseEntity.ok(updated);
-    }
-
-    /**
-     * Sin Spring Security, {@link Principal} suele ser {@code null}. Prioridad: usuario
-     * autenticado si existe; si no, {@code createdBy} del body (p. ej. pruebas); si no,
-     * {@code null} (columna {@code created_by} nullable).
-     */
-    private static String resolveCreatedBy(Principal principal, CategoryDTO request) {
-        if (principal != null && principal.getName() != null && !principal.getName().isBlank()) {
-            return principal.getName();
-        }
-        if (request.getCreatedBy() != null && !request.getCreatedBy().isBlank()) {
-            return request.getCreatedBy();
-        }
-        return null;
     }
 }

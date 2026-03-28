@@ -11,14 +11,11 @@ public class CategoryMapper {
     public CategoryDTO toDto(CategoryDomain categoryDomain) {
         CategoryDTO categoryDTO = new CategoryDTO();
         categoryDTO.setId(categoryDomain.getId() != null ? categoryDomain.getId().toString() : null);
+        categoryDTO.setCns(categoryDomain.getCns());
         categoryDTO.setType(categoryDomain.getType());
         categoryDTO.setName(categoryDomain.getName());
-        categoryDTO.setBranchId(categoryDomain.getBranchId());
-        categoryDTO.setCreatedBy(categoryDomain.getCreatedBy());
         categoryDTO.setEntryDate(categoryDomain.getEntryDate());
         categoryDTO.setStatus(categoryDomain.getStatus());
-        categoryDTO.setCreatedDate(categoryDomain.getCreatedDate());
-        categoryDTO.setModifiedDate(categoryDomain.getModifiedDate());
         return categoryDTO;
     }
 
@@ -31,12 +28,9 @@ public class CategoryMapper {
 
         categoryDomain.setType(dto.getType());
         categoryDomain.setName(dto.getName());
-        categoryDomain.setBranchId(dto.getBranchId());
-        categoryDomain.setCreatedBy(dto.getCreatedBy());
         categoryDomain.setEntryDate(dto.getEntryDate());
         categoryDomain.setStatus(dto.getStatus());
-        categoryDomain.setCreatedDate(dto.getCreatedDate());
-        categoryDomain.setModifiedDate(dto.getModifiedDate());
+        categoryDomain.setCns(dto.getCns());
         return categoryDomain;
     }
 
@@ -48,7 +42,6 @@ public class CategoryMapper {
         CategoryDomain entity = new CategoryDomain();
         entity.setType(dto.getType());
         entity.setName(dto.getName());
-        entity.setBranchId(dto.getBranchId());
         entity.setEntryDate(dto.getEntryDate());
         return entity;
     }

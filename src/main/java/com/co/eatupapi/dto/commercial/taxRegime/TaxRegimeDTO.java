@@ -9,6 +9,7 @@ public class TaxRegimeDTO {
     private TaxRegimeStatus status;
 
     public TaxRegimeDTO() {
+        // Default constructor required for JSON serialization/deserialization
     }
 
     public String getId() {

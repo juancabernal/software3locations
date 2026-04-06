@@ -24,6 +24,7 @@ public class ProviderDTO {
     private LocalDateTime modifiedDate;
 
     public ProviderDTO() {
+        // Default constructor required for JSON serialization/deserialization
     }
 
     public String getId() {

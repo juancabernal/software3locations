@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.Objects;
+
+
 
 import com.co.eatupapi.domain.commercial.taxRegime.TaxRegimeDomain;
 import com.co.eatupapi.domain.commercial.taxRegime.TaxRegimeStatus;
@@ -151,7 +154,7 @@ public class TaxRegimeServiceImpl implements TaxRegimeService {
         String normalizedName = name.trim();
         boolean exists = taxRegimeRepository.findAll().stream()
                 .map(TaxRegimeDomain::getName)
-                .filter(existingName -> existingName != null)
+                .filter(Objects::nonNull)
                 .anyMatch(existingName -> existingName.equalsIgnoreCase(normalizedName));
 
         if (exists) {
@@ -164,7 +167,7 @@ public class TaxRegimeServiceImpl implements TaxRegimeService {
         boolean exists = taxRegimeRepository.findAll().stream()
                 .filter(taxRegime -> !taxRegime.getId().equals(id))
                 .map(TaxRegimeDomain::getName)
-                .filter(existingName -> existingName != null)
+                .filter(Objects::nonNull)
                 .anyMatch(existingName -> existingName.equalsIgnoreCase(normalizedName));
 
         if (exists) {

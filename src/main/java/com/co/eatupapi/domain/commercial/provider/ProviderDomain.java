@@ -65,6 +65,7 @@ public class ProviderDomain {
     private LocalDateTime modifiedAt;
 
     public ProviderDomain() {
+        // Default constructor required by JPA
     }
 
     public UUID getId() {

@@ -32,6 +32,7 @@ public class TaxRegimeDomain {
     private LocalDateTime modifiedAt;
 
     public TaxRegimeDomain() {
+        // Default constructor required by JPA
     }
 
     public UUID getId() {

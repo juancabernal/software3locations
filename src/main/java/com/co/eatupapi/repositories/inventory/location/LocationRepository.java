@@ -1,4 +1,7 @@
 package com.co.eatupapi.repositories.inventory.location;
 
-public interface LocationRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface LocationRepository extends JpaRepository<LocationEntity, String> {
+
 }

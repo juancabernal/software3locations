@@ -21,9 +21,6 @@ public class DocumentType {
     @Column(nullable = false, length = 100)
     private String name;
 
-    public DocumentType() {
-    }
-
     public UUID getId() {
         return id;
     }

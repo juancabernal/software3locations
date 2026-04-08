@@ -5,7 +5,7 @@ import com.co.eatupapi.domain.user.UserStatus;
 import com.co.eatupapi.dto.user.LoginRequest;
 import com.co.eatupapi.dto.user.LoginResponse;
 import com.co.eatupapi.repositories.user.UserRepository;
-import com.co.eatupapi.utils.user.exceptions.UserBusinessException;
+import com.co.eatupapi.utils.user.exceptions.UserAuthenticationException;
 import com.co.eatupapi.utils.user.exceptions.UserValidationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,8 @@ import java.util.Locale;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    private static final String INVALID_CREDENTIALS_MESSAGE = "Invalid credentials";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -33,14 +35,14 @@ public class AuthServiceImpl implements AuthService {
 
         String normalizedEmail = normalizeEmail(request.getEmail());
         UserDomain user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .orElseThrow(() -> new UserBusinessException("Invalid credentials"));
+                .orElseThrow(() -> new UserAuthenticationException(INVALID_CREDENTIALS_MESSAGE));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UserBusinessException("Invalid credentials");
+            throw new UserAuthenticationException(INVALID_CREDENTIALS_MESSAGE);
         }
 
         if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new UserBusinessException("Invalid credentials");
+            throw new UserAuthenticationException(INVALID_CREDENTIALS_MESSAGE);
         }
 
         String token = jwtService.generateToken(user.getEmail());

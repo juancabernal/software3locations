@@ -18,9 +18,6 @@ public class Department {
     @Column(nullable = false, length = 100)
     private String name;
 
-    public Department() {
-    }
-
     public UUID getId() {
         return id;
     }

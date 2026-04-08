@@ -1,15 +1,17 @@
 package com.co.eatupapi.dto.user;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.UUID;
 
+@Setter
+@Getter
 public class DocumentTypeResponse {
 
     private UUID id;
     private String code;
     private String name;
-
-    public DocumentTypeResponse() {
-    }
 
     public DocumentTypeResponse(UUID id, String code, String name) {
         this.id = id;
@@ -17,27 +19,4 @@ public class DocumentTypeResponse {
         this.name = name;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }

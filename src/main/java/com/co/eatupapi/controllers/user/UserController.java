@@ -6,6 +6,7 @@ import com.co.eatupapi.dto.user.UpdateUserStatusRequest;
 import com.co.eatupapi.dto.user.UserResponse;
 import com.co.eatupapi.dto.user.UserSummaryResponse;
 import com.co.eatupapi.services.user.UserService;
+import com.co.eatupapi.utils.user.exceptions.UserValidationException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +62,14 @@ public class UserController {
 
     @PatchMapping("/{userId}/status")
     public ResponseEntity<UserResponse> updateStatus(@PathVariable String userId,
-                                                     @RequestBody UpdateUserStatusRequest request) {
+                                                     @Valid @RequestBody(required = false)
+                                                     UpdateUserStatusRequest request) {
+        if (request == null) {
+            throw new UserValidationException("Request body is required");
+        }
+        if (request.getStatus() == null || request.getStatus().isBlank()) {
+            throw new UserValidationException("Field 'status' is required and cannot be empty");
+        }
         UserResponse updated = userService.updateStatus(userId, request.getStatus());
         return ResponseEntity.ok(updated);
     }

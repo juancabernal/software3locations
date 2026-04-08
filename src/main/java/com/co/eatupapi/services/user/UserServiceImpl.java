@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 @Service
@@ -33,22 +34,22 @@ public class UserServiceImpl implements UserService {
     private static final Pattern DIGITS_PATTERN = Pattern.compile("^\\d+$");
     private static final Pattern PASSWORD_LETTER_PATTERN = Pattern.compile(".*[A-Za-z].*");
     private static final Pattern PASSWORD_DIGIT_PATTERN = Pattern.compile(".*\\d.*");
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final CatalogService catalogService;
-    private final BranchClient branchClient;
+    private final UUID fixedTestLocationId;
 
     public UserServiceImpl(UserRepository userRepository,
                            UserMapper userMapper,
                            PasswordEncoder passwordEncoder,
-                           CatalogService catalogService,
-                           BranchClient branchClient) {
+                           CatalogService catalogService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.catalogService = catalogService;
-        this.branchClient = branchClient;
+        this.fixedTestLocationId = UserLocationTestPolicy.fixedTestLocationUuid();
     }
 
     @Override
@@ -58,9 +59,9 @@ public class UserServiceImpl implements UserService {
         validateCreatePayload(request);
         validateDuplicateEmail(request.getEmail());
         validateCatalogReferences(request.getDocumentTypeId(), request.getDepartmentId(), request.getCityId());
-        branchClient.validateBranchExists(request.getBranchId());
 
         UserDomain user = userMapper.toDomain(request);
+        user.setLocationId(fixedTestLocationId);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setStatus(UserStatus.ACTIVE);
         user.setCreatedAt(LocalDateTime.now());
@@ -73,14 +74,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserById(String userId) {
         UserDomain user = getAuthenticatedUser();
+        validateRequestedUserId(userId, user);
         return enrichResponse(userMapper.toResponse(user), user);
     }
 
     @Override
     public List<UserSummaryResponse> getUsers(String status, Integer page, Integer size) {
         UserDomain user = getAuthenticatedUser();
+        if (isExcludedByStatus(status, user.getStatus()) || isOutsideCurrentPage(page) || isEmptyPageSize(size)) {
+            return List.of();
+        }
+
         UserSummaryResponse summary = userMapper.toSummaryResponse(user);
-        summary.setBranch(branchClient.getBranchName(user.getBranchId()));
+        summary.setLocation(resolveLocationForResponse(user));
         return List.of(summary);
     }
 
@@ -91,9 +97,9 @@ public class UserServiceImpl implements UserService {
         validateUpdatePayload(request);
 
         UserDomain existing = getAuthenticatedUser();
+        validateRequestedUserId(userId, existing);
         validateImmutableEmail(existing.getEmail(), request.getEmail());
         validateCatalogReferences(request.getDocumentTypeId(), request.getDepartmentId(), request.getCityId());
-        branchClient.validateBranchExists(request.getBranchId());
 
         existing.setFirstName(request.getFirstName());
         existing.setLastName(request.getLastName());
@@ -104,7 +110,7 @@ public class UserServiceImpl implements UserService {
         existing.setDepartmentId(request.getDepartmentId());
         existing.setCityId(request.getCityId());
         existing.setAddress(request.getAddress());
-        existing.setBranchId(request.getBranchId());
+        existing.setLocationId(fixedTestLocationId);
         existing.setModifiedAt(LocalDateTime.now());
 
         userRepository.saveAndFlush(existing);
@@ -117,16 +123,12 @@ public class UserServiceImpl implements UserService {
         UserStatus newStatus = parseRequiredStatus(status);
 
         UserDomain existing = getAuthenticatedUser();
+        validateRequestedUserId(userId, existing);
         existing.setStatus(newStatus);
         existing.setModifiedAt(LocalDateTime.now());
 
         userRepository.saveAndFlush(existing);
         return enrichResponse(userMapper.toResponse(existing), existing);
-    }
-
-    private UserDomain findUserById(UUID id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     private UserDomain getAuthenticatedUser() {
@@ -135,7 +137,11 @@ public class UserServiceImpl implements UserService {
             throw new UserBusinessException("Authenticated user context is not available");
         }
 
-        String authenticatedEmail = normalizeEmail(authentication.getName());
+        String authenticatedEmail = normalizeRequiredEmail(
+                authentication.getName(),
+                "Authenticated user context is not available"
+        );
+
         return userRepository.findByEmailIgnoreCase(authenticatedEmail)
                 .filter(user -> user.getStatus() == UserStatus.ACTIVE)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -156,6 +162,22 @@ public class UserServiceImpl implements UserService {
         return parseStatus(status);
     }
 
+    private boolean isExcludedByStatus(String status, UserStatus currentStatus) {
+        if (status == null || status.isBlank()) {
+            return false;
+        }
+
+        return parseStatus(status) != currentStatus;
+    }
+
+    private boolean isOutsideCurrentPage(Integer page) {
+        return page != null && page != 0;
+    }
+
+    private boolean isEmptyPageSize(Integer size) {
+        return size != null && size <= 0;
+    }
+
     private void validateCreatePayload(CreateUserRequest request) {
         if (request == null) {
             throw new UserValidationException("Request body is required");
@@ -172,7 +194,6 @@ public class UserServiceImpl implements UserService {
         validateRequiredObject(request.getDepartmentId(), "departmentId");
         validateRequiredObject(request.getCityId(), "cityId");
         validateRequiredText(request.getAddress(), "address");
-        validateRequiredObject(request.getBranchId(), "branchId");
 
         validateEmail(request.getEmail());
         validatePhone(request.getPhone());
@@ -194,7 +215,6 @@ public class UserServiceImpl implements UserService {
         validateRequiredObject(request.getDepartmentId(), "departmentId");
         validateRequiredObject(request.getCityId(), "cityId");
         validateRequiredText(request.getAddress(), "address");
-        validateRequiredObject(request.getBranchId(), "branchId");
 
         validateOptionalEmail(request.getEmail());
         validatePhone(request.getPhone());
@@ -265,7 +285,10 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
-        if (!normalizeEmail(currentEmail).equals(normalizeEmail(requestedEmail))) {
+        String normalizedCurrentEmail = normalizeRequiredEmail(currentEmail, "Current email is invalid");
+        String normalizedRequestedEmail = normalizeRequiredEmail(requestedEmail, "Requested email is invalid");
+
+        if (!normalizedCurrentEmail.equals(normalizedRequestedEmail)) {
             throw new UserBusinessException("Email address cannot be modified once the user has been created");
         }
     }
@@ -285,12 +308,36 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    private void validateRequestedUserId(String userId, UserDomain authenticatedUser) {
+        if (userId == null || userId.isBlank()) {
+            throw new UserValidationException("User id is required");
+        }
+
+        UUID requestedUserId;
+        try {
+            requestedUserId = UUID.fromString(userId.trim());
+        } catch (IllegalArgumentException ex) {
+            throw new UserValidationException("Invalid user id");
+        }
+
+        if (authenticatedUser.getId() == null || !authenticatedUser.getId().equals(requestedUserId)) {
+            throw new UserNotFoundException("User not found");
+        }
+    }
+
     private UserResponse enrichResponse(UserResponse response, UserDomain user) {
         response.setDocumentType(catalogService.getDocumentTypeName(user.getDocumentTypeId()));
         response.setDepartment(catalogService.getDepartmentName(user.getDepartmentId()));
         response.setCity(catalogService.getCityName(user.getCityId()));
-        response.setBranch(branchClient.getBranchName(user.getBranchId()));
+        response.setLocation(resolveLocationForResponse(user));
         return response;
+    }
+
+    private String resolveLocationForResponse(UserDomain user) {
+        if (user.getLocationId() == null) {
+            return UserLocationTestPolicy.FIXED_TEST_LOCATION_ID;
+        }
+        return user.getLocationId().toString();
     }
 
     private void saveNewUser(UserDomain user) {
@@ -302,36 +349,85 @@ public class UserServiceImpl implements UserService {
     }
 
     private void normalizeCreatePayload(CreateUserRequest request) {
-        if (request == null) {
-            return;
-        }
-
-        request.setFirstName(normalizeText(request.getFirstName()));
-        request.setLastName(normalizeText(request.getLastName()));
-        request.setDocumentNumber(normalizeText(request.getDocumentNumber()));
-        request.setPhone(normalizeText(request.getPhone()));
-        request.setEmail(normalizeEmail(request.getEmail()));
-        request.setAddress(normalizeText(request.getAddress()));
+        normalizeCommonPayload(
+                request,
+                request::getFirstName,
+                request::setFirstName,
+                request::getLastName,
+                request::setLastName,
+                request::getDocumentNumber,
+                request::setDocumentNumber,
+                request::getPhone,
+                request::setPhone,
+                request::getEmail,
+                request::setEmail,
+                request::getAddress,
+                request::setAddress
+        );
     }
 
     private void normalizeUpdatePayload(UpdateUserRequest request) {
+        normalizeCommonPayload(
+                request,
+                request::getFirstName,
+                request::setFirstName,
+                request::getLastName,
+                request::setLastName,
+                request::getDocumentNumber,
+                request::setDocumentNumber,
+                request::getPhone,
+                request::setPhone,
+                request::getEmail,
+                request::setEmail,
+                request::getAddress,
+                request::setAddress
+        );
+    }
+
+    private void normalizeCommonPayload(
+            Object request,
+            ValueSupplier firstNameGetter,
+            Consumer<String> firstNameSetter,
+            ValueSupplier lastNameGetter,
+            Consumer<String> lastNameSetter,
+            ValueSupplier documentNumberGetter,
+            Consumer<String> documentNumberSetter,
+            ValueSupplier phoneGetter,
+            Consumer<String> phoneSetter,
+            ValueSupplier emailGetter,
+            Consumer<String> emailSetter,
+            ValueSupplier addressGetter,
+            Consumer<String> addressSetter) {
+
         if (request == null) {
             return;
         }
 
-        request.setFirstName(normalizeText(request.getFirstName()));
-        request.setLastName(normalizeText(request.getLastName()));
-        request.setDocumentNumber(normalizeText(request.getDocumentNumber()));
-        request.setPhone(normalizeText(request.getPhone()));
-        request.setEmail(request.getEmail() == null ? null : normalizeEmail(request.getEmail()));
-        request.setAddress(normalizeText(request.getAddress()));
+        firstNameSetter.accept(normalizeText(firstNameGetter.get()));
+        lastNameSetter.accept(normalizeText(lastNameGetter.get()));
+        documentNumberSetter.accept(normalizeText(documentNumberGetter.get()));
+        phoneSetter.accept(normalizeText(phoneGetter.get()));
+        emailSetter.accept(normalizeOptionalEmail(emailGetter.get()));
+        addressSetter.accept(normalizeText(addressGetter.get()));
     }
 
     private String normalizeText(String value) {
         return value == null ? null : value.trim();
     }
 
-    private String normalizeEmail(String email) {
+    private String normalizeOptionalEmail(String email) {
         return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeRequiredEmail(String email, String message) {
+        if (email == null || email.isBlank()) {
+            throw new UserValidationException(message);
+        }
+        return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    @FunctionalInterface
+    private interface ValueSupplier {
+        String get();
     }
 }

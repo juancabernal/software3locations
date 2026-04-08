@@ -21,9 +21,6 @@ public class City {
     @Column(nullable = false, length = 100)
     private String name;
 
-    public City() {
-    }
-
     public UUID getId() {
         return id;
     }

@@ -2,6 +2,7 @@ package com.co.eatupapi.services.inventory.recipe;
 
 import com.co.eatupapi.domain.inventory.recipe.RecipeDomain;
 import com.co.eatupapi.repositories.inventory.recipe.RecipeRepository;
+import com.co.eatupapi.utils.inventory.recipe.exceptions.RecipeNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +19,15 @@ public class DeleteRecipeService {
 
     @Transactional
     public void run(String name) {
-
-        RecipeDomain recipe = repo.findByNameAndActiveTrue(name)
-                .orElseThrow(() -> new RuntimeException(String.format(RECIPE_NOT_FOUND, name)));
-
-        recipe.setActive(false);
+        var recipe = this.getActiveRecipe(name);
+        recipe.deactivate();
         repo.save(recipe);
+    }
+
+    private RecipeDomain getActiveRecipe(String name) {
+        return repo.findByNameAndActiveTrue(name)
+                .orElseThrow(() -> new RecipeNotFoundException(
+                        String.format(RECIPE_NOT_FOUND, name)
+                ));
     }
 }

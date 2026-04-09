@@ -10,5 +10,4 @@ public class GenerateRecipeIdService {
     public UUID run() {
         return UUID.randomUUID();
     }
-
 }

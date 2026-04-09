@@ -21,12 +21,13 @@ public class UserMapper {
         user.setDepartmentId(request.getDepartmentId());
         user.setCityId(request.getCityId());
         user.setAddress(request.getAddress());
-        user.setBranchId(request.getBranchId());
+        user.setLocationId(request.getLocationId());
         return user;
     }
 
     public UserResponse toResponse(UserDomain user) {
         UserResponse response = new UserResponse();
+        response.setId(user.getId());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
         response.setDocumentNumber(user.getDocumentNumber());
@@ -40,6 +41,7 @@ public class UserMapper {
 
     public UserSummaryResponse toSummaryResponse(UserDomain user) {
         UserSummaryResponse summary = new UserSummaryResponse();
+        summary.setId(user.getId());
         summary.setFirstName(user.getFirstName());
         summary.setLastName(user.getLastName());
         summary.setDocumentNumber(maskDocumentNumber(user.getDocumentNumber()));

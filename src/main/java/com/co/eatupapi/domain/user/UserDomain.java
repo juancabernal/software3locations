@@ -53,8 +53,8 @@ public class UserDomain {
     @Column(nullable = false, length = 255)
     private String address;
 
-    @Column(name = "branch_id", nullable = false)
-    private UUID branchId;
+    @Column(name = "location_id", nullable = false)
+    private UUID locationId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -65,9 +65,6 @@ public class UserDomain {
 
     @Column(name = "modified_at")
     private LocalDateTime modifiedAt;
-
-    public UserDomain() {
-    }
 
     public UUID getId() {
         return id;
@@ -174,12 +171,12 @@ public class UserDomain {
         this.address = address;
     }
 
-    public UUID getBranchId() {
-        return branchId;
+    public UUID getLocationId() {
+        return locationId;
     }
 
-    public void setBranchId(UUID branchId) {
-        this.branchId = branchId;
+    public void setLocationId(UUID locationId) {
+        this.locationId = locationId;
     }
 
     public UserStatus getStatus() {

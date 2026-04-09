@@ -1,35 +1,43 @@
 package com.co.eatupapi.services.user;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Set;
 
 @Service
 public class JwtService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JwtService.class);
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int MIN_SECRET_BYTES = 32;
     private static final String INSECURE_DEFAULT_SECRET =
             "EatUpApiDefaultSecretKeyThatShouldBeChangedInProduction2024!";
+    private static final Set<String> DISALLOWED_SECRETS = Set.of(
+            "changeme",
+            "change-me",
+            "default",
+            "secret",
+            "jwtsecret",
+            "jwt-secret",
+            INSECURE_DEFAULT_SECRET.toLowerCase(Locale.ROOT)
+    );
 
     private final SecretKey signingKey;
     private final long expirationMs;
 
     public JwtService(
-            @Value("${jwt.secret:}") String secret,
-            @Value("${jwt.expiration-ms:3600000}") long expirationMs) {
-        this.signingKey = resolveSigningKey(secret);
-        this.expirationMs = expirationMs > 0 ? expirationMs : 3600000L;
+            @Value("${jwt.secret:${JWT_SECRET:}}") String secret,
+            @Value("${jwt.expiration-ms:${JWT_EXPIRATION_MS:3600000}}") long expirationMs) {
+        String validatedSecret = validateSecret(secret);
+        this.expirationMs = validateExpiration(expirationMs);
+        this.signingKey = Keys.hmacShaKeyFor(validatedSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String email) {
@@ -52,7 +60,7 @@ public class JwtService {
         try {
             Claims claims = extractClaims(token);
             return claims.getExpiration().after(new Date());
-        } catch (Exception ex) {
+        } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }
     }
@@ -69,19 +77,34 @@ public class JwtService {
                 .getPayload();
     }
 
-    private SecretKey resolveSigningKey(String configuredSecret) {
+    private String validateSecret(String configuredSecret) {
         String normalizedSecret = configuredSecret == null ? "" : configuredSecret.trim();
+        String normalizedLowercase = normalizedSecret.toLowerCase(Locale.ROOT);
 
-        if (normalizedSecret.isBlank()
-                || INSECURE_DEFAULT_SECRET.equals(normalizedSecret)
-                || normalizedSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
-            LOGGER.warn("JWT secret is missing or insecure; using an ephemeral in-memory key for this process.");
-            byte[] randomKey = new byte[64];
-            SECURE_RANDOM.nextBytes(randomKey);
-            return Keys.hmacShaKeyFor(randomKey);
+        if (normalizedSecret.isBlank()) {
+            throw new IllegalStateException("Invalid JWT configuration: property 'jwt.secret' is required.");
+        }
+        if (DISALLOWED_SECRETS.contains(normalizedLowercase)) {
+            throw new IllegalStateException(
+                    "Invalid JWT configuration: property 'jwt.secret' uses a disallowed insecure default value."
+            );
+        }
+        if (normalizedSecret.getBytes(StandardCharsets.UTF_8).length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException(
+                    "Invalid JWT configuration: property 'jwt.secret' must be at least 32 bytes for HMAC security."
+            );
         }
 
-        return Keys.hmacShaKeyFor(normalizedSecret.getBytes(StandardCharsets.UTF_8));
+        return normalizedSecret;
+    }
+
+    private long validateExpiration(long configuredExpirationMs) {
+        if (configuredExpirationMs <= 0) {
+            throw new IllegalStateException(
+                    "Invalid JWT configuration: property 'jwt.expiration-ms' must be greater than 0."
+            );
+        }
+        return configuredExpirationMs;
     }
 
     private String normalizeEmail(String email) {

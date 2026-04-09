@@ -32,30 +32,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-        if (jwtService.isTokenValid(token)) {
+        String token = authHeader.substring(7).trim();
+        try {
+            if (!jwtService.isTokenValid(token)) {
+                SecurityContextHolder.clearContext();
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             String email = jwtService.extractEmail(token);
-            boolean authenticated = userRepository.findByEmailIgnoreCase(email)
+            if (email == null || email.isBlank()) {
+                SecurityContextHolder.clearContext();
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            userRepository.findByEmailIgnoreCase(email)
                     .filter(user -> user.getStatus() == UserStatus.ACTIVE)
-                    .map(user -> {
+                    .ifPresentOrElse(user -> {
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(email, null, List.of());
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        return true;
-                    })
-                    .orElse(false);
-
-            if (!authenticated) {
-                SecurityContextHolder.clearContext();
-            }
-        } else {
+                    }, SecurityContextHolder::clearContext);
+        } catch (RuntimeException ex) {
             SecurityContextHolder.clearContext();
         }
 

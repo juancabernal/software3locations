@@ -6,7 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(basePackages = "com.co.eatupapi.controllers.inventory.recipe")
+@RestControllerAdvice(basePackages = "com.co.eatupapi.services.inventory.recipe")
 public class RecipeExceptionHandler {
 
     @ExceptionHandler(RecipeNotFoundException.class)

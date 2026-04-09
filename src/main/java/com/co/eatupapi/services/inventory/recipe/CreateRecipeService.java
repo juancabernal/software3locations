@@ -17,12 +17,12 @@ public class CreateRecipeService {
 
     private final RecipeRepository repo;
     private final RecipeMapper mapper;
-    private final GenerateRecipeIdService idService; // ✅ agregado
+    private final GenerateRecipeIdService idService;
 
     public CreateRecipeService(
             RecipeRepository repo,
             RecipeMapper mapper,
-            GenerateRecipeIdService idService // ✅ agregado
+            GenerateRecipeIdService idService
     ) {
         this.repo = repo;
         this.mapper = mapper;

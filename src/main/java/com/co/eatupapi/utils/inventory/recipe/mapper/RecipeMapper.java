@@ -16,10 +16,10 @@ public interface RecipeMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "locationId", expression = "java(java.util.UUID.fromString(\"11111111-1111-1111-1111-111111111111\"))")
-    @Mapping(target = "baseCost", ignore = true)
-    @Mapping(target = "sellingPrice", ignore = true)
+    @Mapping(target = "baseCost", expression = "java(java.math.BigDecimal.ZERO)")
+    @Mapping(target = "sellingPrice", expression = "java(java.math.BigDecimal.ZERO)")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     RecipeDomain toNewDomain(RecipeRequest request, UUID id);
 
     @Mapping(target = "id", ignore = true)

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.co.eatupapi.dto.commercial.seller.SellerPatchDTO;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -59,4 +61,11 @@ public class SellerController {
         SellerDTO updated = sellerService.updateStatus(sellerId, request.getStatus());
         return ResponseEntity.ok(updated);
     }
+
+    @PatchMapping("/{sellerId}")
+    public ResponseEntity<SellerDTO> patchSeller(@PathVariable UUID sellerId,
+                                                 @RequestBody SellerPatchDTO request) {
+        return ResponseEntity.ok(sellerService.patchSeller(sellerId, request));
+    }
+
 }

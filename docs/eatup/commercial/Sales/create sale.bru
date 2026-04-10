@@ -1,0 +1,47 @@
+meta {
+  name: create sale
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/commercial/api/v1/sales
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhbmRyZXNAY29ycmVvLmNvbSIsImlhdCI6MTc3NTY5NjgxOCwiZXhwIjoxNzc1NzAwNDE4fQ.iPP7N1g0YDZpu3y3kYitR8-eXbGPB3J9YJJnpZ72TzFzD4XjhwYlJ1UgTtp3KCNw
+}
+
+body:json {
+  {
+    "sellerId": "25cd85e7-c978-4364-821f-7c633bf6f5e8",
+    "tableId": "8446ccc2-95f7-4368-a18c-d22f7d6c47db",
+    "details": [
+      {
+        "productId": "152bc8db-29ee-4456-9113-f6e50ca1dde7",
+        "quantity": 2
+      }
+    ]
+  }
+}
+
+script:post-response {
+  // Validar que el status sea 201
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  // Guardar el ID para las siguientes peticiones
+  const data = res.getBody();
+  if (data && data.id) {
+    bru.setVar("saleId", data.id);
+    console.log("ID guardado en Bruno: " + data.id);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

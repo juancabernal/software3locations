@@ -40,7 +40,9 @@ public class SaleDomain {
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
 
-    public SaleDomain() {}
+    public SaleDomain() {
+        // Empty constructor required by JPA
+    }
 
     public UUID getId() {
         return id;

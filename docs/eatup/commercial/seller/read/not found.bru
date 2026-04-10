@@ -1,0 +1,26 @@
+meta {
+  name: not found
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8080/comercialapi/v1/sellers/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  test("Status code is 404", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

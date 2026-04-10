@@ -1,0 +1,39 @@
+meta {
+  name: correct request
+  type: http
+  seq: 1
+}
+
+put {
+  url: http://localhost:8080/comercialapi/v1/sellers/{{sellerId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "documentTypeId": "{{documentTypeId}}",
+    "locationId": "{{locationId}}",
+    "identificationNumber": "1234567890",
+    "firstName": "Juan",
+    "lastName": "Gomez",
+    "phone": "3009876543",
+    "email": "juan.perez@email.com",
+    "commissionPercentage": 15.0
+  }
+}
+
+script:post-response {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

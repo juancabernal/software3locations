@@ -1,0 +1,32 @@
+meta {
+  name: set inactive
+  type: http
+  seq: 1
+}
+
+patch {
+  url: http://localhost:8080/comercialapi/v1/sellers/{{sellerId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "status": "INACTIVE"
+  }
+}
+
+script:post-response {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

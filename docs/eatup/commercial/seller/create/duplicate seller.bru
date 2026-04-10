@@ -1,0 +1,39 @@
+meta {
+  name: duplicate seller
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/comercialapi/v1/sellers
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "documentTypeId": "{{documentTypeId}}",
+    "locationId": "{{locationId}}",
+    "identificationNumber": "9876543210",
+    "firstName": "Carlos",
+    "lastName": "Lopez",
+    "phone": "3009876543",
+    "email": "juan.perez@email.com",
+    "commissionPercentage": 5.0
+  }
+}
+
+script:post-response {
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

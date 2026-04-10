@@ -80,8 +80,12 @@ public class SellerServiceImpl implements SellerService {
             SellerStatus parsedStatus = parseStatus(status);
             result = sellerRepository.findByStatus(parsedStatus);
         }
-        return result.stream().map(sellerMapper::toDto).toList();
+        return result.stream()
+                .sorted((a, b) -> a.getCreatedDate().compareTo(b.getCreatedDate()))
+                .map(sellerMapper::toDto)
+                .toList();
     }
+
 
     @Override
     public SellerDTO updateSeller(UUID sellerId, SellerDTO request) {

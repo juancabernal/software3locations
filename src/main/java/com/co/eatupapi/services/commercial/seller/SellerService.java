@@ -40,11 +40,19 @@ public class SellerService {
     }
 
     public SellerDTO createSeller(SellerDTO request) {
+        if (request == null) {
+            throw new SellerValidationException("Request body is required");
+        }
         validateSellerPayload(request);
         validateDuplicateEmail(request.getEmail());
         validateDuplicateIdentification(request.getIdentificationNumber());
 
         SellerDomain sellerDomain = sellerMapper.toDomain(request);
+        sellerDomain.setFirstName(request.getFirstName().trim());
+        sellerDomain.setLastName(request.getLastName().trim());
+        sellerDomain.setIdentificationNumber(request.getIdentificationNumber().trim());
+        sellerDomain.setPhone(request.getPhone().trim());
+        sellerDomain.setEmail(request.getEmail().trim().toLowerCase());
         sellerDomain.setStatus(SellerStatus.ACTIVE);
         sellerDomain.setCreatedDate(LocalDateTime.now());
         sellerDomain.setModifiedDate(LocalDateTime.now());
@@ -73,16 +81,18 @@ public class SellerService {
         validateSellerPayload(request);
 
         SellerDomain existing = findSellerById(sellerId);
-        validateImmutableEmail(existing.getEmail(), request.getEmail());
+        validateImmutableEmail(existing.getEmail(), request.getEmail().trim().toLowerCase());
+        validateDuplicateIdentificationOnUpdate(request.getIdentificationNumber(), sellerId); // ← agregar
 
         existing.setDocumentTypeId(request.getDocumentTypeId());
         existing.setLocationId(request.getLocationId());
-        existing.setIdentificationNumber(request.getIdentificationNumber());
-        existing.setFirstName(request.getFirstName());
-        existing.setLastName(request.getLastName());
-        existing.setPhone(request.getPhone());
+        existing.setIdentificationNumber(request.getIdentificationNumber().trim());
+        existing.setFirstName(request.getFirstName().trim());
+        existing.setLastName(request.getLastName().trim());
+        existing.setPhone(request.getPhone().trim());
         existing.setCommissionPercentage(request.getCommissionPercentage());
         existing.setModifiedDate(LocalDateTime.now());
+        existing.setEmail(request.getEmail().trim().toLowerCase());
 
         sellerRepository.save(existing);
         return sellerMapper.toDto(existing);
@@ -144,6 +154,14 @@ public class SellerService {
             throw new SellerValidationException("Field '" + fieldName + "' is required and cannot be empty");
         }
     }
+    private void validateDuplicateIdentificationOnUpdate(String identificationNumber, UUID currentSellerId) {
+        if (sellerRepository.existsByIdentificationNumberAndIdNot(identificationNumber, currentSellerId)) {
+            throw new SellerBusinessException(
+                    "A seller with identification number '" + identificationNumber + "' already exists"
+            );
+        }
+    }
+
     private void validateDocumentType(UUID documentTypeId) {
         if (!documentTypeRepository.existsById(documentTypeId)) {
             throw new SellerValidationException(
@@ -164,6 +182,9 @@ public class SellerService {
             throw new SellerValidationException(
                     "Field '" + fieldName + "' must contain only letters"
             );
+        }
+        if (value.trim().length() > 100) {
+            throw new SellerValidationException("Field '" + fieldName + "' must not exceed 100 characters");
         }
     }
 

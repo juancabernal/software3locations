@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface SellerRepository extends JpaRepository<SellerDomain, String> {
+public interface SellerRepository extends JpaRepository<SellerDomain, UUID>{
     boolean existsByEmail(String email);
     boolean existsByIdentificationNumber(String identificationNumber);
     List<SellerDomain> findByStatus(SellerStatus status);

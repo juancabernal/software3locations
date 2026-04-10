@@ -38,7 +38,6 @@ public class SellerService {
         validateDuplicateIdentification(request.getIdentificationNumber());
 
         SellerDomain sellerDomain = sellerMapper.toDomain(request);
-        sellerDomain.setId(UUID.randomUUID().toString());
         sellerDomain.setStatus(SellerStatus.ACTIVE);
         sellerDomain.setCreatedDate(LocalDateTime.now());
         sellerDomain.setModifiedDate(LocalDateTime.now());
@@ -47,7 +46,7 @@ public class SellerService {
         return sellerMapper.toDto(sellerDomain);
     }
 
-    public SellerDTO getSellerById(String sellerId) {
+    public SellerDTO getSellerById(UUID sellerId) {
         SellerDomain seller = findSellerById(sellerId);
         return sellerMapper.toDto(seller);
     }
@@ -63,7 +62,7 @@ public class SellerService {
         return result.stream().map(sellerMapper::toDto).toList();
     }
 
-    public SellerDTO updateSeller(String sellerId, SellerDTO request) {
+    public SellerDTO updateSeller(UUID sellerId, SellerDTO request) {
         validateSellerPayload(request);
 
         SellerDomain existing = findSellerById(sellerId);
@@ -82,7 +81,7 @@ public class SellerService {
         return sellerMapper.toDto(existing);
     }
 
-    public SellerDTO updateStatus(String sellerId, String status) {
+    public SellerDTO updateStatus(UUID sellerId, String status) {
         SellerStatus newStatus = parseRequiredStatus(status);
 
         SellerDomain existing = findSellerById(sellerId);
@@ -93,7 +92,7 @@ public class SellerService {
         return sellerMapper.toDto(existing);
     }
 
-    private SellerDomain findSellerById(String sellerId) {
+    private SellerDomain findSellerById(UUID sellerId) {
         return sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new SellerNotFoundException("Seller not found with id: " + sellerId));
     }

@@ -1,0 +1,23 @@
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  const statusCode = res.getStatus()
+  
+  const responseData = res.getBody()
+  
+  const token = responseData?.Token
+  
+  if (!token) {
+    console.log("⚠️ No token found in response")
+    return
+  }
+  
+  bru.setEnvVar("token", token)
+  console.log("✅ Token saved successfully")
+}

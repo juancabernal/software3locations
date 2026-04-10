@@ -3,7 +3,8 @@ package com.co.eatupapi.services.inventory.recipe;
 import com.co.eatupapi.domain.inventory.recipe.RecipeDomain;
 import com.co.eatupapi.dto.inventory.recipe.RecipeResponse;
 import com.co.eatupapi.repositories.inventory.recipe.RecipeRepository;
-import com.co.eatupapi.utils.inventory.recipe.exceptions.RecipeMapper;
+import com.co.eatupapi.utils.inventory.recipe.exceptions.RecipeNotFoundException;
+import com.co.eatupapi.utils.inventory.recipe.mapper.RecipeMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +22,10 @@ public class GetRecipeService {
 
     @Transactional(readOnly = true)
     public RecipeResponse run(String name) {
-        RecipeDomain recipe = repo.findByName(name).orElseThrow(() ->
-                new RuntimeException(String.format(RECIPE_WITH_NAME_NOT_FOUND, name)));
+        var recipe = repo.findByName(name)
+                .orElseThrow(() -> new RecipeNotFoundException(
+                        String.format(RECIPE_WITH_NAME_NOT_FOUND, name)
+                ));
         return mapper.toResponse(recipe);
     }
 }

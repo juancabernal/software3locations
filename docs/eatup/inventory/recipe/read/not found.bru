@@ -1,0 +1,25 @@
+meta {
+  name: not found
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/api/v1/recipes/Pizza%20Margari
+  body: none
+  auth: inherit
+}
+
+tests {
+  const body = res.body
+  
+  test('should fail when recipe does not exist', () => {
+    expect(res.getStatus()).to.equal(404)
+  
+    expect(body).to.exist
+    expect(body).to.be.an('object')
+  
+    expect(body.errorCode).to.equal('RECIPE_NOT_FOUND')
+    expect(body.message).to.include('La receta con el nombre')
+  })
+}

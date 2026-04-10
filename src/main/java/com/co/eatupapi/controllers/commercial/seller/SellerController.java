@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/comercialapi/v1/sellers")
@@ -40,20 +41,20 @@ public class SellerController {
     }
 
     @GetMapping("/{sellerId}")
-    public ResponseEntity<SellerDTO> getSellerById(@PathVariable String sellerId) {
+    public ResponseEntity<SellerDTO> getSellerById(@PathVariable UUID sellerId) {
         SellerDTO seller = sellerService.getSellerById(sellerId);
         return ResponseEntity.ok(seller);
     }
 
     @PutMapping("/{sellerId}")
-    public ResponseEntity<SellerDTO> updateSeller(@PathVariable String sellerId,
+    public ResponseEntity<SellerDTO> updateSeller(@PathVariable UUID sellerId,
                                                   @RequestBody SellerDTO request) {
         SellerDTO updated = sellerService.updateSeller(sellerId, request);
         return ResponseEntity.ok(updated);
     }
 
     @PatchMapping("/{sellerId}/status")
-    public ResponseEntity<SellerDTO> updateStatus(@PathVariable String sellerId,
+    public ResponseEntity<SellerDTO> updateStatus(@PathVariable UUID sellerId,
                                                   @RequestBody SellerStatusUpdateDTO request) {
         SellerDTO updated = sellerService.updateStatus(sellerId, request.getStatus());
         return ResponseEntity.ok(updated);

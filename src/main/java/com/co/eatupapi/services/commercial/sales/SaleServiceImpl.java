@@ -50,7 +50,7 @@ public class SaleServiceImpl implements SaleService {
     public SaleResponseDTO createSale(SaleRequestDTO request) {
         validateRequest(request);
 
-        SellerDomain seller = sellerRepository.findById(request.getSellerId())
+        SellerDomain seller = sellerRepository.findById(UUID.fromString(request.getSellerId()))
                 .orElseThrow(() -> new SaleNotFoundException("Seller not found with id: " + request.getSellerId()));
 
         if (request.getTableId() != null && !request.getTableId().isBlank()) {
@@ -117,7 +117,7 @@ public class SaleServiceImpl implements SaleService {
 
         validateRequest(request);
 
-        SellerDomain seller = sellerRepository.findById(request.getSellerId())
+        SellerDomain seller = sellerRepository.findById(UUID.fromString(request.getSellerId()))
                 .orElseThrow(() -> new SaleNotFoundException("Seller not found with id: " + request.getSellerId()));
 
         if (request.getTableId() != null && !request.getTableId().isBlank()) {
@@ -173,7 +173,7 @@ public class SaleServiceImpl implements SaleService {
         }
 
         if (request.sellerId() != null && !request.sellerId().isBlank()) {
-            SellerDomain seller = sellerRepository.findById(request.sellerId())
+            SellerDomain seller = sellerRepository.findById(UUID.fromString(request.sellerId()))
                     .orElseThrow(() -> new SaleNotFoundException("Seller not found with id: " + request.sellerId()));
             existingSale.setSeller(seller);
         }

@@ -3,9 +3,11 @@ package com.co.eatupapi.dto.commercial.seller;
 import com.co.eatupapi.domain.commercial.seller.SellerStatus;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class SellerDTO {
-    private String id;
+
+    private UUID id;
     private String documentType;
     private Long locationId;
     private String identificationNumber;
@@ -20,13 +22,9 @@ public class SellerDTO {
 
     public SellerDTO() {}
 
-    public String getId() {
-        return id;
-    }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getDocumentType() {
         return documentType;

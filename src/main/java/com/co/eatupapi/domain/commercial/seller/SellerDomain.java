@@ -2,6 +2,8 @@ package com.co.eatupapi.domain.commercial.seller;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
+
 
 @Entity
 @Table(name = "sellers")
@@ -9,7 +11,8 @@ public class SellerDomain {
 
 
     @Id
-    private String id;
+    @GeneratedValue
+    private UUID id;
 
     @Column(name = "document_type", nullable = false, length = 10)
     private String documentType;
@@ -49,13 +52,8 @@ public class SellerDomain {
 
 
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public String getDocumentType() {
         return documentType;

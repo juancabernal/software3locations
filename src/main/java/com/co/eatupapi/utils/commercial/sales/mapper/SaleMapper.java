@@ -15,7 +15,7 @@ public class SaleMapper {
 
         SaleResponseDTO dto = new SaleResponseDTO();
         dto.setId(domain.getId());
-        dto.setSellerId(domain.getSeller().getId());
+        dto.setSellerId(domain.getSeller().getId().toString());
         dto.setSellerName(domain.getSeller().getFirstName() + " " + domain.getSeller().getLastName());
         dto.setTableId(domain.getTableId());
         dto.setStatus(domain.getStatus());

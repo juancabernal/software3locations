@@ -18,7 +18,6 @@ import java.util.UUID;
 public class RecipeDomain {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, length = 150)
@@ -60,4 +59,12 @@ public class RecipeDomain {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    public void deactivate() {
+        if (Boolean.FALSE.equals(this.active)) {
+            return;
+        }
+        this.active = false;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

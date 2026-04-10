@@ -158,20 +158,41 @@ public class CategoryService {
     }
 
     private boolean isDuplicateNameViolation(DataIntegrityViolationException ex) {
-        return containsConstraintHint(ex, "categories_name")
-                || containsConstraintHint(ex, "uk")
-                && containsConstraintHint(ex, "name");
+        return containsHint(ex, "categories_name")
+                || (containsHint(ex, "uk") && containsHint(ex, "name"));
     }
 
     private boolean isDuplicateCnsViolation(DataIntegrityViolationException ex) {
-        return containsConstraintHint(ex, "categories_cns")
-                || containsConstraintHint(ex, "uk")
-                && containsConstraintHint(ex, "cns");
+        return containsHint(ex, "categories_cns")
+                || (containsHint(ex, "uk") && containsHint(ex, "cns"));
     }
 
-    private boolean containsConstraintHint(DataIntegrityViolationException ex, String hint) {
+    private boolean containsHint(DataIntegrityViolationException ex, String hint) {
         Throwable rootCause = NestedExceptionUtils.getMostSpecificCause(ex);
         String message = rootCause != null ? rootCause.getMessage() : ex.getMessage();
         return message != null && message.toLowerCase().contains(hint.toLowerCase());
+    }
+
+    // --- NUEVOS MÉTODOS DE BÚSQUEDA ---
+
+    public List<CategoryDTO> getCategoriesByName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new ValidationException("Search name cannot be empty");
+        }
+        return categoryRepository.findByNameContainingIgnoreCase(name)
+                .stream()
+                .map(categoryMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<CategoryDTO> getCategoriesByType(String type) {
+        if (type == null || type.isBlank()) {
+            throw new ValidationException("Search type cannot be empty");
+        }
+        // Usando el nuevo método flexible del Repository
+        return categoryRepository.findByTypeContainingIgnoreCase(type)
+                .stream()
+                .map(categoryMapper::toDto)
+                .collect(Collectors.toList());
     }
 }

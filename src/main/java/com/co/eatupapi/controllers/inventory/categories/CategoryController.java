@@ -56,4 +56,18 @@ public class CategoryController {
         CategoryDTO updated = categoryService.updateStatus(categoryId, request.getStatus());
         return ResponseEntity.ok(updated);
     }
+// Agregar al final de CategoryController.java
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<List<CategoryDTO>> getCategoriesByName(@PathVariable String name) {
+        List<CategoryDTO> categories = categoryService.getCategoriesByName(name);
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/type/{type}")
+    public ResponseEntity<List<CategoryDTO>> getCategoriesByType(@PathVariable String type) {
+        List<CategoryDTO> categories = categoryService.getCategoriesByType(type);
+        return ResponseEntity.ok(categories);
+    }
 }
+

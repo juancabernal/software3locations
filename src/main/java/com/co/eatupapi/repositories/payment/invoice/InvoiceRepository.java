@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
-    Page<Invoice> findBySiteId(UUID siteId, Pageable pageable);
+    Page<Invoice> findByLocationId(UUID locationId, Pageable pageable);
 
+    boolean existsByInvoiceNumberAndLocationId(String invoiceNumber, UUID locationId);
 }

@@ -1,7 +1,7 @@
 package com.co.eatupapi.domain.inventory.transfer;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime; 
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transfers")
@@ -36,8 +36,9 @@ public class Transfer {
     @Column(name = "observaciones")
     private String observaciones;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private String estado = "PENDIENTE";
+    private TransferStatus estado;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -45,11 +46,26 @@ public class Transfer {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Constructor vacío
     public Transfer() {
     }
 
-    // Getters y Setters
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.estado == null) {
+            this.estado = TransferStatus.PENDIENTE;
+        }
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public Long getIdTraslado() {
         return idTraslado;
     }
@@ -122,11 +138,11 @@ public class Transfer {
         this.observaciones = observaciones;
     }
 
-    public String getEstado() {
+    public TransferStatus getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(TransferStatus estado) {
         this.estado = estado;
     }
 

@@ -3,11 +3,13 @@ package com.co.eatupapi.dto.commercial.seller;
 import com.co.eatupapi.domain.commercial.seller.SellerStatus;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class SellerDTO {
-    private String id;
-    private String documentType;
-    private Long locationId;
+
+    private UUID id;
+    private UUID documentTypeId;
+    private UUID locationId;
     private String identificationNumber;
     private String firstName;
     private String lastName;
@@ -18,29 +20,23 @@ public class SellerDTO {
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
 
-    public SellerDTO() {}
-
-    public String getId() {
-        return id;
+    public SellerDTO() {
+        // Default constructor required for JSON deserialization
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public String getDocumentType() {
-        return documentType;
-    }
 
-    public void setDocumentType(String documentType) {
-        this.documentType = documentType;
-    }
+    public UUID getDocumentTypeId() { return documentTypeId; }
+    public void setDocumentTypeId(UUID documentTypeId) { this.documentTypeId = documentTypeId; }
 
-    public Long getLocationId() {
+
+    public UUID getLocationId() {
         return locationId;
     }
 
-    public void setLocationId(Long locationId) {
+    public void setLocationId(UUID locationId) {
         this.locationId = locationId;
     }
 

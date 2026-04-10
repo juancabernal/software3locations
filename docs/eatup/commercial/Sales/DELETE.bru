@@ -1,0 +1,29 @@
+meta {
+  name: DELETE
+  type: http
+  seq: 6
+}
+
+delete {
+  url: http://localhost:8080/commercial/api/v1/sales/{{id}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  id: ddfab038-5488-4ede-b7b2-e2dfb5fe8427
+}
+
+script:post-response {
+  test("Status code is 204", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+  
+  // Limpiar la variable
+  bru.setVar("saleId", null);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

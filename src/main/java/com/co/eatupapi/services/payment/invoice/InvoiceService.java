@@ -10,11 +10,11 @@ import java.util.UUID;
 
 public interface InvoiceService {
 
-    InvoiceResponse createInvoice(UUID siteId, InvoiceRequest request);
+    InvoiceResponse createInvoice(UUID locationId, InvoiceRequest request);
 
-    Page<InvoiceResponse> getInvoicesBySite(UUID siteId, Pageable pageable);
+    Page<InvoiceResponse> getInvoicesByLocation(UUID locationId, Pageable pageable);
 
-    InvoiceResponse getInvoiceById(UUID siteId, UUID invoiceId);
+    InvoiceResponse getInvoiceById(UUID locationId, UUID invoiceId);
 
-    InvoiceResponse updateStatus(UUID siteId, UUID invoiceId, InvoiceStatusUpdateRequest request);
+    InvoiceResponse updateStatus(UUID locationId, UUID invoiceId, InvoiceStatusUpdateRequest request);
 }

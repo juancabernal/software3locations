@@ -32,12 +32,13 @@ tests {
   const body = res.body
   
   test('should fail when recipe already exists', () => {
-    expect(res.getStatus()).to.equal(409)
+    expect(res.getStatus()).to.equal(400) 
   
     expect(body).to.exist
     expect(body).to.be.an('object')
   
-    expect(body.errorCode).to.equal('RECIPE_ALREADY_EXISTS')
+    expect(body.error).to.equal('RECIPE_ALREADY_EXISTS') 
     expect(body.message).to.include('La receta con el nombre')
+    expect(body.timestamp).to.exist 
   })
 }

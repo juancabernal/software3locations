@@ -2,6 +2,8 @@ package com.co.eatupapi.domain.commercial.seller;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
+
 
 @Entity
 @Table(name = "sellers")
@@ -9,13 +11,14 @@ public class SellerDomain {
 
 
     @Id
-    private String id;
+    @GeneratedValue
+    private UUID id;
 
-    @Column(name = "document_type", nullable = false, length = 10)
-    private String documentType;
+    @Column(name = "document_type_id", nullable = false)
+    private UUID documentTypeId;
 
     @Column(name = "location_id", nullable = false)
-    private Long locationId;
+    private UUID locationId;
 
     @Column(name = "identification_number", nullable = false, unique = true, length = 20)
     private String identificationNumber;
@@ -45,31 +48,24 @@ public class SellerDomain {
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
 
-    public SellerDomain() {}
-
-
-
-    public String getId() {
-        return id;
+    public SellerDomain() {
+        // Default constructor required by JPA
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
 
-    public String getDocumentType() {
-        return documentType;
-    }
 
-    public void setDocumentType(String documentType) {
-        this.documentType = documentType;
-    }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public Long getLocationId() {
+    public UUID getDocumentTypeId() { return documentTypeId; }
+    public void setDocumentTypeId(UUID documentTypeId) { this.documentTypeId = documentTypeId; }
+
+
+    public UUID getLocationId() {
         return locationId;
     }
 
-    public void setLocationId(Long locationId) {
+    public void setLocationId(UUID locationId) {
         this.locationId = locationId;
     }
 

@@ -1,0 +1,31 @@
+meta {
+  name: Get BY ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/commercial/api/v1/sales/{{id}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  id: 584affad-eb34-4b71-a6eb-a28a4d2e267a
+}
+
+script:post-response {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("El ID coincide", function() {
+    const data = res.getBody();
+    expect(data.id).to.equal(bru.getVar("saleId"));
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

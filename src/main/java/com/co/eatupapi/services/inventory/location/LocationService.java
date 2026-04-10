@@ -1,5 +1,6 @@
 package com.co.eatupapi.services.inventory.location;
 
+import com.co.eatupapi.dto.inventory.location.LocationPatchDTO;
 import com.co.eatupapi.dto.inventory.location.LocationRequestDTO;
 import com.co.eatupapi.dto.inventory.location.LocationResponseDTO;
 
@@ -13,4 +14,6 @@ public interface LocationService {
     LocationResponseDTO create(LocationRequestDTO request);
 
     LocationResponseDTO update(String id, LocationRequestDTO request);
+
+    LocationResponseDTO patchPartial(String id, LocationPatchDTO patch);
 }

@@ -6,7 +6,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -27,7 +26,7 @@ public class CategoryDomain {
     private String name;
 
     @Column(nullable = false)
-    private LocalDate entryDate;
+    private LocalDateTime entryDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -74,11 +73,11 @@ public class CategoryDomain {
         this.name = name;
     }
 
-    public LocalDate getEntryDate() {
+    public LocalDateTime getEntryDate() {
         return entryDate;
     }
 
-    public void setEntryDate(LocalDate entryDate) {
+    public void setEntryDate(LocalDateTime entryDate) {
         this.entryDate = entryDate;
     }
 

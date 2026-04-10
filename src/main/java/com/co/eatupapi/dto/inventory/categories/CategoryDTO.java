@@ -1,7 +1,7 @@
 package com.co.eatupapi.dto.inventory.categories;
 
 import com.co.eatupapi.domain.inventory.categories.CategoryStatus;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class CategoryDTO {
 
@@ -9,7 +9,7 @@ public class CategoryDTO {
     private Long cns;
     private String type;
     private String name;
-    private LocalDate entryDate;
+    private LocalDateTime entryDate;
     private CategoryStatus status;
 
     public CategoryDTO() {
@@ -47,11 +47,11 @@ public class CategoryDTO {
         this.name = name;
     }
 
-    public LocalDate getEntryDate() {
+    public LocalDateTime getEntryDate() {
         return entryDate;
     }
 
-    public void setEntryDate(LocalDate entryDate) {
+    public void setEntryDate(LocalDateTime entryDate) {
         this.entryDate = entryDate;
     }
 

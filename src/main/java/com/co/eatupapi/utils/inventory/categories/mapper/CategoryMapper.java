@@ -42,7 +42,6 @@ public class CategoryMapper {
         CategoryDomain entity = new CategoryDomain();
         entity.setType(dto.getType());
         entity.setName(dto.getName());
-        entity.setEntryDate(dto.getEntryDate());
         return entity;
     }
 }

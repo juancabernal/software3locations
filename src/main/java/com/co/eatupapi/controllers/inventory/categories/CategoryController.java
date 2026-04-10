@@ -3,7 +3,7 @@ package com.co.eatupapi.controllers.inventory.categories;
 import com.co.eatupapi.dto.inventory.categories.CategoryDTO;
 import com.co.eatupapi.dto.inventory.categories.CategoryStatusUpdateDTO;
 import com.co.eatupapi.services.inventory.categories.CategoryService;
-import java.security.Principal;
+import com.co.eatupapi.utils.inventory.categories.exceptions.ValidationException;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,12 +27,8 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory(
-            @RequestBody CategoryDTO request,
-            Principal principal
-    ) {
-        String username = principal.getName();
-        CategoryDTO saved = categoryService.createCategory(request, username);
+    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO request) {
+        CategoryDTO saved = categoryService.createCategory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
@@ -49,21 +44,30 @@ public class CategoryController {
         return ResponseEntity.ok(categories);
     }
 
-    @PutMapping("/{categoryId}")
-    public ResponseEntity<CategoryDTO> updateCategory(
-            @PathVariable String categoryId,
-            @RequestBody CategoryDTO request
-    ) {
-        CategoryDTO updated = categoryService.updateCategory(categoryId, request);
-        return ResponseEntity.ok(updated);
-    }
-
     @PatchMapping("/{categoryId}/status")
     public ResponseEntity<CategoryDTO> updateStatus(
             @PathVariable String categoryId,
             @RequestBody CategoryStatusUpdateDTO request
     ) {
+        if (request == null) {
+            throw new ValidationException("Request body is required");
+        }
+
         CategoryDTO updated = categoryService.updateStatus(categoryId, request.getStatus());
         return ResponseEntity.ok(updated);
     }
+// Agregar al final de CategoryController.java
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<List<CategoryDTO>> getCategoriesByName(@PathVariable String name) {
+        List<CategoryDTO> categories = categoryService.getCategoriesByName(name);
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/type/{type}")
+    public ResponseEntity<List<CategoryDTO>> getCategoriesByType(@PathVariable String type) {
+        List<CategoryDTO> categories = categoryService.getCategoriesByType(type);
+        return ResponseEntity.ok(categories);
+    }
 }
+

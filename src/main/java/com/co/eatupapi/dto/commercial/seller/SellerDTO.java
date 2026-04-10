@@ -8,8 +8,8 @@ import java.util.UUID;
 public class SellerDTO {
 
     private UUID id;
-    private String documentType;
-    private Long locationId;
+    private UUID documentTypeId;
+    private UUID locationId;
     private String identificationNumber;
     private String firstName;
     private String lastName;
@@ -20,25 +20,23 @@ public class SellerDTO {
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
 
-    public SellerDTO() {}
+    public SellerDTO() {
+        // Default constructor required for JSON deserialization
+    }
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
 
-    public String getDocumentType() {
-        return documentType;
-    }
+    public UUID getDocumentTypeId() { return documentTypeId; }
+    public void setDocumentTypeId(UUID documentTypeId) { this.documentTypeId = documentTypeId; }
 
-    public void setDocumentType(String documentType) {
-        this.documentType = documentType;
-    }
 
-    public Long getLocationId() {
+    public UUID getLocationId() {
         return locationId;
     }
 
-    public void setLocationId(Long locationId) {
+    public void setLocationId(UUID locationId) {
         this.locationId = locationId;
     }
 

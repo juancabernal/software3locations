@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.core.NestedExceptionUtils;
 
 @Service
 public class CategoryService {
@@ -25,18 +28,21 @@ public class CategoryService {
         this.categoryMapper = categoryMapper;
     }
 
-    public CategoryDTO createCategory(CategoryDTO request, String username) {
+    @Transactional
+    public CategoryDTO createCategory(CategoryDTO request) {
         validateCategoryPayload(request);
         validateCategoryNameDoesNotExist(request.getName());
+        categoryRepository.lockCategoryCnsCounter();
 
-        CategoryDomain categoryDomain = categoryMapper.toDomain(request);
+        CategoryDomain categoryDomain = categoryMapper.toNewEntity(request);
+        LocalDateTime now = LocalDateTime.now();
         categoryDomain.setId(UUID.randomUUID());
-        categoryDomain.setCreatedBy(username);
+        categoryDomain.setEntryDate(now);
         categoryDomain.setStatus(CategoryStatus.ACTIVE);
-        categoryDomain.setCreatedDate(LocalDateTime.now());
-        categoryDomain.setModifiedDate(LocalDateTime.now());
+        categoryDomain.setCreatedDate(now);
+        categoryDomain.setModifiedDate(now);
 
-        CategoryDomain savedCategory = categoryRepository.save(categoryDomain);
+        CategoryDomain savedCategory = persistNewCategory(categoryDomain, request.getName());
         return categoryMapper.toDto(savedCategory);
     }
 
@@ -50,30 +56,15 @@ public class CategoryService {
     public List<CategoryDTO> getCategories(String status) {
         CategoryStatus parsedStatus = parseStatus(status);
 
-        return categoryRepository.findAll().stream()
-                .filter(category -> parsedStatus == null || category.getStatus() == parsedStatus)
+        List<CategoryDomain> rows = parsedStatus == null
+                ? categoryRepository.findAll()
+                : categoryRepository.findByStatus(parsedStatus);
+        return rows.stream()
                 .map(categoryMapper::toDto)
                 .collect(Collectors.toList());
     }
 
-    public CategoryDTO updateCategory(String categoryId, CategoryDTO request) {
-        validateCategoryPayload(request);
-
-        CategoryDomain existing = categoryRepository.findById(parseUuid(categoryId))
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
-
-        validateCategoryNameForUpdate(existing, request.getName());
-
-        existing.setType(request.getType());
-        existing.setName(request.getName());
-        existing.setBranchId(request.getBranchId());
-        existing.setEntryDate(request.getEntryDate());
-        existing.setModifiedDate(LocalDateTime.now());
-
-        CategoryDomain updatedCategory = categoryRepository.save(existing);
-        return categoryMapper.toDto(updatedCategory);
-    }
-
+    @Transactional
     public CategoryDTO updateStatus(String categoryId, String status) {
         CategoryStatus newStatus = parseRequiredStatus(status);
 
@@ -116,9 +107,9 @@ public class CategoryService {
     }
 
     private void validateCategoryPayload(CategoryDTO request) {
+        validateRequiredObject(request, "request");
         validateRequiredText(request.getType(), "type");
         validateRequiredText(request.getName(), "name");
-        validateRequiredObject(request.getEntryDate(), "entryDate");
     }
 
     private void validateRequiredText(String value, String fieldName) {
@@ -140,12 +131,68 @@ public class CategoryService {
                 });
     }
 
-    private void validateCategoryNameForUpdate(CategoryDomain existing, String requestedName) {
-        categoryRepository.findByName(requestedName)
-                .ifPresent(category -> {
-                    if (!category.getId().equals(existing.getId())) {
-                        throw new BusinessException("A category with this name already exists");
-                    }
-                });
+    private Long nextCns() {
+        return categoryRepository.findTopByOrderByCnsDesc()
+                .map(CategoryDomain::getCns)
+                .map(current -> current + 1)
+                .orElse(1L);
+    }
+
+    private CategoryDomain persistNewCategory(CategoryDomain categoryDomain, String categoryName) {
+        for (int attempt = 0; attempt < 3; attempt++) {
+            categoryDomain.setCns(nextCns());
+            try {
+                return categoryRepository.saveAndFlush(categoryDomain);
+            } catch (DataIntegrityViolationException ex) {
+                if (categoryRepository.findByName(categoryName).isPresent() || isDuplicateNameViolation(ex)) {
+                    throw new BusinessException("A category with this name already exists");
+                }
+
+                if (!isDuplicateCnsViolation(ex)) {
+                    throw ex;
+                }
+            }
+        }
+
+        throw new BusinessException("The category could not be created due to a concurrent save conflict");
+    }
+
+    private boolean isDuplicateNameViolation(DataIntegrityViolationException ex) {
+        return containsHint(ex, "categories_name")
+                || (containsHint(ex, "uk") && containsHint(ex, "name"));
+    }
+
+    private boolean isDuplicateCnsViolation(DataIntegrityViolationException ex) {
+        return containsHint(ex, "categories_cns")
+                || (containsHint(ex, "uk") && containsHint(ex, "cns"));
+    }
+
+    private boolean containsHint(DataIntegrityViolationException ex, String hint) {
+        Throwable rootCause = NestedExceptionUtils.getMostSpecificCause(ex);
+        String message = rootCause != null ? rootCause.getMessage() : ex.getMessage();
+        return message != null && message.toLowerCase().contains(hint.toLowerCase());
+    }
+
+    // --- NUEVOS MÉTODOS DE BÚSQUEDA ---
+
+    public List<CategoryDTO> getCategoriesByName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new ValidationException("Search name cannot be empty");
+        }
+        return categoryRepository.findByNameContainingIgnoreCase(name)
+                .stream()
+                .map(categoryMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<CategoryDTO> getCategoriesByType(String type) {
+        if (type == null || type.isBlank()) {
+            throw new ValidationException("Search type cannot be empty");
+        }
+        // Usando el nuevo método flexible del Repository
+        return categoryRepository.findByTypeContainingIgnoreCase(type)
+                .stream()
+                .map(categoryMapper::toDto)
+                .collect(Collectors.toList());
     }
 }

@@ -31,7 +31,9 @@ public class SaleDetailDomain {
     @Column(nullable = false)
     private BigDecimal subtotal;
 
-    public SaleDetailDomain() {}
+    public SaleDetailDomain() {
+        // Empty constructor required by JPA
+    }
 
     public UUID getId() {
         return id;

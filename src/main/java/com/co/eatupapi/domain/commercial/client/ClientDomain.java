@@ -1,144 +1,102 @@
 package com.co.eatupapi.domain.commercial.client;
 
+import jakarta.persistence.*;
+import java.util.UUID;
+
+@Entity
+@Table(name = "clients")
 public class ClientDomain {
 
-    private String id;
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @Column(name = "first_name", length = 100)
     private String firstName;
+
+    @Column(name = "second_name", length = 100)
     private String secondName;
+
+    @Column(name = "first_lastname", length = 100)
     private String firstLastName;
+
+    @Column(name = "second_lastname", length = 100)
     private String secondLastName;
-    private Long documentTypeId;
+
+    @Column(name = "document_type_id")
+    private UUID documentTypeId;
+
+    @Column(name = "document_number", length = 30)
     private String documentNumber;
+
+    @Column(length = 150)
     private String email;
+
+    @Column(length = 20)
     private String phone;
+
+    @Column(length = 255)
     private String address;
-    private Long cityId;
-    private Long taxRegimeId;
+
+    @Column(name = "city_id")
+    private UUID cityId;
+
+    @Column(name = "tax_regime_id")
+    private UUID taxRegimeId;
+
+    @Column(name = "assigned_seller_id")
     private Long assignedSellerId;
+
+    @Column(name = "apply_discounts")
     private Boolean applyDiscounts;
+
+    @Enumerated(EnumType.STRING)
     private ClientStatus status;
 
-    public ClientDomain() {
-    }
+    public ClientDomain() {}
 
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public String getId() {
-        return id;
-    }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getSecondName() { return secondName; }
+    public void setSecondName(String secondName) { this.secondName = secondName; }
 
-    public String getFirstName() {
-        return firstName;
-    }
+    public String getFirstLastName() { return firstLastName; }
+    public void setFirstLastName(String firstLastName) { this.firstLastName = firstLastName; }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+    public String getSecondLastName() { return secondLastName; }
+    public void setSecondLastName(String secondLastName) { this.secondLastName = secondLastName; }
 
-    public String getSecondName() {
-        return secondName;
-    }
+    public UUID getDocumentTypeId() { return documentTypeId; }
+    public void setDocumentTypeId(UUID documentTypeId) { this.documentTypeId = documentTypeId; }
 
-    public void setSecondName(String secondName) {
-        this.secondName = secondName;
-    }
+    public String getDocumentNumber() { return documentNumber; }
+    public void setDocumentNumber(String documentNumber) { this.documentNumber = documentNumber; }
 
-    public String getFirstLastName() {
-        return firstLastName;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setFirstLastName(String firstLastName) {
-        this.firstLastName = firstLastName;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public String getSecondLastName() {
-        return secondLastName;
-    }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    public void setSecondLastName(String secondLastName) {
-        this.secondLastName = secondLastName;
-    }
+    public UUID getCityId() { return cityId; }
+    public void setCityId(UUID cityId) { this.cityId = cityId; }
 
-    public Long getDocumentTypeId() {
-        return documentTypeId;
-    }
+    public UUID getTaxRegimeId() { return taxRegimeId; }
+    public void setTaxRegimeId(UUID taxRegimeId) { this.taxRegimeId = taxRegimeId; }
 
-    public void setDocumentTypeId(Long documentTypeId) {
-        this.documentTypeId = documentTypeId;
-    }
+    public Long getAssignedSellerId() { return assignedSellerId; }
+    public void setAssignedSellerId(Long assignedSellerId) { this.assignedSellerId = assignedSellerId; }
 
-    public String getDocumentNumber() {
-        return documentNumber;
-    }
+    public Boolean getApplyDiscounts() { return applyDiscounts; }
+    public void setApplyDiscounts(Boolean applyDiscounts) { this.applyDiscounts = applyDiscounts; }
 
-    public void setDocumentNumber(String documentNumber) {
-        this.documentNumber = documentNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public Long getCityId() {
-        return cityId;
-    }
-
-    public void setCityId(Long cityId) {
-        this.cityId = cityId;
-    }
-
-    public Long getTaxRegimeId() {
-        return taxRegimeId;
-    }
-
-    public void setTaxRegimeId(Long taxRegimeId) {
-        this.taxRegimeId = taxRegimeId;
-    }
-
-    public Long getAssignedSellerId() {
-        return assignedSellerId;
-    }
-
-    public void setAssignedSellerId(Long assignedSellerId) {
-        this.assignedSellerId = assignedSellerId;
-    }
-
-    public Boolean getApplyDiscounts() {
-        return applyDiscounts;
-    }
-
-    public void setApplyDiscounts(Boolean applyDiscounts) {
-        this.applyDiscounts = applyDiscounts;
-    }
-
-    public ClientStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ClientStatus status) {
-        this.status = status;
-    }
+    public ClientStatus getStatus() { return status; }
+    public void setStatus(ClientStatus status) { this.status = status; }
 }

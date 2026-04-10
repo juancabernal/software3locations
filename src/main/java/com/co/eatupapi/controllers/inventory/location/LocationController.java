@@ -1,5 +1,6 @@
 package com.co.eatupapi.controllers.inventory.location;
 
+import com.co.eatupapi.dto.inventory.location.LocationPatchDTO;
 import com.co.eatupapi.dto.inventory.location.LocationRequestDTO;
 import com.co.eatupapi.dto.inventory.location.LocationResponseDTO;
 import com.co.eatupapi.services.inventory.location.LocationService;
@@ -39,5 +40,11 @@ public class LocationController {
     public ResponseEntity<LocationResponseDTO> update(@PathVariable String id,
                                                       @Valid @RequestBody LocationRequestDTO request) {
         return ResponseEntity.ok(locationService.update(id, request));
+    }
+
+    @PatchMapping("/editar/{id}")
+    public ResponseEntity<LocationResponseDTO> patch(@PathVariable String id,
+                                                     @Valid @RequestBody LocationPatchDTO patch) {
+        return ResponseEntity.ok(locationService.patchPartial(id, patch));
     }
 }

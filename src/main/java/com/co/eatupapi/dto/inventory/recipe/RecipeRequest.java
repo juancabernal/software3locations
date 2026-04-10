@@ -1,8 +1,6 @@
 package com.co.eatupapi.dto.inventory.recipe;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,24 +13,36 @@ import java.util.UUID;
 @NoArgsConstructor
 public class RecipeRequest {
 
-    @NotBlank
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(min = 3, max = 150, message = "El nombre debe tener entre 3 y 150 caracteres")
+    @Pattern(
+            regexp = "^[a-zA-Z0-9ÁÉÍÓÚáéíóúñÑ ]+$",
+            message = "El nombre contiene caracteres inválidos"
+    )
     private String name;
 
-    @NotNull
+    @NotNull(message = "El categoryId es obligatorio")
     private UUID categoryId;
 
-    @NotNull
+    @NotNull(message = "El locationId es obligatorio")
     private UUID locationId;
 
-    private List<UUID> productIds;
+    @NotNull(message = "Debe enviar al menos un producto")
+    @Size(min = 1, message = "Debe haber al menos un producto")
+    private List<@NotNull(message = "El productId no puede ser null") UUID> productIds;
 
-    private List<UUID> subRecipeIds;
+    @NotNull(message = "Debe enviar al menos una subreceta")
+    @Size(min = 1, message = "Debe haber al menos una subreceta")
+    private List<@NotNull(message = "El subRecipeId no puede ser null") UUID> subRecipeIds;
 
-    @NotNull
-    @PositiveOrZero
+    @NotNull(message = "El margen de ganancia es obligatorio")
+    @PositiveOrZero(message = "El margen de ganancia no puede ser negativo")
+    @Max(value = 100, message = "El margen de ganancia no puede ser mayor a 100")
     private Integer profitMargin;
 
+    @NotNull(message = "Debe indicar si es visible en el menú")
     private Boolean visibleInMenu;
 
+    @NotNull(message = "Debe indicar si la receta está activa")
     private Boolean active;
 }

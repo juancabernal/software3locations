@@ -1,20 +1,16 @@
 package com.co.eatupapi.dto.inventory.categories;
 
 import com.co.eatupapi.domain.inventory.categories.CategoryStatus;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class CategoryDTO {
 
     private String id;
+    private Long cns;
     private String type;
     private String name;
-    private Long branchId;
-    private String createdBy;
-    private LocalDate entryDate;
+    private LocalDateTime entryDate;
     private CategoryStatus status;
-    private LocalDateTime createdDate;
-    private LocalDateTime modifiedDate;
 
     public CategoryDTO() {
     }
@@ -25,6 +21,14 @@ public class CategoryDTO {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Long getCns() {
+        return cns;
+    }
+
+    public void setCns(Long cns) {
+        this.cns = cns;
     }
 
     public String getType() {
@@ -43,27 +47,11 @@ public class CategoryDTO {
         this.name = name;
     }
 
-    public Long getBranchId() {
-        return branchId;
-    }
-
-    public void setBranchId(Long branchId) {
-        this.branchId = branchId;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public LocalDate getEntryDate() {
+    public LocalDateTime getEntryDate() {
         return entryDate;
     }
 
-    public void setEntryDate(LocalDate entryDate) {
+    public void setEntryDate(LocalDateTime entryDate) {
         this.entryDate = entryDate;
     }
 
@@ -73,21 +61,5 @@ public class CategoryDTO {
 
     public void setStatus(CategoryStatus status) {
         this.status = status;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public LocalDateTime getModifiedDate() {
-        return modifiedDate;
-    }
-
-    public void setModifiedDate(LocalDateTime modifiedDate) {
-        this.modifiedDate = modifiedDate;
     }
 }

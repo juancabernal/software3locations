@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -33,6 +34,15 @@ public class CategoryExceptionHandler {
         return buildErrorResponse(ex, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        return buildRawErrorResponse(
+                "The request violates a database integrity constraint",
+                "DATA_INTEGRITY_VIOLATION",
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
         ValidationException validationException = new ValidationException(ex.getMessage());
@@ -41,10 +51,16 @@ public class CategoryExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        String message = "Formato de datos inválido. ";
         String exMessage = ex.getMessage();
+        if (exMessage != null && exMessage.contains("Required request body is missing")) {
+            return buildRawErrorResponse("Request body is required", "VALIDATION_ERROR", HttpStatus.BAD_REQUEST);
+        }
+
+        String message = "Formato de datos inválido. ";
         if (exMessage != null && exMessage.contains("name")) {
             message += "El nombre de la categoría debe ser texto válido.";
+        } else if (exMessage != null && exMessage.contains("status")) {
+            message += "El estado de la categoría debe ser ACTIVE o INACTIVE.";
         } else if (exMessage != null && exMessage.contains("UUID")) {
             message += "El id debe ser un UUID válido.";
         } else {

@@ -1,0 +1,30 @@
+meta {
+  name: Get ALL
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/commercial/api/v1/sales
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhbGVqc0Bjb3JyZW8uY29tIiwiaWF0IjoxNzc1ODI1ODAwLCJleHAiOjE3NzU4Mjk0MDB9.q7BdvQgyY5YDXHJwHdvVA_nZNTh4kzz_4qNf-mWpK3Hk53iupv4HaH8wZujCH-0s
+}
+
+script:post-response {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("La respuesta es un array", function() {
+    expect(res.getBody()).to.be.an('array');
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

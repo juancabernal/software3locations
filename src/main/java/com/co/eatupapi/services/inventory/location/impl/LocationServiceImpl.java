@@ -1,6 +1,7 @@
 package com.co.eatupapi.services.inventory.location.impl;
 
 import com.co.eatupapi.domain.inventory.location.LocationDomain;
+import com.co.eatupapi.dto.inventory.location.LocationPatchDTO;
 import com.co.eatupapi.dto.inventory.location.LocationRequestDTO;
 import com.co.eatupapi.dto.inventory.location.LocationResponseDTO;
 import com.co.eatupapi.repositories.inventory.location.LocationEntity;
@@ -14,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class LocationServiceImpl implements LocationService {
 
@@ -31,7 +30,7 @@ public class LocationServiceImpl implements LocationService {
                 .stream()
                 .map(LocationMapperEntity::toDomain)
                 .map(LocationResponseDTO::fromDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -58,7 +57,7 @@ public class LocationServiceImpl implements LocationService {
         validateRequest(request);
 
         LocationEntity existing = locationRepository.findById(id)
-                .orElseThrow(() -> new LocationResourceNotFoundException("Sede no encontrada con id: " + id));
+                .orElseThrow(() -> new LocationResourceNotFoundException("Sede no encontrada con el id: " + id));
 
         LocationDomain updated = LocationMapperDomain.toDomain(id, request);
         LocationEntity toSave = LocationMapperEntity.toEntity(updated);
@@ -70,9 +69,74 @@ public class LocationServiceImpl implements LocationService {
         return LocationResponseDTO.fromDomain(LocationMapperEntity.toDomain(saved));
     }
 
+    @Override
+    @Transactional
+    public LocationResponseDTO patchPartial(String id, LocationPatchDTO patch) {
+        validateId(id);
+        if (patch == null || isPatchEmpty(patch)) {
+            throw new LocationValidationException("Debe enviar al menos un campo para actualizar");
+        }
+
+        LocationEntity existing = locationRepository.findById(id)
+                .orElseThrow(() -> new LocationResourceNotFoundException("Sede no encontrada con id: " + id));
+
+        LocationDomain domain = LocationMapperEntity.toDomain(existing);
+
+        if (patch.getName() != null) {
+            domain.setName(patch.getName());
+        }
+        if (patch.getCity() != null) {
+            domain.setCity(patch.getCity());
+        }
+        if (patch.getAddress() != null) {
+            domain.setAddress(patch.getAddress());
+        }
+        if (patch.getActive() != null) {
+            domain.setActive(patch.getActive());
+        }
+        if (patch.getEmail() != null) {
+            domain.setEmail(patch.getEmail());
+        }
+        if (patch.getPhoneNumber() != null) {
+            domain.setPhoneNumber(patch.getPhoneNumber());
+        }
+        if (patch.getStartTime() != null) {
+            domain.setStartTime(patch.getStartTime());
+        }
+        if (patch.getEndTime() != null) {
+            domain.setEndTime(patch.getEndTime());
+        }
+
+        LocationEntity saved = locationRepository.save(LocationMapperEntity.toEntity(domain));
+        return LocationResponseDTO.fromDomain(LocationMapperEntity.toDomain(saved));
+    }
+
+    private static boolean isPatchEmpty(LocationPatchDTO patch) {
+        return patch.getName() == null
+                && patch.getCity() == null
+                && patch.getAddress() == null
+                && patch.getActive() == null
+                && patch.getEmail() == null
+                && patch.getPhoneNumber() == null
+                && patch.getStartTime() == null
+                && patch.getEndTime() == null;
+    }
+
     private void validateId(String id) {
         if (id == null || id.isBlank()) {
             throw new LocationValidationException("El id de la sede es obligatorio");
+        }
+    }
+
+    private void validateRequired(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new LocationValidationException(message);
+        }
+    }
+
+    private void validateNotNull(Object value, String message) {
+        if (value == null) {
+            throw new LocationValidationException(message);
         }
     }
 
@@ -80,29 +144,15 @@ public class LocationServiceImpl implements LocationService {
         if (request == null) {
             throw new LocationValidationException("La solicitud no puede estar vacía");
         }
-        if (request.getName() == null || request.getName().isBlank()) {
-            throw new LocationValidationException("El nombre de la sede es obligatorio");
-        }
-        if (request.getCity() == null || request.getCity().isBlank()) {
-            throw new LocationValidationException("La ciudad es obligatoria");
-        }
-        if (request.getAddress() == null || request.getAddress().isBlank()) {
-            throw new LocationValidationException("La dirección es obligatoria");
-        }
-        if (request.getActive() == null) {
-            throw new LocationValidationException("El estado (active) es obligatorio");
-        }
-        if (request.getEmail() == null || request.getEmail().isBlank()) {
-            throw new LocationValidationException("El email es obligatorio");
-        }
-        if (request.getPhoneNumber() == null || request.getPhoneNumber().isBlank()) {
-            throw new LocationValidationException("El teléfono es obligatorio");
-        }
-        if (request.getStartTime() == null || request.getStartTime().isBlank()) {
-            throw new LocationValidationException("La hora de apertura (startTime) es obligatoria");
-        }
-        if (request.getEndTime() == null || request.getEndTime().isBlank()) {
-            throw new LocationValidationException("La hora de cierre (endTime) es obligatoria");
-        }
+
+        validateRequired(request.getName(), "El nombre de la sede es obligatorio");
+        validateRequired(request.getCity(), "La ciudad es obligatoria");
+        validateRequired(request.getAddress(), "La dirección es obligatoria");
+        validateRequired(request.getEmail(), "El email es obligatorio");
+        validateRequired(request.getPhoneNumber(), "El teléfono es obligatorio");
+        validateRequired(request.getStartTime(), "La hora de apertura (startTime) es obligatoria");
+        validateRequired(request.getEndTime(), "La hora de cierre (endTime) es obligatoria");
+
+        validateNotNull(request.getActive(), "El estado (active) es obligatorio");
     }
 }

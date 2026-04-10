@@ -10,7 +10,7 @@ public class SellerMapper {
     public SellerDTO toDto(SellerDomain sellerDomain) {
         SellerDTO sellerDTO = new SellerDTO();
         sellerDTO.setId(sellerDomain.getId());
-        sellerDTO.setDocumentType(sellerDomain.getDocumentType());
+        sellerDTO.setDocumentTypeId(sellerDomain.getDocumentTypeId());
         sellerDTO.setLocationId(sellerDomain.getLocationId());
         sellerDTO.setIdentificationNumber(sellerDomain.getIdentificationNumber());
         sellerDTO.setFirstName(sellerDomain.getFirstName());
@@ -27,7 +27,7 @@ public class SellerMapper {
     public SellerDomain toDomain(SellerDTO dto) {
         SellerDomain sellerDomain = new SellerDomain();
         sellerDomain.setId(dto.getId());
-        sellerDomain.setDocumentType(dto.getDocumentType());
+        sellerDomain.setDocumentTypeId(dto.getDocumentTypeId());
         sellerDomain.setLocationId(dto.getLocationId());
         sellerDomain.setIdentificationNumber(dto.getIdentificationNumber());
         sellerDomain.setFirstName(dto.getFirstName());

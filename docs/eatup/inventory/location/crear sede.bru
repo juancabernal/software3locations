@@ -1,0 +1,29 @@
+meta {
+  name: crear sede
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/inventory/api/v1/location
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Sede Laureles",
+    "city": "Medellin",
+    "address": "Carrera 70 # 45-21",
+    "active": true,
+    "email": "laureles@eatup.com",
+    "phoneNumber": "+573005551111",
+    "startTime": "07:30",
+    "endTime": "21:00"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

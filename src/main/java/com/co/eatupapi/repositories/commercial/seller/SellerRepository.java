@@ -12,5 +12,6 @@ import java.util.UUID;
 public interface SellerRepository extends JpaRepository<SellerDomain, UUID>{
     boolean existsByEmail(String email);
     boolean existsByIdentificationNumber(String identificationNumber);
+    boolean existsByIdentificationNumberAndIdNot(String identificationNumber, UUID id);
     List<SellerDomain> findByStatus(SellerStatus status);
 }

@@ -1,8 +1,13 @@
 package com.co.eatupapi.controllers.commercial.seller;
 
 import com.co.eatupapi.dto.commercial.seller.SellerDTO;
+import com.co.eatupapi.dto.commercial.seller.SellerPatchDTO;
 import com.co.eatupapi.dto.commercial.seller.SellerStatusUpdateDTO;
 import com.co.eatupapi.services.commercial.seller.SellerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +25,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/comercialapi/v1/sellers")
+@Tag(name = "Vendedores", description = "Gestión de vendedores del sistema")
 public class SellerController {
 
     private final SellerService sellerService;
@@ -28,35 +34,88 @@ public class SellerController {
         this.sellerService = sellerService;
     }
 
+    @Operation(
+            summary = "Crear vendedor",
+            description = "Registra un nuevo vendedor. El estado se asigna como ACTIVE automáticamente."
+    )
+    @ApiResponse(responseCode = "201", description = "Vendedor creado exitosamente")
+    @ApiResponse(responseCode = "400", description = "Datos inválidos o vendedor duplicado")
+
     @PostMapping
     public ResponseEntity<SellerDTO> createSeller(@RequestBody SellerDTO request) {
-        SellerDTO saved = sellerService.createSeller(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(sellerService.createSeller(request));
     }
+
+    @Operation(
+            summary = "Listar vendedores",
+            description = "Retorna todos los vendedores. Se puede filtrar por status: ACTIVE o INACTIVE."
+    )
+    @ApiResponse(responseCode = "201", description = "Vendedor creado exitosamente")
+    @ApiResponse(responseCode = "400", description = "Datos inválidos o vendedor duplicado")
 
     @GetMapping
-    public ResponseEntity<List<SellerDTO>> getSellers(@RequestParam(required = false) String status) {
-        List<SellerDTO> sellers = sellerService.getSellers(status);
-        return ResponseEntity.ok(sellers);
+    public ResponseEntity<List<SellerDTO>> getSellers(
+            @Parameter(description = "Filtrar por estado: ACTIVE o INACTIVE")
+            @RequestParam(required = false) String status) {
+        return ResponseEntity.ok(sellerService.getSellers(status));
     }
+
+    @Operation(
+            summary = "Obtener vendedor por ID",
+            description = "Retorna el vendedor correspondiente al ID proporcionado."
+    )
+    @ApiResponse(responseCode = "201", description = "Vendedor creado exitosamente")
+    @ApiResponse(responseCode = "404", description = "Vendedor no encontrado")
 
     @GetMapping("/{sellerId}")
-    public ResponseEntity<SellerDTO> getSellerById(@PathVariable UUID sellerId) {
-        SellerDTO seller = sellerService.getSellerById(sellerId);
-        return ResponseEntity.ok(seller);
+    public ResponseEntity<SellerDTO> getSellerById(
+            @Parameter(description = "ID del vendedor") @PathVariable UUID sellerId) {
+        return ResponseEntity.ok(sellerService.getSellerById(sellerId));
     }
+
+    @Operation(
+            summary = "Actualizar vendedor",
+            description = "Actualiza todos los campos del vendedor. El email no puede modificarse."
+    )
+
+            @ApiResponse(responseCode = "200", description = "Vendedor actualizado exitosamente")
+            @ApiResponse(responseCode = "400", description = "Datos inválidos o intento de cambiar email")
+            @ApiResponse(responseCode = "404", description = "Vendedor no encontrado")
 
     @PutMapping("/{sellerId}")
-    public ResponseEntity<SellerDTO> updateSeller(@PathVariable UUID sellerId,
-                                                  @RequestBody SellerDTO request) {
-        SellerDTO updated = sellerService.updateSeller(sellerId, request);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<SellerDTO> updateSeller(
+            @Parameter(description = "ID del vendedor") @PathVariable UUID sellerId,
+            @RequestBody SellerDTO request) {
+        return ResponseEntity.ok(sellerService.updateSeller(sellerId, request));
     }
 
+    @Operation(
+            summary = "Actualizar estado del vendedor",
+            description = "Cambia el estado del vendedor a ACTIVE o INACTIVE."
+    )
+    @ApiResponse(responseCode = "200", description = "Estado actualizado exitosamente")
+@ApiResponse(responseCode = "400", description = "Valor de estado inválido")
+@ApiResponse(responseCode = "404", description = "Vendedor no encontrado")
+
     @PatchMapping("/{sellerId}/status")
-    public ResponseEntity<SellerDTO> updateStatus(@PathVariable UUID sellerId,
-                                                  @RequestBody SellerStatusUpdateDTO request) {
-        SellerDTO updated = sellerService.updateStatus(sellerId, request.getStatus());
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<SellerDTO> updateStatus(
+            @Parameter(description = "ID del vendedor") @PathVariable UUID sellerId,
+            @RequestBody SellerStatusUpdateDTO request) {
+        return ResponseEntity.ok(sellerService.updateStatus(sellerId, request.getStatus()));
+    }
+
+    @Operation(
+            summary = "Actualizar campos parciales del vendedor",
+            description = "Actualiza solo los campos enviados en el body. Los campos omitidos o null no se modifican."
+    )
+            @ApiResponse(responseCode = "200", description = "Vendedor actualizado exitosamente")
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+            @ApiResponse(responseCode = "404", description = "Vendedor no encontrado")
+
+    @PatchMapping("/{sellerId}")
+    public ResponseEntity<SellerDTO> patchSeller(
+            @Parameter(description = "ID del vendedor") @PathVariable UUID sellerId,
+            @RequestBody SellerPatchDTO request) {
+        return ResponseEntity.ok(sellerService.patchSeller(sellerId, request));
     }
 }

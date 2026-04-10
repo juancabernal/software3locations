@@ -1,0 +1,30 @@
+meta {
+  name: actualizar sede
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://localhost:8080 /inventory/api/v1/location/d80a6b4d-2b4c-43d5-af00-6b3259cd0e6d
+  body: json
+  auth: inherit
+}
+
+body:json {
+      {
+          "active": true,
+          "address": "Calle 1 # 2-3",
+          "city": "Bogota",
+          "email": "sede@restaurante.com",
+          "endTime": "22:00",
+          "id": "d80a6b4d-2b4c-43d5-af00-6b3259cd0e6d",
+          "name": "Sede Marinilla",
+          "phoneNumber": "+573001234567",
+          "startTime": "08:00"
+      }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -22,29 +22,37 @@ public class InvoiceResponse {
     @Schema(description = "Número de factura", example = "INV-001")
     private String invoiceNumber;
 
-    @Schema(description = "Estado de la factura", example = "PENDIENTE")
+    @Schema(description = "Estado de la factura", example = "OPEN")
     private InvoiceStatus status;
 
     @Schema(description = "Fecha de la factura")
     private LocalDateTime invoiceDate;
 
-    @Schema(description = "Número de la mesa", example = "5")
-    private String tableNumber;
+    @Schema(description = "ID de la venta asociada")
+    private UUID salesId;
 
-    @Schema(description = "Ubicación de la mesa", example = "Terraza")
-    private String tableLocation;
+    @Schema(description = "ID de la relación cliente-descuento asociada")
+    private UUID customerDiscountId;
+
+    @Schema(description = "ID de la sede asociada")
+    private UUID locationId;
+
+    @Schema(description = "ID del descuento asociado")
+    private UUID discountId;
+
+    @Schema(description = "Identificador de mesa obtenido desde sales")
+    private String tableId;
+
+    @Schema(description = "Nombre de la sede asociada")
+    private String locationName;
 
     @Schema(description = "ID del cliente")
     private UUID customerId;
 
-    @Schema(description = "Nombre del cliente", example = "Juan Pérez")
-    private String customerName;
-
-
-    @Schema(description = "Porcentaje de descuento", example = "10.0")
+    @Schema(description = "Porcentaje de descuento resuelto desde descuentos")
     private BigDecimal discountPercentage;
 
-    @Schema(description = "Descripción del descuento", example = "Descuento promocional")
+    @Schema(description = "Descripción del descuento resuelto desde descuentos")
     private String discountDescription;
 
     @Schema(description = "Precio total", example = "15000.00")

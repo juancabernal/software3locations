@@ -20,9 +20,6 @@ public class Invoice {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID siteId;
-
     @Column(nullable = false, unique = true)
     private String invoiceNumber;
 
@@ -34,11 +31,25 @@ public class Invoice {
     private LocalDateTime invoiceDate;
 
     @Column(nullable = false)
-    private UUID tableId;
+    private UUID salesId;
+
+    @Column(nullable = false)
+    private UUID customerDiscountId;
+
+    @Column(nullable = false)
+    private UUID locationId;
+
+    @Column
+    private UUID discountId;
+
+    @Column
+    private String tableId;
+
+    @Column(length = 150)
+    private String locationName;
 
     @Column
     private UUID customerId;
-
 
     @Column(precision = 5, scale = 2)
     private BigDecimal discountPercentage;

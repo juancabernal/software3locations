@@ -1,0 +1,33 @@
+meta {
+  name: Update sale
+  type: http
+  seq: 6
+}
+
+put {
+  url: http://localhost:8080/commercial/api/v1/sales/{{id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "sellerId": "25cd85e7-c978-4364-821f-7c633bf6f5e8",
+    "tableId": "8446ccc2-95f7-4368-a18c-d22f7d6c47db",
+    "details": [
+      {
+        "productId": "152bc8db-29ee-4456-9113-f6e50ca1dde7",
+        "quantity": 50
+      }
+    ]
+  }
+}
+
+vars:pre-request {
+  id: 01cbf745-8dd1-484d-b0b0-5f2b5df61811
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

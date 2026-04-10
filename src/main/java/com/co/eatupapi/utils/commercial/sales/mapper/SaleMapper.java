@@ -25,7 +25,7 @@ public class SaleMapper {
         if (domain.getDetails() != null) {
             dto.setDetails(domain.getDetails().stream()
                     .map(this::toDetailDto)
-                    .collect(Collectors.toList()));
+                    .toList());
         }
 
         return dto;

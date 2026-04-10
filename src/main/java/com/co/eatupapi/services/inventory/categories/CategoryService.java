@@ -35,12 +35,10 @@ public class CategoryService {
         categoryRepository.lockCategoryCnsCounter();
 
         CategoryDomain categoryDomain = categoryMapper.toNewEntity(request);
-        LocalDateTime now = LocalDateTime.now();
         categoryDomain.setId(UUID.randomUUID());
-        categoryDomain.setEntryDate(now);
         categoryDomain.setStatus(CategoryStatus.ACTIVE);
-        categoryDomain.setCreatedDate(now);
-        categoryDomain.setModifiedDate(now);
+        categoryDomain.setCreatedDate(LocalDateTime.now());
+        categoryDomain.setModifiedDate(LocalDateTime.now());
 
         CategoryDomain savedCategory = persistNewCategory(categoryDomain, request.getName());
         return categoryMapper.toDto(savedCategory);
@@ -110,6 +108,7 @@ public class CategoryService {
         validateRequiredObject(request, "request");
         validateRequiredText(request.getType(), "type");
         validateRequiredText(request.getName(), "name");
+        validateRequiredObject(request.getEntryDate(), "entryDate");
     }
 
     private void validateRequiredText(String value, String fieldName) {

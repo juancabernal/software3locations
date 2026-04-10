@@ -18,7 +18,7 @@ public class SellerDomain {
     private UUID documentTypeId;
 
     @Column(name = "location_id", nullable = false)
-    private Long locationId;
+    private UUID locationId;
 
     @Column(name = "identification_number", nullable = false, unique = true, length = 20)
     private String identificationNumber;
@@ -61,11 +61,11 @@ public class SellerDomain {
     public void setDocumentTypeId(UUID documentTypeId) { this.documentTypeId = documentTypeId; }
 
 
-    public Long getLocationId() {
+    public UUID getLocationId() {
         return locationId;
     }
 
-    public void setLocationId(Long locationId) {
+    public void setLocationId(UUID locationId) {
         this.locationId = locationId;
     }
 

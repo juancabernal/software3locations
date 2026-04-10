@@ -9,7 +9,7 @@ public class SellerDTO {
 
     private UUID id;
     private UUID documentTypeId;
-    private Long locationId;
+    private UUID locationId;
     private String identificationNumber;
     private String firstName;
     private String lastName;
@@ -32,11 +32,11 @@ public class SellerDTO {
     public void setDocumentTypeId(UUID documentTypeId) { this.documentTypeId = documentTypeId; }
 
 
-    public Long getLocationId() {
+    public UUID getLocationId() {
         return locationId;
     }
 
-    public void setLocationId(Long locationId) {
+    public void setLocationId(UUID locationId) {
         this.locationId = locationId;
     }
 

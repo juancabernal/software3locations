@@ -1,0 +1,24 @@
+meta {
+  name: editar sede
+  type: http
+  seq: 5
+}
+
+patch {
+  url: http://localhost:8080/inventory/api/v1/location/editar/{id}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "nueva@seatup.com",
+    "phoneNumber": "+573998877"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

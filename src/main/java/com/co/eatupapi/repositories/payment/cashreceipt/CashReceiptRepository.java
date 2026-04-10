@@ -9,6 +9,6 @@ import java.util.UUID;
 
 public interface CashReceiptRepository extends JpaRepository<CashReceipt, UUID> {
 
-    Page<CashReceipt> findBySiteId(UUID siteId, Pageable pageable);
+    Page<CashReceipt> findByLocationId(UUID siteId, Pageable pageable);
 
 }

@@ -1,0 +1,36 @@
+meta {
+  name: Anular recibo
+  type: http
+  seq: 4
+}
+
+patch {
+  url: http://localhost:8080/api/v1/sites/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/cashreceipts/37a8988a-9e92-4c6d-ab6d-cd224393c3c0/cancel
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  const data = res.getBody();
+  
+  test("Debe retornar 200 OK", function() {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("El status del recibo debe ser CANCELLED", function() {
+      expect(data.status).to.equal("CANCELLED");
+  });
+  
+  test("cancelledAt no debe ser null", function() {
+      expect(data.cancelledAt).to.not.be.null;
+  });
+  
+  test("El id del recibo debe mantenerse", function() {
+      expect(data.id).to.be.a("string");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

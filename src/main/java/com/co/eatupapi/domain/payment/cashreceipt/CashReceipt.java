@@ -21,7 +21,7 @@ public class CashReceipt {
     private UUID id;
 
     @Column(nullable = false)
-    private UUID siteId;
+    private UUID locationId;
 
     @Column(nullable = false)
     private UUID invoiceId;

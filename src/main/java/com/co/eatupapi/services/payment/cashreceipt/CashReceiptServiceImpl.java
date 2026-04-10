@@ -29,10 +29,10 @@ public class CashReceiptServiceImpl implements CashReceiptService {
     }
 
     @Override
-    public CashReceiptResponse createCashReceipt(UUID siteId, CreateCashReceiptRequest request) {
+    public CashReceiptResponse createCashReceipt(UUID locationId, CreateCashReceiptRequest request) {
 
         CashReceipt receipt = new CashReceipt();
-        receipt.setSiteId(siteId);
+        receipt.setLocationId(locationId);
         receipt.setInvoiceId(request.getInvoiceId());
         receipt.setAmount(request.getAmount());
         receipt.setPaymentMethodId(request.getPaymentMethodId());
@@ -43,20 +43,20 @@ public class CashReceiptServiceImpl implements CashReceiptService {
     }
 
     @Override
-    public Page<CashReceiptResponse> getCashReceiptsBySite(UUID siteId, Pageable pageable) {
+    public Page<CashReceiptResponse> getCashReceiptsBySite(UUID locationId, Pageable pageable) {
 
         return cashReceiptRepository
-                .findBySiteId(siteId, pageable)
+                .findByLocationId(locationId, pageable)
                 .map(cashReceiptMapper::toResponse);
     }
 
     @Override
-    public CashReceiptResponse cancelCashReceipt(UUID siteId, UUID receiptId) {
+    public CashReceiptResponse cancelCashReceipt(UUID locationId, UUID receiptId) {
         CashReceipt receipt = cashReceiptRepository
                 .findById(receiptId)
                 .orElseThrow(() -> new CashReceiptNotFoundException("Cash receipt not found"));
 
-        if (!receipt.getSiteId().equals(siteId)) {
+        if (!receipt.getLocationId().equals(locationId)) {
             throw new CashReceiptBusinessException(
                     ErrorCode.RECEIPT_DOES_NOT_BELONG_TO_SITE,
                     "Receipt does not belong to this site"

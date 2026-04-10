@@ -1,10 +1,12 @@
 package com.co.eatupapi.utils.payment.cashreceipt.exceptions;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+@Order(1)
 @RestControllerAdvice(basePackages = "com.co.eatupapi.controllers.payment.cashreceipt")
 public class CashReceiptExceptionHandler {
 

@@ -4,6 +4,8 @@ import com.co.eatupapi.domain.inventory.transfer.Transfer;
 import com.co.eatupapi.domain.inventory.transfer.TransferStatus;
 import com.co.eatupapi.dto.inventory.transfer.TransferRequestDTO;
 import com.co.eatupapi.dto.inventory.transfer.TransferResponseDTO;
+import com.co.eatupapi.dto.inventory.transfer.TransferStatusUpdateDTO;
+import com.co.eatupapi.dto.inventory.transfer.TransferObservacionUpdateDTO;
 import com.co.eatupapi.repositories.inventory.transfer.TransferRepository;
 import com.co.eatupapi.utils.inventory.transfer.exceptions.TransferBusinessException;
 import com.co.eatupapi.utils.inventory.transfer.exceptions.TransferNotFoundException;
@@ -50,6 +52,36 @@ public class TransferServiceImpl implements TransferService {
             transfer.setEstado(TransferStatus.PENDIENTE);
         }
 
+        return transferMapper.toResponse(transferRepository.save(transfer));
+    }
+
+    @Override
+    @Transactional
+    public TransferResponseDTO updateStatus(Long id, TransferStatusUpdateDTO statusUpdate) {
+        validateId(id);
+        if (statusUpdate == null || statusUpdate.estado() == null) {
+            throw new TransferValidationException("El estado es obligatorio");
+        }
+
+        Transfer transfer = transferRepository.findById(id)
+                .orElseThrow(() -> new TransferNotFoundException("Transferencia no encontrada con id: " + id));
+
+        transfer.setEstado(statusUpdate.estado());
+        return transferMapper.toResponse(transferRepository.save(transfer));
+    }
+
+    @Override
+    @Transactional
+    public TransferResponseDTO updateObservaciones(Long id, TransferObservacionUpdateDTO observacionUpdate) {
+        validateId(id);
+        if (observacionUpdate == null) {
+            throw new TransferValidationException("La solicitud de actualización es obligatoria");
+        }
+
+        Transfer transfer = transferRepository.findById(id)
+                .orElseThrow(() -> new TransferNotFoundException("Transferencia no encontrada con id: " + id));
+
+        transfer.setObservaciones(observacionUpdate.observaciones());
         return transferMapper.toResponse(transferRepository.save(transfer));
     }
 

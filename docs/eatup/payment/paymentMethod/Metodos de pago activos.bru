@@ -1,0 +1,42 @@
+meta {
+  name: Metodos de pago activos
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/api/v1/payment-methods
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  const data = res.getBody();
+  
+  test("Debe retornar 200 OK", function() {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Debe retornar una lista de métodos de pago", function() {
+      expect(data).to.be.an("array");
+      expect(data.length).to.be.greaterThan(0);
+  });
+  
+  test("Cada método de pago debe tener id y name", function() {
+      data.forEach(function(metodo) {
+          expect(metodo.id).to.be.a("string");
+          expect(metodo.name).to.be.a("string");
+      });
+  });
+  
+  test("Todos los métodos de pago deben estar activos", function() {
+      data.forEach(function(metodo) {
+          expect(metodo.active).to.equal(true);
+      });
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

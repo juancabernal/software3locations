@@ -2,6 +2,8 @@ package com.co.eatupapi.controllers.inventory.transfer;
 
 import com.co.eatupapi.dto.inventory.transfer.TransferRequestDTO;
 import com.co.eatupapi.dto.inventory.transfer.TransferResponseDTO;
+import com.co.eatupapi.dto.inventory.transfer.TransferStatusUpdateDTO;
+import com.co.eatupapi.dto.inventory.transfer.TransferObservacionUpdateDTO;
 import com.co.eatupapi.services.inventory.transfer.TransferService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,18 @@ public class TransferController {
     public ResponseEntity<TransferResponseDTO> updateTransfer(@PathVariable Long id,
                                                               @Valid @RequestBody TransferRequestDTO request) {
         return ResponseEntity.ok(transferService.update(id, request));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<TransferResponseDTO> updateTransferStatus(@PathVariable Long id,
+                                                                     @Valid @RequestBody TransferStatusUpdateDTO statusUpdate) {
+        return ResponseEntity.ok(transferService.updateStatus(id, statusUpdate));
+    }
+
+    @PatchMapping("/{id}/observaciones")
+    public ResponseEntity<TransferResponseDTO> updateTransferObservaciones(@PathVariable Long id,
+                                                                             @RequestBody TransferObservacionUpdateDTO observacionUpdate) {
+        return ResponseEntity.ok(transferService.updateObservaciones(id, observacionUpdate));
     }
 
     @GetMapping("/{id}")

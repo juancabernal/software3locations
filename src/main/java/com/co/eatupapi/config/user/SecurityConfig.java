@@ -89,7 +89,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(2)
+    @Order(99) //Ya que es el publico, para que procese las otras ordenes (Estaba el 2 en vez de 99)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/**")

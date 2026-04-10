@@ -4,7 +4,7 @@ public abstract class CashReceiptException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    public CashReceiptException(ErrorCode errorCode, String message) {
+    protected CashReceiptException(ErrorCode errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
     }

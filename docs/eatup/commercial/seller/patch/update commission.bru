@@ -1,0 +1,32 @@
+meta {
+  name: update commission
+  type: http
+  seq: 3
+}
+
+patch {
+  url: http://localhost:8080/comercialapi/v1/sellers/{{sellerId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "commissionPercentage": 12.5
+  }
+}
+
+script:post-response {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

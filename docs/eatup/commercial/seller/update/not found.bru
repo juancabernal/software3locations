@@ -1,0 +1,39 @@
+meta {
+  name: not found
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:8080/comercialapi/v1/sellers/00000000-0000-0000-0000-000000000000
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "documentTypeId": "{{documentTypeId}}",
+    "locationId": "{{locationId}}",
+    "identificationNumber": "1234567890",
+    "firstName": "Juan",
+    "lastName": "Gomez",
+    "phone": "3009876543",
+    "email": "juan.perez@email.com",
+    "commissionPercentage": 15.0
+  }
+}
+
+script:post-response {
+  test("Status code is 404", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

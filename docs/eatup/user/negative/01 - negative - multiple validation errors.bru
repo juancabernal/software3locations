@@ -1,0 +1,55 @@
+meta {
+  name: 01 - negative - multiple validation errors
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/userapi/v1/users
+  body: json
+  auth: none
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "firstName": " ",
+    "lastName": " ",
+    "documentTypeId": null,
+    "documentNumber": " ",
+    "phone": " ",
+    "email": " ",
+    "password": " ",
+    "birthDate": null,
+    "departmentId": null,
+    "cityId": null,
+    "address": " ",
+    "locationId": null
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("errors[] structure is present", function() {
+    expect(data.errorCode).to.equal("USER_VALIDATION_ERROR");
+    expect(Array.isArray(data.errors)).to.equal(true);
+    expect(data.errors.length).to.be.greaterThan(1);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

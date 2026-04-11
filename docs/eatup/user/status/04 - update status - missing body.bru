@@ -1,0 +1,34 @@
+meta {
+  name: 04 - update status - missing body
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/userapi/v1/users/{{userId}}/status
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  userId: 00000000-0000-0000-0000-000000000000
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("Missing body is controlled", function() {
+    expect(data.errorCode).to.equal("USER_VALIDATION_ERROR");
+    expect(data.message).to.be.a("string");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

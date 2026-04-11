@@ -1,0 +1,32 @@
+meta {
+  name: 01 - list users - success
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/userapi/v1/users?page=0&size=10
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+script:post-response {
+  const data = res.getBody();
+  
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Users list is an array", function() {
+    expect(Array.isArray(data)).to.equal(true);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

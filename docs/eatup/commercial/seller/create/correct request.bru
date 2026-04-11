@@ -11,18 +11,18 @@ post {
 }
 
 auth:bearer {
-  token: {{token}}
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3NzU4ODU4MTEsImV4cCI6MTc3NTkxNDYxMX0.1heIHZubyrnsZ9AiPphp-wRf0lbgH4on2URmFbXrKdsnZkMnrrZ7Nl6nucWpwA74
 }
 
 body:json {
   {
-    "documentTypeId": "0d8f1024-aae4-4b96-9555-4c8ac411cf88",
-    "locationId": "11111111-1111-1111-1111-111111111111",
-    "identificationNumber": "1234567890",
+    "documentTypeId": "b9734b27-272a-418a-aba9-3ceb4864e39b",
+    "locationId": "550e8400-e29b-41d4-a716-446655440000",
+    "identificationNumber": "1234560890",
     "firstName": "Juan",
     "lastName": "Perez",
-    "phone": "3001234567",
-    "email": "juan.perez@email.com",
+    "phone": "3001934567",
+    "email": "juan.pe6rez@email.com",
     "commissionPercentage": 10.5
   }
 }
@@ -31,7 +31,7 @@ script:post-response {
   test("Status code is 201", function() {
     expect(res.getStatus()).to.equal(201);
   });
-
+  
   const data = res.getBody();
   if (data && data.id) {
     bru.setVar("sellerId", data.id);

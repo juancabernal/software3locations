@@ -6,6 +6,7 @@ public class TableSummaryDTO {
     private Long available;
     private Long occupied;
     private Long reserved;
+    private Long blockedForReservation;
     private String venueId;
 
     public TableSummaryDTO() {
@@ -41,6 +42,14 @@ public class TableSummaryDTO {
 
     public void setReserved(Long reserved) {
         this.reserved = reserved;
+    }
+
+    public Long getBlockedForReservation() {
+        return blockedForReservation;
+    }
+
+    public void setBlockedForReservation(Long blockedForReservation) {
+        this.blockedForReservation = blockedForReservation;
     }
 
     public String getVenueId() {

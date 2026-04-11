@@ -1,82 +1,50 @@
 package com.co.eatupapi.domain.commercial.table;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(
+        name = "table_sessions",
+        indexes = {
+                @Index(name = "idx_table_sessions_table_closed", columnList = "tableId, closedAt"),
+                @Index(name = "idx_table_sessions_reservation", columnList = "reservationId")
+        }
+)
 public class TableSessionDomain {
 
-    private String id;
-    private String tableId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false)
+    private UUID tableId;
+
+    @Column
+    private UUID reservationId;
+
+    @Column(nullable = false)
     private Integer guestCount;
-    private String waiterId;
+
+    @Column
+    private UUID waiterId;
+
+    @Column(nullable = false)
     private LocalDateTime openedAt;
+
+    @Column
     private LocalDateTime closedAt;
+
+    @Column
     private Long durationMinutes;
+
+    @Column(length = 500)
     private String observations;
-
-    public TableSessionDomain() {
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTableId() {
-        return tableId;
-    }
-
-    public void setTableId(String tableId) {
-        this.tableId = tableId;
-    }
-
-    public Integer getGuestCount() {
-        return guestCount;
-    }
-
-    public void setGuestCount(Integer guestCount) {
-        this.guestCount = guestCount;
-    }
-
-    public String getWaiterId() {
-        return waiterId;
-    }
-
-    public void setWaiterId(String waiterId) {
-        this.waiterId = waiterId;
-    }
-
-    public LocalDateTime getOpenedAt() {
-        return openedAt;
-    }
-
-    public void setOpenedAt(LocalDateTime openedAt) {
-        this.openedAt = openedAt;
-    }
-
-    public LocalDateTime getClosedAt() {
-        return closedAt;
-    }
-
-    public void setClosedAt(LocalDateTime closedAt) {
-        this.closedAt = closedAt;
-    }
-
-    public Long getDurationMinutes() {
-        return durationMinutes;
-    }
-
-    public void setDurationMinutes(Long durationMinutes) {
-        this.durationMinutes = durationMinutes;
-    }
-
-    public String getObservations() {
-        return observations;
-    }
-
-    public void setObservations(String observations) {
-        this.observations = observations;
-    }
 }

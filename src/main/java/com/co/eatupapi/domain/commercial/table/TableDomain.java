@@ -1,109 +1,60 @@
 package com.co.eatupapi.domain.commercial.table;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(
+        name = "restaurant_tables",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_restaurant_tables_venue_number_active", columnNames = {"venueId", "tableNumber", "active"})
+        },
+        indexes = {
+                @Index(name = "idx_restaurant_tables_venue", columnList = "venueId"),
+                @Index(name = "idx_restaurant_tables_venue_number_active", columnList = "venueId, tableNumber, active")
+        }
+)
 public class TableDomain {
 
-    private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false)
     private Integer tableNumber;
+
+    @Column(nullable = false, length = 100)
     private String location;
+
+    @Column(nullable = false)
     private Boolean isVip;
+
+    @Column(nullable = false)
     private Boolean hasView;
+
+    @Column(nullable = false)
     private Boolean isAccessible;
-    private String venueId;
+
+    @Column(nullable = false)
+    private UUID venueId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private TableStatus status;
+
+    @Column(nullable = false)
     private Boolean active;
+
+    @Column(nullable = false)
     private LocalDateTime createdDate;
+
+    @Column(nullable = false)
     private LocalDateTime modifiedDate;
-
-    public TableDomain() {
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Integer getTableNumber() {
-        return tableNumber;
-    }
-
-    public void setTableNumber(Integer tableNumber) {
-        this.tableNumber = tableNumber;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public Boolean getIsVip() {
-        return isVip;
-    }
-
-    public void setIsVip(Boolean isVip) {
-        this.isVip = isVip;
-    }
-
-    public Boolean getHasView() {
-        return hasView;
-    }
-
-    public void setHasView(Boolean hasView) {
-        this.hasView = hasView;
-    }
-
-    public Boolean getIsAccessible() {
-        return isAccessible;
-    }
-
-    public void setIsAccessible(Boolean isAccessible) {
-        this.isAccessible = isAccessible;
-    }
-
-    public String getVenueId() {
-        return venueId;
-    }
-
-    public void setVenueId(String venueId) {
-        this.venueId = venueId;
-    }
-
-    public TableStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TableStatus status) {
-        this.status = status;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public LocalDateTime getModifiedDate() {
-        return modifiedDate;
-    }
-
-    public void setModifiedDate(LocalDateTime modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
 }

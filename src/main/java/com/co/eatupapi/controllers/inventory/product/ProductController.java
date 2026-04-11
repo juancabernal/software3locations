@@ -35,6 +35,15 @@ public class ProductController {
         return ResponseEntity.ok(productService.findById(id));
     }
 
+    @GetMapping("/location/{locationId}")
+    public ResponseEntity<?> findByLocation(
+            @PathVariable UUID locationId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name) {
+        return ResponseEntity.ok(productService.findByLocation(locationId, page, size, name));
+    }
+
     @PostMapping
     public ResponseEntity<ProductDTO> create(@RequestBody ProductRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(request));

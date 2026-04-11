@@ -1,0 +1,33 @@
+meta {
+  name: Patch
+  type: http
+  seq: 6
+}
+
+patch {
+  url: http://localhost:8080/inventory/product/{id}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "salePrice": 5300.000,
+    "stock": 30.000
+  }
+}
+
+tests {
+  test("Patch exitoso", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Precio actualizado", () => {
+    expect(res.body.salePrice).to.equal(5300);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

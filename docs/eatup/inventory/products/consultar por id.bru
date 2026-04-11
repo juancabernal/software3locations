@@ -1,0 +1,26 @@
+meta {
+  name: consultar por id
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/inventory/product/{id}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("Status 200", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Producto correcto", () => {
+    expect(res.body.id).to.equal(bru.getEnvVar("productId"));
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

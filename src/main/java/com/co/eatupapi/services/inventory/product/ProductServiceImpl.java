@@ -10,20 +10,18 @@ import com.co.eatupapi.utils.inventory.product.exceptions.ResourceNotFoundExcept
 import com.co.eatupapi.utils.inventory.product.exceptions.ValidationException;
 import com.co.eatupapi.utils.inventory.product.mapper.ProductMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    // ── Constantes ────────────────────────────────────────
     private static final String PRODUCTO_NO_ENCONTRADO = "Producto no encontrado con id: ";
     private static final BigDecimal MAX_VALUE = new BigDecimal("99999999.999");
 
@@ -38,15 +36,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductDTO> findAll(int page, int size, String name) {
-
         Pageable pageable = PageRequest.of(page, size);
-
         if (name != null && !name.isBlank()) {
             return productRepository
                     .findByNameContainingIgnoreCase(name, pageable)
                     .map(productMapper::toDto);
         }
-
         return productRepository.findAll(pageable)
                 .map(productMapper::toDto);
     }
@@ -57,7 +52,7 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(id)
                 .map(productMapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        PRODUCTO_NO_ENCONTRADO + id)); // S2: usa constante
+                        PRODUCTO_NO_ENCONTRADO + id));
     }
 
     @Override
@@ -66,10 +61,9 @@ public class ProductServiceImpl implements ProductService {
         validateRequest(request);
 
         if (productRepository.countByNameAndLocation(
-                request.getName().trim(), request.getLocation().trim()) > 0) {
+                request.getName().trim(), request.getLocationId()) > 0) {
             throw new BusinessException(
-                    "Ya existe el producto '" + request.getName() +
-                            "' en " + request.getLocation());
+                    "Ya existe el producto '" + request.getName() + "' en esta sede");
         }
 
         Product product = productMapper.toDomain(request);
@@ -84,18 +78,17 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        PRODUCTO_NO_ENCONTRADO + id)); // S2: usa constante
+                        PRODUCTO_NO_ENCONTRADO + id));
 
         if (productRepository.countByNameAndLocationAndIdNot(
-                request.getName().trim(), request.getLocation().trim(), id) > 0) {
+                request.getName().trim(), request.getLocationId(), id) > 0) {
             throw new BusinessException(
-                    "Ya existe el producto '" + request.getName() +
-                            "' en " + request.getLocation());
+                    "Ya existe el producto '" + request.getName() + "' en esta sede");
         }
 
         product.setName(request.getName());
-        product.setCategory(request.getCategory());
-        product.setLocation(request.getLocation());
+        product.setCategoryId(request.getCategoryId());
+        product.setLocationId(request.getLocationId());
         product.setUnitOfMeasure(request.getUnitOfMeasure());
         product.setSalePrice(request.getSalePrice());
         product.setStock(request.getStock());
@@ -104,6 +97,25 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toDto(productRepository.save(product));
     }
 
+
+    @Override
+    public Page<ProductDTO> findByLocation(UUID locationId, int page, int size, String name) {
+        if (locationId == null) {
+            throw new ValidationException("El id de la sede es obligatorio");
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        if (name != null && !name.isBlank()) {
+            return productRepository
+                    .findByLocationIdAndNameContainingIgnoreCase(locationId, name, pageable)
+                    .map(productMapper::toDto);
+        }
+
+        return productRepository
+                .findByLocationId(locationId, pageable)
+                .map(productMapper::toDto);
+    }
     @Override
     @Transactional
     public ProductDTO patch(UUID id, ProductPatchDTO request) {
@@ -111,7 +123,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        PRODUCTO_NO_ENCONTRADO + id)); // S2: usa constante
+                        PRODUCTO_NO_ENCONTRADO + id));
 
         validatePatchDuplicado(id, request, product);
         validatePatchName(request, product);
@@ -119,11 +131,11 @@ public class ProductServiceImpl implements ProductService {
         validatePatchStock(request, product);
         validatePatchDate(request, product);
 
-        if (request.getCategory() != null && !request.getCategory().isBlank()) {
-            product.setCategory(request.getCategory());
+        if (request.getCategoryId() != null) {
+            product.setCategoryId(request.getCategoryId());
         }
-        if (request.getLocation() != null && !request.getLocation().isBlank()) {
-            product.setLocation(request.getLocation());
+        if (request.getLocationId() != null) {
+            product.setLocationId(request.getLocationId());
         }
         if (request.getUnitOfMeasure() != null) {
             product.setUnitOfMeasure(request.getUnitOfMeasure());
@@ -139,7 +151,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        PRODUCTO_NO_ENCONTRADO + id)); // S2: usa constante
+                        PRODUCTO_NO_ENCONTRADO + id));
 
         if (product.getStock().compareTo(BigDecimal.ZERO) > 0) {
             throw new BusinessException(
@@ -150,17 +162,17 @@ public class ProductServiceImpl implements ProductService {
         productRepository.deleteById(id);
     }
 
-    // ── Validaciones patch (extraídas para reducir Cognitive Complexity) ──
+    // ── Validaciones patch ────────────────────────────────
 
     private void validatePatchDuplicado(UUID id, ProductPatchDTO request, Product product) {
-        if (request.getName() == null && request.getLocation() == null) {
+        if (request.getName() == null && request.getLocationId() == null) {
             return;
         }
         String nombre = request.getName() != null ? request.getName().trim() : product.getName();
-        String sede   = request.getLocation() != null ? request.getLocation().trim() : product.getLocation();
+        UUID sede = request.getLocationId() != null ? request.getLocationId() : product.getLocationId();
 
         if (productRepository.countByNameAndLocationAndIdNot(nombre, sede, id) > 0) {
-            throw new BusinessException("Ya existe el producto '" + nombre + "' en " + sede);
+            throw new BusinessException("Ya existe el producto '" + nombre + "' en esta sede");
         }
     }
 
@@ -184,7 +196,7 @@ public class ProductServiceImpl implements ProductService {
         if (request.getSalePrice().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ValidationException("El precio de venta debe ser mayor a cero");
         }
-        if (request.getSalePrice().compareTo(MAX_VALUE) > 0) { // S2: usa constante
+        if (request.getSalePrice().compareTo(MAX_VALUE) > 0) {
             throw new ValidationException("El precio no puede superar 99,999,999.999");
         }
         product.setSalePrice(request.getSalePrice());
@@ -197,7 +209,7 @@ public class ProductServiceImpl implements ProductService {
         if (request.getStock().compareTo(BigDecimal.ZERO) < 0) {
             throw new ValidationException("El stock no puede ser negativo");
         }
-        if (request.getStock().compareTo(MAX_VALUE) > 0) { // S2: usa constante
+        if (request.getStock().compareTo(MAX_VALUE) > 0) {
             throw new ValidationException("El stock no puede superar 99,999,999.999");
         }
         product.setStock(request.getStock());
@@ -245,13 +257,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void validateRequestFields(ProductRequestDTO request) {
-        if (request.getCategory() == null || request.getCategory().isBlank()) {
-            throw new ValidationException("La categoría del producto es obligatoria");
+        if (request.getCategoryId() == null) {
+            throw new ValidationException("El id de la categoría es obligatorio");
         }
-        if (request.getLocation() == null || request.getLocation().isBlank()) {
-            throw new ValidationException("La sede del producto es obligatoria");
+        if (request.getLocationId() == null) {
+            throw new ValidationException("El id de la sede es obligatorio");
         }
-        if (request.getUnitOfMeasure() == null ) {
+        if (request.getUnitOfMeasure() == null) {
             throw new ValidationException("La unidad de medida es obligatoria");
         }
         if (request.getSalePrice() == null) {
@@ -266,7 +278,7 @@ public class ProductServiceImpl implements ProductService {
         if (price.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ValidationException("El precio de venta debe ser mayor a cero");
         }
-        if (price.compareTo(MAX_VALUE) > 0) { // S2: usa constante
+        if (price.compareTo(MAX_VALUE) > 0) {
             throw new ValidationException("El precio de venta no puede superar 99,999,999.999");
         }
     }
@@ -275,7 +287,7 @@ public class ProductServiceImpl implements ProductService {
         if (stock.compareTo(BigDecimal.ZERO) < 0) {
             throw new ValidationException("El stock no puede ser negativo");
         }
-        if (stock.compareTo(MAX_VALUE) > 0) { // S2: usa constante
+        if (stock.compareTo(MAX_VALUE) > 0) {
             throw new ValidationException("El stock no puede superar 99,999,999.999");
         }
     }

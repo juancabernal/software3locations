@@ -11,49 +11,52 @@ public class ClientDomain {
     @GeneratedValue
     private UUID id;
 
-    @Column(name = "first_name", length = 100)
+    @Column(name = "first_name", length = 100, nullable = false)
     private String firstName;
 
     @Column(name = "second_name", length = 100)
     private String secondName;
 
-    @Column(name = "first_lastname", length = 100)
+    @Column(name = "first_lastname", length = 100, nullable = false)
     private String firstLastName;
 
-    @Column(name = "second_lastname", length = 100)
+    @Column(name = "second_lastname", length = 100, nullable = false)
     private String secondLastName;
 
-    @Column(name = "document_type_id")
+    @Column(name = "document_type_id", nullable = false)
     private UUID documentTypeId;
 
-    @Column(name = "document_number", length = 30)
+    @Column(name = "document_number", length = 30, nullable = false, unique = true)
     private String documentNumber;
 
-    @Column(length = 150)
+    @Column(length = 150, nullable = false, unique = true)
     private String email;
 
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     private String phone;
 
-    @Column(length = 255)
+    @Column(length = 255, nullable = false)
     private String address;
 
-    @Column(name = "city_id")
+    @Column(name = "city_id", nullable = false)
     private UUID cityId;
 
-    @Column(name = "tax_regime_id")
+    @Column(name = "tax_regime_id", nullable = false)
     private UUID taxRegimeId;
 
-    @Column(name = "assigned_seller_id")
+    @Column(name = "assigned_seller_id", nullable = false)
     private Long assignedSellerId;
 
-    @Column(name = "apply_discounts")
+    @Column(name = "apply_discounts", nullable = false)
     private Boolean applyDiscounts;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ClientStatus status;
 
-    public ClientDomain() {}
+    public ClientDomain() {
+        // Required by JPA
+    }
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }

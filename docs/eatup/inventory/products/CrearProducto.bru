@@ -1,0 +1,45 @@
+meta {
+  name: CrearProducto
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/inventory/product
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "name": "Tomate Fresco",
+      "categoryId": "a3f8c1d2-44b7-4e9a-bc12-ff3301882abc",
+      "locationId": "b4f9d2e3-55c8-4f9b-cd23-ff4412993bcd",
+      "unitOfMeasure": "KG",
+      "salePrice": 2500.00,
+      "stock": 45.000,
+      "startDate": "2024-01-10"
+  }
+}
+
+tests {
+  test("Producto creado", () => {
+    expect(res.status).to.be.oneOf([200, 201]);
+  });
+  
+  test("Tiene ID", () => {
+    expect(res.body.id).to.exist;
+  });
+  
+  test("Nombre correcto", () => {
+    expect(res.body.name).to.exist;
+  });
+  
+  // Guardar ID para siguientes pruebas
+  bru.setEnvVar("productId", res.body.id);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

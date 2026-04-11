@@ -1,84 +1,53 @@
 package com.co.eatupapi.domain.commercial.table;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.UUID;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(
+        name = "table_reservations",
+        indexes = {
+                @Index(name = "idx_table_reservations_table_status", columnList = "tableId, status"),
+                @Index(name = "idx_table_reservations_table_schedule", columnList = "tableId, reservationDate, reservationTime")
+        }
+)
 public class TableReservationDomain {
 
-    private String id;
-    private String tableId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false)
+    private UUID tableId;
+
+    @Column(nullable = false)
     private LocalDate reservationDate;
+
+    @Column(nullable = false)
     private LocalTime reservationTime;
+
+    @Column(nullable = false, length = 100)
     private String guestName;
+
+    @Column(nullable = false, length = 50)
+    private String guestDocumentNumber;
+
+    @Column
     private Integer guestCount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private ReservationStatus status;
+
+    @Column(nullable = false)
     private LocalDateTime createdDate;
-
-    public TableReservationDomain() {
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTableId() {
-        return tableId;
-    }
-
-    public void setTableId(String tableId) {
-        this.tableId = tableId;
-    }
-
-    public LocalDate getReservationDate() {
-        return reservationDate;
-    }
-
-    public void setReservationDate(LocalDate reservationDate) {
-        this.reservationDate = reservationDate;
-    }
-
-    public LocalTime getReservationTime() {
-        return reservationTime;
-    }
-
-    public void setReservationTime(LocalTime reservationTime) {
-        this.reservationTime = reservationTime;
-    }
-
-    public String getGuestName() {
-        return guestName;
-    }
-
-    public void setGuestName(String guestName) {
-        this.guestName = guestName;
-    }
-
-    public Integer getGuestCount() {
-        return guestCount;
-    }
-
-    public void setGuestCount(Integer guestCount) {
-        this.guestCount = guestCount;
-    }
-
-    public ReservationStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ReservationStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
 }

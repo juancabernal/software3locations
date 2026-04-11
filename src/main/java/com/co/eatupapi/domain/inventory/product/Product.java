@@ -18,10 +18,10 @@ public class Product {
     private String name;
 
     @Column(nullable = false)
-    private String category;
+    private UUID categoryId;
 
     @Column(nullable = false)
-    private String location;
+    private UUID locationId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -42,11 +42,11 @@ public class Product {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public UUID getCategoryId() { return categoryId; }
+    public void setCategoryId(UUID categoryId) { this.categoryId = categoryId; }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public UUID getLocationId() { return locationId; }
+    public void setLocationId(UUID locationId) { this.locationId = locationId; }
 
     public UnitOfMeasure getUnitOfMeasure() { return unitOfMeasure; }
     public void setUnitOfMeasure(UnitOfMeasure unitOfMeasure) { this.unitOfMeasure = unitOfMeasure; }

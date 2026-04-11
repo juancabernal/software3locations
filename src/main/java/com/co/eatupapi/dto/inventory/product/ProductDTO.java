@@ -1,7 +1,6 @@
 package com.co.eatupapi.dto.inventory.product;
 
 import com.co.eatupapi.domain.inventory.product.UnitOfMeasure;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -10,8 +9,8 @@ public class ProductDTO {
 
     private UUID id;
     private String name;
-    private String category;
-    private String location;
+    private UUID categoryId;
+    private UUID locationId;
     private UnitOfMeasure unitOfMeasure;
     private BigDecimal salePrice;
     private BigDecimal stock;
@@ -23,11 +22,11 @@ public class ProductDTO {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public UUID getCategoryId() { return categoryId; }
+    public void setCategoryId(UUID categoryId) { this.categoryId = categoryId; }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public UUID getLocationId() { return locationId; }
+    public void setLocationId(UUID locationId) { this.locationId = locationId; }
 
     public UnitOfMeasure getUnitOfMeasure() { return unitOfMeasure; }
     public void setUnitOfMeasure(UnitOfMeasure unitOfMeasure) { this.unitOfMeasure = unitOfMeasure; }

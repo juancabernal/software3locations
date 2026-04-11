@@ -1,0 +1,29 @@
+meta {
+  name: EliminarProducto
+  type: http
+  seq: 7
+}
+
+delete {
+  url: http://localhost:8080/inventory/product/{id}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("No permite eliminar", () => {
+    expect(res.status).to.equal(400);
+  });
+  
+  test("Mensaje correcto", () => {
+    expect(res.body.message).to.include("No se puede eliminar");
+  });
+  test("Debe fallar porque no existe", () => {
+    expect(res.status).to.equal(404);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,38 @@
+meta {
+  name: Actualizar Producto
+  type: http
+  seq: 5
+}
+
+put {
+  url: http://localhost:8080/inventory/product/{id}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Leche semidescremada",
+    "category": "a3f8c1d2-44b7-4e9a-bc12-ff3301882abc",
+    "location": "b4f9d2e3-55c8-4f9b-cd23-ff4412993bcd",
+    "unitOfMeasure": "KG",
+    "salePrice": 5200.000,
+    "stock": 25.000,
+    "startDate": "2024-01-01"
+  }
+}
+
+tests {
+  test("Actualización exitosa", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Nombre actualizado", () => {
+    expect(res.body.name).to.equal("Leche semidescremada");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

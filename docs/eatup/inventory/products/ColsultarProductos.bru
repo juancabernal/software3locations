@@ -1,0 +1,43 @@
+meta {
+  name: ColsultarProductos
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/inventory/product
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("Status es 200", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("La respuesta no está vacía", () => {
+    expect(res.body.content.length).to.be.greaterThan(0);
+  });
+  
+  test("Trae exactamente 10 productos", () => {
+    expect(res.body.numberOfElements).to.equal(10);
+  });
+  
+  test("Tiene paginación", () => {
+    expect(res.body.totalPages).to.be.greaterThan(0);
+  });
+  
+  test("El primer producto tiene nombre", () => {
+    expect(res.body.content[0].name).to.exist;
+  });
+  
+  test("Unidad de medida válida", () => {
+    const unidades = ["KG", "GR", "LI", "UNI"];
+    expect(unidades).to.include(res.body.content[0].unitOfMeasure);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -12,8 +12,8 @@ public class ProductMapper {
         ProductDTO dto = new ProductDTO();
         dto.setId(product.getId());
         dto.setName(product.getName());
-        dto.setCategory(product.getCategory());
-        dto.setLocation(product.getLocation());
+        dto.setCategoryId(product.getCategoryId());
+        dto.setLocationId(product.getLocationId());
         dto.setUnitOfMeasure(product.getUnitOfMeasure());
         dto.setSalePrice(product.getSalePrice());
         dto.setStock(product.getStock());
@@ -24,8 +24,8 @@ public class ProductMapper {
     public Product toDomain(ProductRequestDTO request) {
         Product product = new Product();
         product.setName(request.getName());
-        product.setCategory(request.getCategory());
-        product.setLocation(request.getLocation());
+        product.setCategoryId(request.getCategoryId());
+        product.setLocationId(request.getLocationId());
         product.setUnitOfMeasure(request.getUnitOfMeasure());
         product.setSalePrice(request.getSalePrice());
         product.setStock(request.getStock());

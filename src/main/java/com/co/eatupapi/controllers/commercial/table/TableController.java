@@ -1,13 +1,12 @@
 package com.co.eatupapi.controllers.commercial.table;
 
 import com.co.eatupapi.dto.commercial.table.TableDTO;
-import com.co.eatupapi.dto.commercial.table.TableStatusUpdateDTO;
+import com.co.eatupapi.dto.commercial.table.TableReservationDTO;
 import com.co.eatupapi.dto.commercial.table.TableSessionDTO;
 import com.co.eatupapi.dto.commercial.table.TableSessionUpdateDTO;
-import com.co.eatupapi.dto.commercial.table.TableReservationDTO;
 import com.co.eatupapi.dto.commercial.table.TableSummaryDTO;
 import com.co.eatupapi.services.commercial.table.TableService;
-import java.util.List;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,6 +20,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/commercial/api/v1/tables")
 public class TableController {
@@ -31,10 +35,8 @@ public class TableController {
         this.tableService = tableService;
     }
 
-    // ── TABLE CRUD ────────────────────────────────────────────────────────────
-
     @PostMapping
-    public ResponseEntity<TableDTO> createTable(@RequestBody TableDTO request) {
+    public ResponseEntity<TableDTO> createTable(@Valid @RequestBody TableDTO request) {
         TableDTO saved = tableService.createTable(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
@@ -43,9 +45,9 @@ public class TableController {
     public ResponseEntity<List<TableDTO>> getTables(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String venueId,
-            @RequestParam(required = false) Boolean isVip,
-            @RequestParam(required = false) Boolean isAccessible) {
-        List<TableDTO> tables = tableService.getTables(status, venueId, isVip, isAccessible);
+            @RequestParam(required = false) Boolean reserved,
+            @RequestParam(required = false) Boolean canOpenNow) {
+        List<TableDTO> tables = tableService.getTables(status, venueId, reserved, canOpenNow);
         return ResponseEntity.ok(tables);
     }
 
@@ -63,29 +65,24 @@ public class TableController {
 
     @PutMapping("/{tableId}")
     public ResponseEntity<TableDTO> updateTable(@PathVariable String tableId,
-                                                @RequestBody TableDTO request) {
+                                                @Valid @RequestBody TableDTO request) {
         TableDTO updated = tableService.updateTable(tableId, request);
         return ResponseEntity.ok(updated);
     }
 
-    @PatchMapping("/{tableId}/status")
-    public ResponseEntity<TableDTO> updateTableStatus(@PathVariable String tableId,
-                                                      @RequestBody TableStatusUpdateDTO request) {
-        TableDTO updated = tableService.updateTableStatus(tableId, request.getStatus());
-        return ResponseEntity.ok(updated);
-    }
-
     @DeleteMapping("/{tableId}")
-    public ResponseEntity<Void> deactivateTable(@PathVariable String tableId) {
+    public ResponseEntity<Map<String, Object>> deactivateTable(@PathVariable String tableId) {
         tableService.deactivateTable(tableId);
-        return ResponseEntity.noContent().build();
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", "La mesa fue desactivada correctamente");
+        body.put("status", HttpStatus.OK.value());
+        body.put("timestamp", LocalDateTime.now());
+        return ResponseEntity.ok(body);
     }
-
-    // ── SESSIONS (OPEN / CLOSE) ───────────────────────────────────────────────
 
     @PostMapping("/{tableId}/session")
     public ResponseEntity<TableSessionDTO> openSession(@PathVariable String tableId,
-                                                       @RequestBody TableSessionDTO request) {
+                                                       @Valid @RequestBody TableSessionDTO request) {
         TableSessionDTO session = tableService.openSession(tableId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(session);
     }
@@ -99,7 +96,7 @@ public class TableController {
     @PatchMapping("/{tableId}/session/{sessionId}")
     public ResponseEntity<TableSessionDTO> updateGuestCount(@PathVariable String tableId,
                                                             @PathVariable String sessionId,
-                                                            @RequestBody TableSessionUpdateDTO request) {
+                                                            @Valid @RequestBody TableSessionUpdateDTO request) {
         TableSessionDTO updated = tableService.updateGuestCount(tableId, sessionId, request.getGuestCount());
         return ResponseEntity.ok(updated);
     }
@@ -117,11 +114,9 @@ public class TableController {
         return ResponseEntity.ok(history);
     }
 
-    // ── RESERVATIONS ─────────────────────────────────────────────────────────
-
     @PostMapping("/{tableId}/reservation")
     public ResponseEntity<TableReservationDTO> createReservation(@PathVariable String tableId,
-                                                                 @RequestBody TableReservationDTO request) {
+                                                                 @Valid @RequestBody TableReservationDTO request) {
         TableReservationDTO reservation = tableService.createReservation(tableId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(reservation);
     }
@@ -135,19 +130,37 @@ public class TableController {
     @PatchMapping("/{tableId}/reservation/{reservationId}")
     public ResponseEntity<TableReservationDTO> updateReservation(@PathVariable String tableId,
                                                                  @PathVariable String reservationId,
-                                                                 @RequestBody TableReservationDTO request) {
+                                                                 @Valid @RequestBody TableReservationDTO request) {
         TableReservationDTO updated = tableService.updateReservation(tableId, reservationId, request);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{tableId}/reservation/{reservationId}")
-    public ResponseEntity<Void> cancelReservation(@PathVariable String tableId,
-                                                  @PathVariable String reservationId) {
+    public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String tableId,
+                                                                 @PathVariable String reservationId) {
         tableService.cancelReservation(tableId, reservationId);
-        return ResponseEntity.noContent().build();
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", "La reserva fue cancelada correctamente");
+        body.put("status", HttpStatus.OK.value());
+        body.put("timestamp", LocalDateTime.now());
+
+        return ResponseEntity.ok(body);
     }
 
-    // ── SUMMARY ───────────────────────────────────────────────────────────────
+    @GetMapping("/reservations/search")
+    public ResponseEntity<List<TableReservationDTO>> searchReservationsByGuestDocumentNumber(
+            @RequestParam String guestDocumentNumber) {
+        List<TableReservationDTO> reservations = tableService.searchReservationsByGuestDocumentNumber(guestDocumentNumber);
+        return ResponseEntity.ok(reservations);
+    }
+
+    @PostMapping("/reservations/{reservationId}/seat")
+    public ResponseEntity<TableSessionDTO> seatReservation(@PathVariable String reservationId,
+                                                           @Valid @RequestBody TableSessionDTO request) {
+        TableSessionDTO session = tableService.seatReservation(reservationId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(session);
+    }
 
     @GetMapping("/summary")
     public ResponseEntity<TableSummaryDTO> getSummary() {

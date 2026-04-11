@@ -1,8 +1,11 @@
 package com.co.eatupapi.utils.commercial.table.exceptions;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public abstract class TableApiException extends RuntimeException {
+
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Bogota");
 
     private final String errorCode;
     private final LocalDateTime timestamp;
@@ -10,7 +13,7 @@ public abstract class TableApiException extends RuntimeException {
     protected TableApiException(String message, String errorCode) {
         super(message);
         this.errorCode = errorCode;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(BUSINESS_ZONE);
     }
 
     public String getErrorCode() {

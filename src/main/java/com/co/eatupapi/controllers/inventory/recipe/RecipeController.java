@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,7 @@ public class RecipeController {
     @ApiResponse(responseCode = "201", description = "Receta creada exitosamente.")
     @PostMapping
     public ResponseEntity<Void> createRecipe(
+            @Valid
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
@@ -116,6 +118,7 @@ public class RecipeController {
     @ApiResponse(responseCode = "404", description = "Receta no encontrada.")
     @PutMapping
     public ResponseEntity<Void> updateRecipe(
+            @Valid
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(

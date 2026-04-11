@@ -6,7 +6,6 @@ import com.co.eatupapi.dto.user.UpdateUserStatusRequest;
 import com.co.eatupapi.dto.user.UserResponse;
 import com.co.eatupapi.dto.user.UserSummaryResponse;
 import com.co.eatupapi.services.user.UserService;
-import com.co.eatupapi.utils.user.exceptions.UserValidationException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/userapi/v1/users")
@@ -48,28 +48,22 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable String userId) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID userId) {
         UserResponse user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable String userId,
+    public ResponseEntity<UserResponse> updateUser(@PathVariable UUID userId,
                                                    @Valid @RequestBody UpdateUserRequest request) {
         UserResponse updated = userService.updateUser(userId, request);
         return ResponseEntity.ok(updated);
     }
 
     @PatchMapping("/{userId}/status")
-    public ResponseEntity<UserResponse> updateStatus(@PathVariable String userId,
-                                                     @Valid @RequestBody(required = false)
+    public ResponseEntity<UserResponse> updateStatus(@PathVariable UUID userId,
+                                                     @Valid @RequestBody
                                                      UpdateUserStatusRequest request) {
-        if (request == null) {
-            throw new UserValidationException("Request body is required");
-        }
-        if (request.getStatus() == null || request.getStatus().isBlank()) {
-            throw new UserValidationException("Field 'status' is required and cannot be empty");
-        }
         UserResponse updated = userService.updateStatus(userId, request.getStatus());
         return ResponseEntity.ok(updated);
     }

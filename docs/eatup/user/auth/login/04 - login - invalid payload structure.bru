@@ -1,0 +1,41 @@
+meta {
+  name: 04 - login - invalid payload structure
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/userapi/v1/users/login
+  body: json
+  auth: none
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  "this-is-not-a-valid-login-object"
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("Invalid payload is controlled", function() {
+    expect(data.errorCode).to.equal("USER_VALIDATION_ERROR");
+    expect(data.message).to.be.a("string");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

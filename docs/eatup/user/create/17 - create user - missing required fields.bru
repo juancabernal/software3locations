@@ -1,0 +1,43 @@
+meta {
+  name: 17 - create user - missing required fields
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/userapi/v1/users
+  body: json
+  auth: none
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "firstName": "Juan",
+    "phone": "3001234567",
+    "email": "missing.required@example.com"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  test("Validation errors array exists", function() {
+    expect(data.errorCode).to.equal("USER_VALIDATION_ERROR");
+    expect(Array.isArray(data.errors)).to.equal(true);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

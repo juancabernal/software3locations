@@ -1,0 +1,36 @@
+meta {
+  name: 02 - list users - success with status filter
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/userapi/v1/users?status=ACTIVE&page=0&size=10
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJxYS51c2VyLjE3NzU4OTE4MzA3NzlAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzU4OTIxNTksImV4cCI6MTc3NTg5NTc1OX0.Gt0jRkQU2pRl6pNyEsnhwOZIh4BXOo4rFWUFhPdaxqdemSoaLOreKYC7g8l2gNbl
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+script:post-response {
+  const data = res.getBody();
+  
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Filtered list is an array", function() {
+    expect(Array.isArray(data)).to.equal(true);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

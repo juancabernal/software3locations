@@ -1,4 +1,4 @@
-package com.co.eatupapi.utils.payment.invoice.security;
+package com.co.eatupapi.config.payment.invoice;
 
 import com.co.eatupapi.config.user.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;

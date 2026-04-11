@@ -1,0 +1,45 @@
+meta {
+  name: 04 - Actualizar compra
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://localhost:8080/commercial/api/v1/purchases/{{purchase_id}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "providerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "branchId": 2,
+    "items": [
+      {
+        "productId": "prod-001",
+        "productName": "Arroz Diana x 500g",
+        "quantity": 20,
+        "unitPrice": 2500
+      },
+      {
+        "productId": "prod-003",
+        "productName": "Leche Entera x 1L",
+        "quantity": 12,
+        "unitPrice": 3200
+      }
+    ]
+  }
+}
+
+docs {
+  Solo funciona si la compra está en estado CREATED.
+  El total se recalcula automáticamente con los nuevos items:
+    (20 x 2500) + (12 x 3200) = 50000 + 38400 = 88400
+  
+  Si la compra está en APPROVED, CANCELLED o RECEIVED:
+  → 422: "Only purchases in CREATED status can be modified"
+}

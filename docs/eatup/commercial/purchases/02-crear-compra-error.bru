@@ -1,0 +1,40 @@
+meta {
+  name: 02 - Crear compra con error (sin items)
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/commercial/api/v1/purchases
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "providerId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "branchId": 1,
+    "items": []
+  }
+}
+
+docs {
+  Respuesta esperada: 400 Bad Request
+  Body: {
+    "status": 400,
+    "error": "Bad Request",
+    "message": "Purchase must contain at least one item"
+  }
+  
+  Otros errores que puedes probar cambiando el body:
+  - Sin providerId        → 400: "providerId is required"
+  - Sin branchId          → 400: "branchId is required"
+  - quantity = 0          → 400: "Item quantity must be greater than 0"
+  - unitPrice negativo    → 400: "Item unit price must be greater than 0"
+  - Proveedor inactivo    → 422: "Purchases can only be linked to active providers"
+  - Proveedor inexistente → 404: "Provider not found with id: ..."
+}

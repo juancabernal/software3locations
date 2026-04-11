@@ -23,4 +23,8 @@ public interface ClientRepository extends JpaRepository<ClientDomain, UUID> {
     List<ClientDomain> findByApplyDiscounts(Boolean applyDiscounts);
 
     List<ClientDomain> findByAssignedSellerId(Long sellerId);
+
+    boolean existsByDocumentNumber(String documentNumber);
+
+    boolean existsByEmail(String email);
 }

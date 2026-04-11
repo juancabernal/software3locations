@@ -52,8 +52,6 @@ public class ClientMapper {
         if (dto.getFirstLastName() != null) client.setFirstLastName(dto.getFirstLastName());
         if (dto.getSecondLastName() != null) client.setSecondLastName(dto.getSecondLastName());
         if (dto.getDocumentTypeId() != null) client.setDocumentTypeId(dto.getDocumentTypeId());
-        if (dto.getDocumentNumber() != null) client.setDocumentNumber(dto.getDocumentNumber());
-        if (dto.getEmail() != null) client.setEmail(dto.getEmail());
         if (dto.getPhone() != null) client.setPhone(dto.getPhone());
         if (dto.getAddress() != null) client.setAddress(dto.getAddress());
         if (dto.getCityId() != null) client.setCityId(dto.getCityId());

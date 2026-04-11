@@ -21,7 +21,10 @@ public class ClientDTO {
     private Boolean applyDiscounts;
     private ClientStatus status;
 
-    public ClientDTO() {}
+    public ClientDTO() {
+        // Required for JSON deserialization
+    }
+
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

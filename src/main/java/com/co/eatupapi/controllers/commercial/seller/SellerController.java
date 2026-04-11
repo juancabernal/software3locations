@@ -64,8 +64,8 @@ public class SellerController {
             summary = "Obtener vendedor por ID",
             description = "Retorna el vendedor correspondiente al ID proporcionado."
     )
-    @ApiResponse(responseCode = "201", description = "Vendedor creado exitosamente")
-    @ApiResponse(responseCode = "404", description = "Vendedor no encontrado")
+    @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente")
+    @ApiResponse(responseCode = "400", description = "Valor de status inválido")
 
     @GetMapping("/{sellerId}")
     public ResponseEntity<SellerDTO> getSellerById(
@@ -78,7 +78,7 @@ public class SellerController {
             description = "Actualiza todos los campos del vendedor. El email no puede modificarse."
     )
 
-            @ApiResponse(responseCode = "200", description = "Vendedor actualizado exitosamente")
+            @ApiResponse(responseCode = "200", description = "Vendedor encontrado")
             @ApiResponse(responseCode = "400", description = "Datos inválidos o intento de cambiar email")
             @ApiResponse(responseCode = "404", description = "Vendedor no encontrado")
 

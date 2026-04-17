@@ -1,0 +1,54 @@
+meta {
+  name: 01 - login - success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/userapi/v1/users/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{loginEmail}}",
+    "password": "{{loginPassword}}"
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  loginEmail: qa.user.1775891830779@example.com
+  loginPassword: Abcd1234!
+}
+
+script:post-response {
+  const data = res.getBody();
+  
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Login response has token structure", function() {
+    expect(data).to.be.an("object");
+    expect(data.token).to.be.a("string");
+    expect(data.token.length).to.be.greaterThan(10);
+    expect(data.tokenType).to.equal("Bearer");
+    expect(data.expiresInSeconds).to.be.greaterThan(0);
+  });
+  
+  if (data && data.token) {
+    bru.setVar("token", data.token);
+    bru.setEnvVar("token", data.token);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

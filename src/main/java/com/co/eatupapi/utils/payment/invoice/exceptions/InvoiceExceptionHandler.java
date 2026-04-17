@@ -6,7 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.co.eatupapi.controllers.payment.invoice")
 public class InvoiceExceptionHandler {
 
     @ExceptionHandler(InvoiceNotFoundException.class)

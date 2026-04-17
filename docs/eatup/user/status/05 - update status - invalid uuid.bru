@@ -1,0 +1,43 @@
+meta {
+  name: 05 - update status - invalid uuid
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/userapi/v1/users/not-a-uuid/status
+  body: json
+  auth: inherit
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "status": "ACTIVE"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("UUID path validation is controlled", function() {
+    expect(data.errorCode).to.equal("USER_VALIDATION_ERROR");
+    expect(data.field).to.equal("userId");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

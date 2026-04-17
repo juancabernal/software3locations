@@ -11,9 +11,12 @@ import com.co.eatupapi.utils.user.exceptions.UserBusinessException;
 import com.co.eatupapi.utils.user.exceptions.UserNotFoundException;
 import com.co.eatupapi.utils.user.exceptions.UserValidationException;
 import com.co.eatupapi.utils.user.mapper.UserMapper;
+import com.co.eatupapi.utils.user.validation.UserValidationRules;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,23 +26,28 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 @Service
 public class UserServiceImpl implements UserService {
 
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-    private static final Pattern DIGITS_PATTERN = Pattern.compile("^\\d+$");
-    private static final Pattern PASSWORD_LETTER_PATTERN = Pattern.compile(".*[A-Za-z].*");
-    private static final Pattern PASSWORD_DIGIT_PATTERN = Pattern.compile(".*\\d.*");
+    private static final String GENERIC_BUSINESS_REJECTION_MESSAGE = "Request could not be processed";
+    private static final int MAX_ALLOWED_AGE_YEARS = 120;
+    private static final Pattern NAME_PATTERN = Pattern.compile(UserValidationRules.NAME_REGEX);
+    private static final Pattern DOCUMENT_NUMBER_PATTERN = Pattern.compile(UserValidationRules.DOCUMENT_NUMBER_REGEX);
+    private static final Pattern PHONE_PATTERN = Pattern.compile(UserValidationRules.PHONE_REGEX);
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(UserValidationRules.EMAIL_REGEX);
+    private static final Pattern ADDRESS_PATTERN = Pattern.compile(UserValidationRules.ADDRESS_REGEX);
+    private static final Pattern UPPERCASE_PATTERN = Pattern.compile(".*[A-Z].*");
+    private static final Pattern LOWERCASE_PATTERN = Pattern.compile(".*[a-z].*");
+    private static final Pattern DIGIT_PATTERN = Pattern.compile(".*\\d.*");
+    private static final Pattern SPECIAL_CHAR_PATTERN = Pattern.compile(".*[^A-Za-z\\d\\s].*");
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile(".*\\s+.*");
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final CatalogService catalogService;
-    private final UUID fixedTestLocationId;
 
     public UserServiceImpl(UserRepository userRepository,
                            UserMapper userMapper,
@@ -49,7 +57,6 @@ public class UserServiceImpl implements UserService {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.catalogService = catalogService;
-        this.fixedTestLocationId = UserLocationTestPolicy.fixedTestLocationUuid();
     }
 
     @Override
@@ -61,44 +68,47 @@ public class UserServiceImpl implements UserService {
         validateCatalogReferences(request.getDocumentTypeId(), request.getDepartmentId(), request.getCityId());
 
         UserDomain user = userMapper.toDomain(request);
-        user.setLocationId(fixedTestLocationId);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setStatus(UserStatus.ACTIVE);
         user.setCreatedAt(LocalDateTime.now());
         user.setModifiedAt(LocalDateTime.now());
 
-        saveNewUser(user);
-        return enrichResponse(userMapper.toResponse(user), user);
+        UserDomain saved = saveUser(user);
+        return enrichResponse(userMapper.toResponse(saved), saved);
     }
 
     @Override
-    public UserResponse getUserById(String userId) {
-        UserDomain user = getAuthenticatedUser();
-        validateRequestedUserId(userId, user);
+    public UserResponse getUserById(UUID userId) {
+        UserDomain user = findUserById(userId);
         return enrichResponse(userMapper.toResponse(user), user);
     }
 
     @Override
     public List<UserSummaryResponse> getUsers(String status, Integer page, Integer size) {
-        UserDomain user = getAuthenticatedUser();
-        if (isExcludedByStatus(status, user.getStatus()) || isOutsideCurrentPage(page) || isEmptyPageSize(size)) {
-            return List.of();
-        }
+        validatePagination(page, size);
+        UserStatus userStatus = parseOptionalStatus(status);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        UserSummaryResponse summary = userMapper.toSummaryResponse(user);
-        summary.setLocation(resolveLocationForResponse(user));
-        return List.of(summary);
+        Page<UserDomain> usersPage = userStatus == null
+                ? userRepository.findAll(pageable)
+                : userRepository.findByStatus(userStatus, pageable);
+
+        return usersPage.stream()
+                .map(user -> {
+                    UserSummaryResponse summary = userMapper.toSummaryResponse(user);
+                    summary.setLocation(resolveLocationForResponse(user));
+                    return summary;
+                })
+                .toList();
     }
 
     @Override
     @Transactional
-    public UserResponse updateUser(String userId, UpdateUserRequest request) {
+    public UserResponse updateUser(UUID userId, UpdateUserRequest request) {
         normalizeUpdatePayload(request);
         validateUpdatePayload(request);
 
-        UserDomain existing = getAuthenticatedUser();
-        validateRequestedUserId(userId, existing);
-        validateImmutableEmail(existing.getEmail(), request.getEmail());
+        UserDomain existing = findUserById(userId);
         validateCatalogReferences(request.getDocumentTypeId(), request.getDepartmentId(), request.getCityId());
 
         existing.setFirstName(request.getFirstName());
@@ -110,72 +120,31 @@ public class UserServiceImpl implements UserService {
         existing.setDepartmentId(request.getDepartmentId());
         existing.setCityId(request.getCityId());
         existing.setAddress(request.getAddress());
-        existing.setLocationId(fixedTestLocationId);
+        existing.setLocationId(request.getLocationId());
         existing.setModifiedAt(LocalDateTime.now());
 
-        userRepository.saveAndFlush(existing);
-        return enrichResponse(userMapper.toResponse(existing), existing);
+        UserDomain saved = saveUser(existing);
+        return enrichResponse(userMapper.toResponse(saved), saved);
     }
 
     @Override
     @Transactional
-    public UserResponse updateStatus(String userId, String status) {
+    public UserResponse updateStatus(UUID userId, String status) {
         UserStatus newStatus = parseRequiredStatus(status);
-
-        UserDomain existing = getAuthenticatedUser();
-        validateRequestedUserId(userId, existing);
+        UserDomain existing = findUserById(userId);
         existing.setStatus(newStatus);
         existing.setModifiedAt(LocalDateTime.now());
 
-        userRepository.saveAndFlush(existing);
-        return enrichResponse(userMapper.toResponse(existing), existing);
+        UserDomain saved = saveUser(existing);
+        return enrichResponse(userMapper.toResponse(saved), saved);
     }
 
-    private UserDomain getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new UserBusinessException("Authenticated user context is not available");
+    private UserDomain findUserById(UUID userId) {
+        if (userId == null) {
+            throw new UserValidationException("User id is required");
         }
-
-        String authenticatedEmail = normalizeRequiredEmail(
-                authentication.getName(),
-                "Authenticated user context is not available"
-        );
-
-        return userRepository.findByEmailIgnoreCase(authenticatedEmail)
-                .filter(user -> user.getStatus() == UserStatus.ACTIVE)
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-    }
-
-    private UserStatus parseStatus(String status) {
-        try {
-            return UserStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            throw new UserValidationException("Invalid user status value");
-        }
-    }
-
-    private UserStatus parseRequiredStatus(String status) {
-        if (status == null || status.isBlank()) {
-            throw new UserValidationException("User status is required");
-        }
-        return parseStatus(status);
-    }
-
-    private boolean isExcludedByStatus(String status, UserStatus currentStatus) {
-        if (status == null || status.isBlank()) {
-            return false;
-        }
-
-        return parseStatus(status) != currentStatus;
-    }
-
-    private boolean isOutsideCurrentPage(Integer page) {
-        return page != null && page != 0;
-    }
-
-    private boolean isEmptyPageSize(Integer size) {
-        return size != null && size <= 0;
     }
 
     private void validateCreatePayload(CreateUserRequest request) {
@@ -194,16 +163,25 @@ public class UserServiceImpl implements UserService {
         validateRequiredObject(request.getDepartmentId(), "departmentId");
         validateRequiredObject(request.getCityId(), "cityId");
         validateRequiredText(request.getAddress(), "address");
+        validateRequiredObject(request.getLocationId(), "locationId");
 
-        validateEmail(request.getEmail());
+        validateName(request.getFirstName(), "firstName");
+        validateName(request.getLastName(), "lastName");
+        validateDocumentNumber(request.getDocumentNumber());
         validatePhone(request.getPhone());
-        validateBirthDate(request.getBirthDate());
+        validateEmail(request.getEmail());
         validatePasswordStrength(request.getPassword());
+        validateBirthDate(request.getBirthDate());
+        validateAddress(request.getAddress());
     }
 
     private void validateUpdatePayload(UpdateUserRequest request) {
         if (request == null) {
             throw new UserValidationException("Request body is required");
+        }
+
+        if (request.getEmail() != null) {
+            throw new UserValidationException("Field 'email' cannot be modified");
         }
 
         validateRequiredText(request.getFirstName(), "firstName");
@@ -215,10 +193,29 @@ public class UserServiceImpl implements UserService {
         validateRequiredObject(request.getDepartmentId(), "departmentId");
         validateRequiredObject(request.getCityId(), "cityId");
         validateRequiredText(request.getAddress(), "address");
+        validateRequiredObject(request.getLocationId(), "locationId");
 
-        validateOptionalEmail(request.getEmail());
+        validateName(request.getFirstName(), "firstName");
+        validateName(request.getLastName(), "lastName");
+        validateDocumentNumber(request.getDocumentNumber());
         validatePhone(request.getPhone());
         validateBirthDate(request.getBirthDate());
+        validateAddress(request.getAddress());
+    }
+
+    private void validatePagination(Integer page, Integer size) {
+        if (page == null) {
+            throw new UserValidationException("Field 'page' is required");
+        }
+        if (size == null) {
+            throw new UserValidationException("Field 'size' is required");
+        }
+        if (page < UserValidationRules.PAGE_MIN) {
+            throw new UserValidationException("Field 'page' must be greater than or equal to 0");
+        }
+        if (size < UserValidationRules.SIZE_MIN || size > UserValidationRules.SIZE_MAX) {
+            throw new UserValidationException("Field 'size' must be between 1 and 100");
+        }
     }
 
     private void validateRequiredText(String value, String fieldName) {
@@ -233,63 +230,85 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void validateEmail(String email) {
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new UserValidationException("Invalid email format");
+    private void validateName(String name, String fieldName) {
+        if (name.length() < UserValidationRules.NAME_MIN_LENGTH || name.length() > UserValidationRules.NAME_MAX_LENGTH) {
+            throw new UserValidationException("Field '" + fieldName + "' must be between 2 and 100 characters");
+        }
+        if (!NAME_PATTERN.matcher(name).matches()) {
+            throw new UserValidationException("Field '" + fieldName + "' contains invalid characters");
         }
     }
 
-    private void validateOptionalEmail(String email) {
-        if (email == null) {
-            return;
+    private void validateDocumentNumber(String documentNumber) {
+        if (documentNumber.length() < UserValidationRules.DOCUMENT_NUMBER_MIN_LENGTH
+                || documentNumber.length() > UserValidationRules.DOCUMENT_NUMBER_MAX_LENGTH) {
+            throw new UserValidationException("Field 'documentNumber' must be between 5 and 30 characters");
         }
-        if (email.isBlank()) {
-            throw new UserValidationException("Field 'email' cannot be empty");
+        if (!DOCUMENT_NUMBER_PATTERN.matcher(documentNumber).matches()) {
+            throw new UserValidationException("Field 'documentNumber' contains invalid characters");
         }
-        validateEmail(email);
     }
 
     private void validatePhone(String phone) {
-        if (!DIGITS_PATTERN.matcher(phone).matches()) {
-            throw new UserValidationException("Phone number must contain only digits");
-        }
-        if (phone.length() != 10) {
+        if (!PHONE_PATTERN.matcher(phone).matches()) {
             throw new UserValidationException("Phone number must contain exactly 10 digits");
         }
     }
 
+    private void validateEmail(String email) {
+        if (email.length() > UserValidationRules.EMAIL_MAX_LENGTH || !EMAIL_PATTERN.matcher(email).matches()) {
+            throw new UserValidationException("Invalid email format");
+        }
+    }
+
     private void validateBirthDate(LocalDate birthDate) {
-        if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
+        LocalDate today = LocalDate.now();
+        if (!birthDate.isBefore(today)) {
             throw new UserValidationException("Birth date must be a past date");
+        }
+        if (birthDate.isBefore(today.minusYears(MAX_ALLOWED_AGE_YEARS))) {
+            throw new UserValidationException("Birth date is out of allowed range");
+        }
+    }
+
+    private void validateAddress(String address) {
+        if (address.length() < UserValidationRules.ADDRESS_MIN_LENGTH
+                || address.length() > UserValidationRules.ADDRESS_MAX_LENGTH) {
+            throw new UserValidationException("Field 'address' must be between 5 and 255 characters");
+        }
+        if (!ADDRESS_PATTERN.matcher(address).matches()) {
+            throw new UserValidationException("Field 'address' contains invalid characters");
         }
     }
 
     private void validatePasswordStrength(String password) {
-        if (password == null || password.length() < 8 || password.length() > 72) {
+        if (password == null || password.isBlank()) {
+            throw new UserValidationException("Field 'password' is required and cannot be empty");
+        }
+        if (password.length() < UserValidationRules.PASSWORD_MIN_LENGTH
+                || password.length() > UserValidationRules.PASSWORD_MAX_LENGTH) {
             throw new UserValidationException("Password must contain between 8 and 72 characters");
         }
-        if (!PASSWORD_LETTER_PATTERN.matcher(password).matches()
-                || !PASSWORD_DIGIT_PATTERN.matcher(password).matches()) {
-            throw new UserValidationException("Password must contain at least one letter and one digit");
+        if (WHITESPACE_PATTERN.matcher(password).matches()) {
+            throw new UserValidationException("Password must not contain whitespace characters");
+        }
+        if (!UPPERCASE_PATTERN.matcher(password).matches()) {
+            throw new UserValidationException("Password must contain at least one uppercase letter");
+        }
+        if (!LOWERCASE_PATTERN.matcher(password).matches()) {
+            throw new UserValidationException("Password must contain at least one lowercase letter");
+        }
+        if (!DIGIT_PATTERN.matcher(password).matches()) {
+            throw new UserValidationException("Password must contain at least one number");
+        }
+        if (!SPECIAL_CHAR_PATTERN.matcher(password).matches()) {
+            throw new UserValidationException("Password must contain at least one special character");
         }
     }
 
     private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new UserBusinessException("A user with that email already exists");
-        }
-    }
-
-    private void validateImmutableEmail(String currentEmail, String requestedEmail) {
-        if (requestedEmail == null) {
-            return;
-        }
-
-        String normalizedCurrentEmail = normalizeRequiredEmail(currentEmail, "Current email is invalid");
-        String normalizedRequestedEmail = normalizeRequiredEmail(requestedEmail, "Requested email is invalid");
-
-        if (!normalizedCurrentEmail.equals(normalizedRequestedEmail)) {
-            throw new UserBusinessException("Email address cannot be modified once the user has been created");
+            throw new UserBusinessException(GENERIC_BUSINESS_REJECTION_MESSAGE);
         }
     }
 
@@ -308,20 +327,25 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void validateRequestedUserId(String userId, UserDomain authenticatedUser) {
-        if (userId == null || userId.isBlank()) {
-            throw new UserValidationException("User id is required");
+    private UserStatus parseRequiredStatus(String status) {
+        if (status == null || status.isBlank()) {
+            throw new UserValidationException("User status is required");
         }
+        return parseStatus(status);
+    }
 
-        UUID requestedUserId;
+    private UserStatus parseOptionalStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        return parseStatus(status);
+    }
+
+    private UserStatus parseStatus(String status) {
         try {
-            requestedUserId = UUID.fromString(userId.trim());
+            return UserStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            throw new UserValidationException("Invalid user id");
-        }
-
-        if (authenticatedUser.getId() == null || !authenticatedUser.getId().equals(requestedUserId)) {
-            throw new UserNotFoundException("User not found");
+            throw new UserValidationException("Invalid user status value");
         }
     }
 
@@ -334,100 +358,60 @@ public class UserServiceImpl implements UserService {
     }
 
     private String resolveLocationForResponse(UserDomain user) {
-        if (user.getLocationId() == null) {
-            return UserLocationTestPolicy.FIXED_TEST_LOCATION_ID;
-        }
-        return user.getLocationId().toString();
+        return user.getLocationId() != null ? user.getLocationId().toString() : null;
     }
 
-    private void saveNewUser(UserDomain user) {
+    private UserDomain saveUser(UserDomain user) {
         try {
-            userRepository.saveAndFlush(user);
+            return userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException ex) {
-            throw new UserBusinessException("A user with that email already exists");
+            throw new UserBusinessException(GENERIC_BUSINESS_REJECTION_MESSAGE);
         }
     }
 
     private void normalizeCreatePayload(CreateUserRequest request) {
-        normalizeCommonPayload(
-                request,
-                request::getFirstName,
-                request::setFirstName,
-                request::getLastName,
-                request::setLastName,
-                request::getDocumentNumber,
-                request::setDocumentNumber,
-                request::getPhone,
-                request::setPhone,
-                request::getEmail,
-                request::setEmail,
-                request::getAddress,
-                request::setAddress
-        );
-    }
-
-    private void normalizeUpdatePayload(UpdateUserRequest request) {
-        normalizeCommonPayload(
-                request,
-                request::getFirstName,
-                request::setFirstName,
-                request::getLastName,
-                request::setLastName,
-                request::getDocumentNumber,
-                request::setDocumentNumber,
-                request::getPhone,
-                request::setPhone,
-                request::getEmail,
-                request::setEmail,
-                request::getAddress,
-                request::setAddress
-        );
-    }
-
-    private void normalizeCommonPayload(
-            Object request,
-            ValueSupplier firstNameGetter,
-            Consumer<String> firstNameSetter,
-            ValueSupplier lastNameGetter,
-            Consumer<String> lastNameSetter,
-            ValueSupplier documentNumberGetter,
-            Consumer<String> documentNumberSetter,
-            ValueSupplier phoneGetter,
-            Consumer<String> phoneSetter,
-            ValueSupplier emailGetter,
-            Consumer<String> emailSetter,
-            ValueSupplier addressGetter,
-            Consumer<String> addressSetter) {
-
         if (request == null) {
             return;
         }
+        request.setFirstName(normalizeName(request.getFirstName()));
+        request.setLastName(normalizeName(request.getLastName()));
+        request.setDocumentNumber(normalizeText(request.getDocumentNumber()));
+        request.setPhone(normalizeText(request.getPhone()));
+        request.setEmail(normalizeEmail(request.getEmail()));
+        request.setAddress(normalizeAddress(request.getAddress()));
+    }
 
-        firstNameSetter.accept(normalizeText(firstNameGetter.get()));
-        lastNameSetter.accept(normalizeText(lastNameGetter.get()));
-        documentNumberSetter.accept(normalizeText(documentNumberGetter.get()));
-        phoneSetter.accept(normalizeText(phoneGetter.get()));
-        emailSetter.accept(normalizeOptionalEmail(emailGetter.get()));
-        addressSetter.accept(normalizeText(addressGetter.get()));
+    private void normalizeUpdatePayload(UpdateUserRequest request) {
+        if (request == null) {
+            return;
+        }
+        request.setFirstName(normalizeName(request.getFirstName()));
+        request.setLastName(normalizeName(request.getLastName()));
+        request.setDocumentNumber(normalizeText(request.getDocumentNumber()));
+        request.setPhone(normalizeText(request.getPhone()));
+        request.setAddress(normalizeAddress(request.getAddress()));
+    }
+
+    private String normalizeName(String value) {
+        return normalizeMultiSpaceText(value);
+    }
+
+    private String normalizeAddress(String value) {
+        return normalizeMultiSpaceText(value);
     }
 
     private String normalizeText(String value) {
         return value == null ? null : value.trim();
     }
 
-    private String normalizeOptionalEmail(String email) {
-        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String normalizeRequiredEmail(String email, String message) {
-        if (email == null || email.isBlank()) {
-            throw new UserValidationException(message);
+    private String normalizeMultiSpaceText(String value) {
+        if (value == null) {
+            return null;
         }
-        return email.trim().toLowerCase(Locale.ROOT);
+        return value.trim().replaceAll("\\s{2,}", " ");
     }
 
-    @FunctionalInterface
-    private interface ValueSupplier {
-        String get();
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

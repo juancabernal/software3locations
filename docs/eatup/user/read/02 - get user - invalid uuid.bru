@@ -1,0 +1,33 @@
+meta {
+  name: 02 - get user - invalid uuid
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/userapi/v1/users/not-a-uuid
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("UUID validation error is controlled", function() {
+    expect(data.errorCode).to.equal("USER_VALIDATION_ERROR");
+    expect(data.field).to.equal("userId");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

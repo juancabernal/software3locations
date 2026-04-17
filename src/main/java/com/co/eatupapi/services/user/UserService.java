@@ -6,16 +6,17 @@ import com.co.eatupapi.dto.user.UserResponse;
 import com.co.eatupapi.dto.user.UserSummaryResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UserService {
 
     UserResponse createUser(CreateUserRequest request);
 
-    UserResponse getUserById(String userId);
+    UserResponse getUserById(UUID userId);
 
     List<UserSummaryResponse> getUsers(String status, Integer page, Integer size);
 
-    UserResponse updateUser(String userId, UpdateUserRequest request);
+    UserResponse updateUser(UUID userId, UpdateUserRequest request);
 
-    UserResponse updateStatus(String userId, String status);
+    UserResponse updateStatus(UUID userId, String status);
 }

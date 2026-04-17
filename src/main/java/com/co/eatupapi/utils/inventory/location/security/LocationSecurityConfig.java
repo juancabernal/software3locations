@@ -1,4 +1,4 @@
-package com.co.eatupapi.utils.payment.invoice.security;
+package com.co.eatupapi.utils.inventory.location.security;
 
 import com.co.eatupapi.config.user.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
@@ -11,20 +11,20 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-public class InvoiceSecurityConfig {
+public class LocationSecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public InvoiceSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public LocationSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
     @Order(0)
-    public SecurityFilterChain invoiceSecurityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain locationSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .securityMatcher("/api/v1/locations/*/invoices/**")
+                .securityMatcher("/inventory/api/v1/location/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

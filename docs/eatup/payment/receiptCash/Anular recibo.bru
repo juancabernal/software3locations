@@ -5,9 +5,13 @@ meta {
 }
 
 patch {
-  url: http://localhost:8080/api/v1/sites/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/cashreceipts/37a8988a-9e92-4c6d-ab6d-cd224393c3c0/cancel
+  url: http://localhost:8080/api/v1/locations/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/cashreceipts/e1c16f90-dd23-4144-93c8-df4e3655a0ba/cancel
   body: none
-  auth: inherit
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqZWFuLm9ydGl6MTQyNEB1Y28ubmV0LmNvIiwiaWF0IjoxNzc1ODUyMzU4LCJleHAiOjE3NzU4NTU5NTh9.Cq_YFJXPm9_9pbAUZ666RHxEAkvk9PHXtvqVBcWN3YlU3zQ0jVfWkqtomnGTLThG
 }
 
 script:post-response {

@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/comercialapi/v1/sellers/00000000-0000-0000-0000-000000000000
+  url: http://localhost:8080/comercialapi/v1/sellers/550e8400-e29b-41d4-a716-446655440000
   body: none
   auth: bearer
 }
 
 auth:bearer {
-  token: {{token}}
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3NzU4ODU4MTEsImV4cCI6MTc3NTkxNDYxMX0.1heIHZubyrnsZ9AiPphp-wRf0lbgH4on2URmFbXrKdsnZkMnrrZ7Nl6nucWpwA74
 }
 
 script:post-response {

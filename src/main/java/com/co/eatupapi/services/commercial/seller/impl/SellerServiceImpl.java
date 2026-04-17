@@ -5,6 +5,7 @@ import com.co.eatupapi.domain.commercial.seller.SellerStatus;
 import com.co.eatupapi.dto.commercial.seller.SellerDTO;
 import com.co.eatupapi.dto.commercial.seller.SellerPatchDTO;
 import com.co.eatupapi.repositories.commercial.seller.SellerRepository;
+import com.co.eatupapi.repositories.inventory.location.LocationRepository;
 import com.co.eatupapi.repositories.user.DocumentTypeRepository;
 import com.co.eatupapi.services.commercial.seller.SellerService;
 import com.co.eatupapi.utils.commercial.seller.exceptions.SellerBusinessException;
@@ -34,13 +35,16 @@ public class SellerServiceImpl implements SellerService {
     private final DocumentTypeRepository documentTypeRepository;
     private final SellerRepository sellerRepository;
     private final SellerMapper sellerMapper;
+    private final LocationRepository locationRepository;
 
     public SellerServiceImpl(SellerRepository sellerRepository,
                              SellerMapper sellerMapper,
-                             DocumentTypeRepository documentTypeRepository) {
+                             DocumentTypeRepository documentTypeRepository,
+                             LocationRepository locationRepository) {
         this.sellerRepository = sellerRepository;
         this.sellerMapper = sellerMapper;
         this.documentTypeRepository = documentTypeRepository;
+        this.locationRepository = locationRepository;
     }
 
     @Override
@@ -89,6 +93,10 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public SellerDTO updateSeller(UUID sellerId, SellerDTO request) {
+        if (request == null) {
+            throw new SellerValidationException("Request body is required");
+        }
+
         validateSellerPayload(request);
 
         SellerDomain existing = findSellerById(sellerId);
@@ -123,17 +131,24 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public SellerDTO patchSeller(UUID sellerId, SellerPatchDTO request) {
+        if (request == null) {
+            throw new SellerValidationException("Request body is required");
+        }
+
         SellerDomain existing = findSellerById(sellerId);
 
-        if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+        if (request.getFirstName() != null) {
+            validateRequiredText(request.getFirstName(), FIELD_FIRST_NAME);
             validateName(request.getFirstName(), FIELD_FIRST_NAME);
             existing.setFirstName(request.getFirstName().trim());
         }
-        if (request.getLastName() != null && !request.getLastName().isBlank()) {
+        if (request.getLastName() != null) {
+            validateRequiredText(request.getLastName(), FIELD_LAST_NAME);
             validateName(request.getLastName(), FIELD_LAST_NAME);
             existing.setLastName(request.getLastName().trim());
         }
-        if (request.getPhone() != null && !request.getPhone().isBlank()) {
+        if (request.getPhone() != null) {
+            validateRequiredText(request.getPhone(), "phone");
             validatePhone(request.getPhone());
             existing.setPhone(request.getPhone().trim());
         }
@@ -141,12 +156,14 @@ public class SellerServiceImpl implements SellerService {
             validateCommissionPercentage(request.getCommissionPercentage());
             existing.setCommissionPercentage(request.getCommissionPercentage());
         }
-        if (request.getIdentificationNumber() != null && !request.getIdentificationNumber().isBlank()) {
+        if (request.getIdentificationNumber() != null) {
+            validateRequiredText(request.getIdentificationNumber(), "identificationNumber");
             validateIdentificationNumber(request.getIdentificationNumber());
             validateDuplicateIdentificationOnUpdate(request.getIdentificationNumber(), sellerId);
             existing.setIdentificationNumber(request.getIdentificationNumber().trim());
         }
         if (request.getLocationId() != null) {
+            validateLocation(request.getLocationId());
             existing.setLocationId(request.getLocationId());
         }
         if (request.getDocumentTypeId() != null) {
@@ -158,8 +175,6 @@ public class SellerServiceImpl implements SellerService {
         sellerRepository.save(existing);
         return sellerMapper.toDto(existing);
     }
-
-    // ── private helpers ──────────────────────────────────────────────────────
 
     private SellerDomain findSellerById(UUID sellerId) {
         return sellerRepository.findById(sellerId)
@@ -185,6 +200,7 @@ public class SellerServiceImpl implements SellerService {
         validateRequiredObject(request.getDocumentTypeId(), "documentTypeId");
         validateDocumentType(request.getDocumentTypeId());
         validateRequiredObject(request.getLocationId(), "locationId");
+        validateLocation(request.getLocationId());
         validateRequiredText(request.getIdentificationNumber(), "identificationNumber");
         validateRequiredText(request.getFirstName(), FIELD_FIRST_NAME);
         validateRequiredText(request.getLastName(), FIELD_LAST_NAME);
@@ -215,6 +231,12 @@ public class SellerServiceImpl implements SellerService {
     private void validateDocumentType(UUID documentTypeId) {
         if (!documentTypeRepository.existsById(documentTypeId)) {
             throw new SellerValidationException("Document type not found with id: " + documentTypeId);
+        }
+    }
+
+    private void validateLocation(UUID locationId) {
+        if (!locationRepository.existsById(locationId.toString())) {
+            throw new SellerValidationException("Location not found with id: " + locationId);
         }
     }
 

@@ -1,11 +1,11 @@
 package com.co.eatupapi.dto.user;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import com.co.eatupapi.utils.user.validation.UserValidationRules;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,31 +17,47 @@ import java.util.UUID;
 public class CreateUserRequest {
 
     @NotBlank(message = "Field 'firstName' is required")
-    @Size(max = 100, message = "Field 'firstName' must be at most 100 characters")
+    @Size(min = UserValidationRules.NAME_MIN_LENGTH, max = UserValidationRules.NAME_MAX_LENGTH,
+            message = "Field 'firstName' must be between 2 and 100 characters")
+    @Pattern(regexp = UserValidationRules.NAME_REGEX,
+            message = "Field 'firstName' contains invalid characters")
     private String firstName;
 
     @NotBlank(message = "Field 'lastName' is required")
-    @Size(max = 100, message = "Field 'lastName' must be at most 100 characters")
+    @Size(min = UserValidationRules.NAME_MIN_LENGTH, max = UserValidationRules.NAME_MAX_LENGTH,
+            message = "Field 'lastName' must be between 2 and 100 characters")
+    @Pattern(regexp = UserValidationRules.NAME_REGEX,
+            message = "Field 'lastName' contains invalid characters")
     private String lastName;
 
     @NotNull(message = "Field 'documentTypeId' is required")
     private UUID documentTypeId;
 
     @NotBlank(message = "Field 'documentNumber' is required")
-    @Size(min = 5, max = 30, message = "Field 'documentNumber' must be between 5 and 30 characters")
+    @Size(min = UserValidationRules.DOCUMENT_NUMBER_MIN_LENGTH,
+            max = UserValidationRules.DOCUMENT_NUMBER_MAX_LENGTH,
+            message = "Field 'documentNumber' must be between 5 and 30 characters")
+    @Pattern(regexp = UserValidationRules.DOCUMENT_NUMBER_REGEX,
+            message = "Field 'documentNumber' contains invalid characters")
     private String documentNumber;
 
     @NotBlank(message = "Field 'phone' is required")
-    @Pattern(regexp = "^\\d{10}$", message = "Field 'phone' must contain exactly 10 digits")
+    @Pattern(regexp = UserValidationRules.PHONE_REGEX,
+            message = "Field 'phone' must contain exactly 10 digits")
     private String phone;
 
     @NotBlank(message = "Field 'email' is required")
-    @Email(message = "Field 'email' must contain a valid email address")
-    @Size(max = 150, message = "Field 'email' must be at most 150 characters")
+    @Size(max = UserValidationRules.EMAIL_MAX_LENGTH,
+            message = "Field 'email' must be at most 150 characters")
+    @Pattern(regexp = UserValidationRules.EMAIL_REGEX,
+            message = "Field 'email' must contain a valid email address")
     private String email;
 
     @NotBlank(message = "Field 'password' is required")
-    @Size(min = 8, max = 72, message = "Field 'password' must be between 8 and 72 characters")
+    @Size(min = UserValidationRules.PASSWORD_MIN_LENGTH, max = UserValidationRules.PASSWORD_MAX_LENGTH,
+            message = "Field 'password' must be between 8 and 72 characters")
+    @Pattern(regexp = UserValidationRules.PASSWORD_REGEX,
+            message = "Field 'password' must contain uppercase, lowercase, number and special character")
     private String password;
 
     @NotNull(message = "Field 'birthDate' is required")
@@ -55,9 +71,13 @@ public class CreateUserRequest {
     private UUID cityId;
 
     @NotBlank(message = "Field 'address' is required")
-    @Size(min = 5, max = 255, message = "Field 'address' must be between 5 and 255 characters")
+    @Size(min = UserValidationRules.ADDRESS_MIN_LENGTH, max = UserValidationRules.ADDRESS_MAX_LENGTH,
+            message = "Field 'address' must be between 5 and 255 characters")
+    @Pattern(regexp = UserValidationRules.ADDRESS_REGEX,
+            message = "Field 'address' contains invalid characters")
     private String address;
 
+    @NotNull(message = "Field 'locationId' is required")
     private UUID locationId;
 
 }

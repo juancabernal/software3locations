@@ -1,0 +1,36 @@
+meta {
+  name: 02 - catalog - get departments
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/userapi/v1/departments
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(Array.isArray(data)).to.equal(true);
+  });
+
+  if (Array.isArray(data) && data.length > 0 && data[0].id) {
+    bru.setVar("departmentId", data[0].id);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

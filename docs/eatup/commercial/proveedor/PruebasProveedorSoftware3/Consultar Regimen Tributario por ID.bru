@@ -1,0 +1,45 @@
+meta {
+  name: Consultar Regimen Tributario por ID
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8080/commercial/api/v1/tax-regimes/:key
+  body: none
+  auth: inherit
+}
+
+params:path {
+  key: 21a7a500-940e-4a83-a830-c5e5c1d8adaa
+}
+
+tests {
+  // Status code
+  test("Status code is 200", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  // Parse JSON
+  const jsonData = res.body;
+  
+  // Validar ID específico
+  test("Returned tax regime id is the expected fixed id", () => {
+    expect(jsonData.id).to.equal("21a7a500-940e-4a83-a830-c5e5c1d8adaa");
+  });
+  
+  // Validar que tenga nombre
+  test("Returned tax regime has a business name", () => {
+    expect(jsonData.name).to.exist;
+  });
+  
+  // Validar estado
+  test("Returned tax regime status is the expected one", () => {
+    expect(jsonData.status).to.equal("ACTIVE");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

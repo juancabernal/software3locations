@@ -1,0 +1,46 @@
+meta {
+  name: Cambiar Estado del Proveedor
+  type: http
+  seq: 4
+}
+
+patch {
+  url: http://localhost:8080/commercial/api/v1/providers/:key/status
+  body: json
+  auth: inherit
+}
+
+params:path {
+  key: 4097bbab-2b50-4183-8e28-21a43508e025
+}
+
+body:json {
+  {
+   "status": "INACTIVE"
+  }
+}
+
+tests {
+  // Status code
+  test("Status code is 200", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  // Parse JSON
+  const jsonData = res.body;
+  
+  // Validar cambio de estado
+  test("Provider status changed to INACTIVE", () => {
+    expect(jsonData.status).to.equal("INACTIVE");
+  });
+  
+  // Validar que existe fecha de modificación
+  test("Modified date exists after status update", () => {
+    expect(jsonData.modifiedDate).to.exist;
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

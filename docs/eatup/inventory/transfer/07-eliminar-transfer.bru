@@ -1,0 +1,21 @@
+meta {
+  name: 07-eliminar-transfer
+  type: http
+  seq: 7
+}
+
+delete {
+  url: http://localhost:8080/inventory/api/v1/transfers/:transferId
+  auth: inherit
+}
+
+tests {
+  test("Eliminación exitosa", () => {
+    expect(res.status).to.equal(204);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

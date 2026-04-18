@@ -1,0 +1,15 @@
+meta {
+  name: Consultar cleinte con un id
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/commercial/api/v1/clients/client-001
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

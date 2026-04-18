@@ -1,0 +1,15 @@
+meta {
+  name: Consultar estado de clientes
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8080/comercialapi/v1/clients/status
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

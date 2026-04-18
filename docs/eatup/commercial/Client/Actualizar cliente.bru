@@ -1,0 +1,15 @@
+meta {
+  name: Actualizar cliente
+  type: http
+  seq: 8
+}
+
+put {
+  url: http://localhost:8080/commercial/api/v1/clients/{id}
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

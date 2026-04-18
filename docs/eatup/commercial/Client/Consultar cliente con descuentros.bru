@@ -1,0 +1,19 @@
+meta {
+  name: Consultar cliente con descuentros
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/commercial/api/v1/clients?applyDiscounts=true
+  body: none
+  auth: inherit
+}
+
+params:query {
+  applyDiscounts: true
+}
+
+settings {
+  encodeUrl: true
+}

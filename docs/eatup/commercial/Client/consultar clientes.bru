@@ -1,0 +1,15 @@
+meta {
+  name: consultar clientes
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/commercial/api/v1/clients
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

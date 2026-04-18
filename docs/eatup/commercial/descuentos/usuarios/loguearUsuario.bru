@@ -1,0 +1,27 @@
+meta {
+  name: loguearUsuario
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/userapi/v1/users/login
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqdWFuY2FtaWxvYmVybmFsMjIyMkBnbWFpbC5jb20iLCJpYXQiOjE3NzU4OTA4OTIsImV4cCI6MTc3NTg5NDQ5Mn0.leL3UHLRk5F61ZI7oS4KGhsDglDZnG9I_cA0BbywrdRJmhWKj4CVAL84uuLH3Lmm
+}
+
+body:json {
+  {
+      "email": "juancamilobernal2222@gmail.com",
+      "password": "Clave1234"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

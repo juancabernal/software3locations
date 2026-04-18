@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -38,9 +39,10 @@ public class CustomerDiscountController {
     }
 
     @PostMapping("/customer-discounts")
-    public ResponseEntity<CustomerDiscountDTO> createCustomerDiscount(@RequestBody CustomerDiscountDTO customerDiscountDto) {
-        CustomerDiscountDTO created = customerDiscountService.createCustomerDiscount(customerDiscountDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<Map<String, String>> createCustomerDiscount(@RequestBody CustomerDiscountDTO customerDiscountDto) {
+        customerDiscountService.createCustomerDiscount(customerDiscountDto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body( Map.of("message", "se le asigno un descuento a cliente especifico con éxito"));
     }
 
     @PutMapping("/customer-discounts/{id}")
@@ -54,9 +56,9 @@ public class CustomerDiscountController {
     }
 
     @DeleteMapping("/customer-discounts/{id}")
-    public ResponseEntity<Void> deleteCustomerDiscount(@PathVariable UUID id) {
+    public ResponseEntity<Map<String, String>> deleteCustomerDiscount(@PathVariable UUID id) {
         if (customerDiscountService.deleteCustomerDiscount(id)) {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(Map.of("message", "Se eliminó el descuento al cliente con éxito"));
         }
         return ResponseEntity.notFound().build();
     }

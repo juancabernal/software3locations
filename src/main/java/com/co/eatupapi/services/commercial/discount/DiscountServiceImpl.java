@@ -29,6 +29,10 @@ public class DiscountServiceImpl implements DiscountService {
     public List<DiscountDTO> getAllDiscounts() {
         return discountRepository.findAll().stream().map(discountMapper::toDto).toList();
     }
+    @Override
+    public List<DiscountDTO> getActiveDiscounts() {
+        return discountRepository.findByStatus(Boolean.TRUE).stream().map(discountMapper::toDto).toList();
+    }
 
     @Override
     public Optional<DiscountDTO> getDiscountById(UUID id) {
@@ -88,6 +92,9 @@ public class DiscountServiceImpl implements DiscountService {
         }
         if (discount.getDescription() == null || discount.getDescription().isBlank()) {
             throw new IllegalArgumentException("description es obligatoria");
+        }
+        if (discount.getDescription().length() < 5 || discount.getDescription().length() > 30) {
+            throw new IllegalArgumentException("description debe tener entre 5 y 30 caracteres");
         }
         if (discount.getStatus() == null) {
             discount.setStatus(Boolean.TRUE);

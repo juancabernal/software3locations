@@ -32,10 +32,18 @@ public class DiscountController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/active")
+    public List<DiscountDTO> getActiveDiscounts() {
+        return discountService.getActiveDiscounts();
+    }
+
+
     @PostMapping
-    public ResponseEntity<DiscountDTO> createDiscount(@RequestBody DiscountDTO discountDto) {
-        DiscountDTO created = discountService.createDiscount(discountDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<Map<String, String>> createDiscount(@RequestBody DiscountDTO discountDto) {
+        discountService.createDiscount(discountDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("message", "Descuento creado con éxito"));
     }
 
     @PutMapping("/{discountId}")

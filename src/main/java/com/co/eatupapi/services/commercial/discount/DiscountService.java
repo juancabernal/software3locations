@@ -12,6 +12,8 @@ public interface DiscountService {
 
     List<DiscountDTO> getAllDiscounts();
 
+    List<DiscountDTO> getActiveDiscounts();
+
     Optional<DiscountDTO> getDiscountById(UUID id);
 
     DiscountDTO createDiscount(DiscountDTO discount);

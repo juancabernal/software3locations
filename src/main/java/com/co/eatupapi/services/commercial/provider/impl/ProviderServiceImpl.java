@@ -22,6 +22,13 @@ public class ProviderServiceImpl implements ProviderService {
 
     private static final String INVALID_PROVIDER_STATUS_MESSAGE = "Invalid provider status value";
 
+    private static final int BUSINESS_NAME_MAX_LENGTH = 100;
+    private static final int DOCUMENT_NUMBER_MAX_LENGTH = 20;
+    private static final int RESPONSIBLE_FIRST_NAME_MAX_LENGTH = 50;
+    private static final int RESPONSIBLE_LAST_NAME_MAX_LENGTH = 50;
+    private static final int EMAIL_MAX_LENGTH = 254;
+    private static final int ADDRESS_MAX_LENGTH = 200;
+
     private final ProviderRepository providerRepository;
     private final ProviderMapper providerMapper;
 
@@ -137,10 +144,44 @@ public class ProviderServiceImpl implements ProviderService {
         ValidationUtils.requireText(request.getAddress(), "address");
         ValidationUtils.requireObject(request.getBranchId(), "branchId");
 
+        ValidationUtils.validateMaxLength(
+                request.getBusinessName(),
+                BUSINESS_NAME_MAX_LENGTH,
+                "businessName"
+        );
+        ValidationUtils.validateMaxLength(
+                request.getDocumentNumber(),
+                DOCUMENT_NUMBER_MAX_LENGTH,
+                "documentNumber"
+        );
+        ValidationUtils.validateMaxLength(
+                request.getResponsibleFirstName(),
+                RESPONSIBLE_FIRST_NAME_MAX_LENGTH,
+                "responsibleFirstName"
+        );
+        ValidationUtils.validateMaxLength(
+                request.getResponsibleLastName(),
+                RESPONSIBLE_LAST_NAME_MAX_LENGTH,
+                "responsibleLastName"
+        );
+        ValidationUtils.validateExactLength(request.getPhone(), 10, "phone");
+        ValidationUtils.validateMaxLength(
+                request.getEmail(),
+                EMAIL_MAX_LENGTH,
+                "email"
+        );
+        ValidationUtils.validateMaxLength(
+                request.getAddress(),
+                ADDRESS_MAX_LENGTH,
+                "address"
+        );
+
         ValidationUtils.validateEmail(request.getEmail());
         ValidationUtils.validatePhone(request.getPhone());
-        ValidationUtils.validateNumericValue(request.getDocumentNumber(),
-                "Document number must contain only numeric characters");
+        ValidationUtils.validateNumericValue(
+                request.getDocumentNumber(),
+                "Document number must contain only numeric characters"
+        );
     }
 
     private void validateEmailNotExists(String email) {

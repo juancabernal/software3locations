@@ -11,7 +11,7 @@ public class LocationMapperDomain {
 
     public static LocationDomain toDomain(LocationRequestDTO dto) {
         return new LocationDomain(
-                UUID.randomUUID().toString(),
+                UUID.randomUUID(),
                 dto.getName(),
                 dto.getCity(),
                 dto.getAddress(),
@@ -23,7 +23,7 @@ public class LocationMapperDomain {
         );
     }
 
-    public static LocationDomain toDomain(String id, LocationRequestDTO dto) {
+    public static LocationDomain toDomain(UUID id, LocationRequestDTO dto) {
         return new LocationDomain(
                 id,
                 dto.getName(),

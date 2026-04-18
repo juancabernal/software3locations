@@ -1,17 +1,23 @@
 package com.co.eatupapi.dto.inventory.location;
 
 import com.co.eatupapi.domain.inventory.location.LocationDomain;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.time.LocalTime;
+import java.util.UUID;
 
 public class LocationResponseDTO {
-    private String id;
+    private UUID id;
     private String name;
     private String city;
     private String address;
     private boolean active;
     private String email;
     private String phoneNumber;
-    private String startTime;
-    private String endTime;
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime startTime;
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime endTime;
 
     public static LocationResponseDTO fromDomain(LocationDomain domain){
         LocationResponseDTO dto = new LocationResponseDTO();
@@ -27,13 +33,13 @@ public class LocationResponseDTO {
         return dto;
     }
 
-    public String getId() {return id;}
+    public UUID getId() {return id;}
     public String getName() {return name;}
     public String getCity() {return city;}
     public String getAddress() {return address;}
     public boolean isActive() {return active;}
     public String getEmail() {return email;}
     public String getPhoneNumber() {return phoneNumber;}
-    public String getStartTime() {return startTime;}
-    public String getEndTime() {return endTime;}
+    public LocalTime getStartTime() {return startTime;}
+    public LocalTime getEndTime() {return endTime;}
 }

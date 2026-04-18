@@ -5,15 +5,16 @@ import com.co.eatupapi.dto.inventory.location.LocationRequestDTO;
 import com.co.eatupapi.dto.inventory.location.LocationResponseDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface LocationService {
     List<LocationResponseDTO> findAll();
 
-    LocationResponseDTO findById(String id);
+    LocationResponseDTO findById(UUID id);
 
     LocationResponseDTO create(LocationRequestDTO request);
 
-    LocationResponseDTO update(String id, LocationRequestDTO request);
+    LocationResponseDTO update(UUID id, LocationRequestDTO request);
 
-    LocationResponseDTO patchPartial(String id, LocationPatchDTO patch);
+    LocationResponseDTO patchPartial(UUID id, LocationPatchDTO patch);
 }

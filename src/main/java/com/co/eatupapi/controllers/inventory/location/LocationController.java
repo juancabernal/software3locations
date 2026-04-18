@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/inventory/api/v1/location")
@@ -27,7 +28,7 @@ public class LocationController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LocationResponseDTO> findById(@PathVariable String id) {
+    public ResponseEntity<LocationResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(locationService.findById(id));
     }
 
@@ -37,13 +38,13 @@ public class LocationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LocationResponseDTO> update(@PathVariable String id,
+    public ResponseEntity<LocationResponseDTO> update(@PathVariable UUID id,
                                                       @Valid @RequestBody LocationRequestDTO request) {
         return ResponseEntity.ok(locationService.update(id, request));
     }
 
     @PatchMapping("/editar/{id}")
-    public ResponseEntity<LocationResponseDTO> patch(@PathVariable String id,
+    public ResponseEntity<LocationResponseDTO> patch(@PathVariable UUID id,
                                                      @Valid @RequestBody LocationPatchDTO patch) {
         return ResponseEntity.ok(locationService.patchPartial(id, patch));
     }

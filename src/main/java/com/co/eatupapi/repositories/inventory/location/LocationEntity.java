@@ -5,13 +5,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.LocalTime;
+import java.util.UUID;
+
 @Entity
 @Table(name = "locations")
 public class LocationEntity {
 
     @Id
     @Column(nullable = false, updatable = false)
-    private String id;
+    private UUID id;
 
     @Column(nullable = false)
     private String name;
@@ -32,15 +35,15 @@ public class LocationEntity {
     private String phoneNumber;
 
     @Column(name = "start_time", nullable = false)
-    private String startTime;
+    private LocalTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private String endTime;
+    private LocalTime endTime;
 
     public LocationEntity() {}
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -60,9 +63,9 @@ public class LocationEntity {
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
-    public String getStartTime() { return startTime; }
-    public void setStartTime(String startTime) { this.startTime = startTime; }
+    public LocalTime getStartTime() { return startTime; }
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
 
-    public String getEndTime() { return endTime; }
-    public void setEndTime(String endTime) { this.endTime = endTime; }
+    public LocalTime getEndTime() { return endTime; }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
 }

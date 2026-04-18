@@ -1,6 +1,13 @@
 package com.co.eatupapi.dto.inventory.location;
 
-import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+import java.time.LocalTime;
 
 public class LocationRequestDTO {
 
@@ -25,11 +32,13 @@ public class LocationRequestDTO {
     @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "phoneNumber is not valid")
     private String phoneNumber;
 
-    @NotBlank(message = "Start time is required")
-    private String startTime;
+    @NotNull(message = "Start time is required")
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime startTime;
 
-    @NotBlank(message = "End time is required")
-    private String endTime;
+    @NotNull(message = "End time is required")
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime endTime;
 
     public LocationRequestDTO() {
     }
@@ -58,11 +67,11 @@ public class LocationRequestDTO {
         return phoneNumber;
     }
 
-    public String getStartTime() {
+    public LocalTime getStartTime() {
         return startTime;
     }
 
-    public String getEndTime() {
+    public LocalTime getEndTime() {
         return endTime;
     }
 }

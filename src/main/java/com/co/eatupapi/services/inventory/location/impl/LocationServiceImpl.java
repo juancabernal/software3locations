@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
+
 @Service
 public class LocationServiceImpl implements LocationService {
 
@@ -34,7 +36,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public LocationResponseDTO findById(String id) {
+    public LocationResponseDTO findById(UUID id) {
         validateId(id);
         LocationEntity entity = locationRepository.findById(id)
                 .orElseThrow(() -> new LocationResourceNotFoundException("Sede no encontrada con id: " + id));
@@ -52,7 +54,7 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     @Transactional
-    public LocationResponseDTO update(String id, LocationRequestDTO request) {
+    public LocationResponseDTO update(UUID id, LocationRequestDTO request) {
         validateId(id);
         validateRequest(request);
 
@@ -62,7 +64,6 @@ public class LocationServiceImpl implements LocationService {
         LocationDomain updated = LocationMapperDomain.toDomain(id, request);
         LocationEntity toSave = LocationMapperEntity.toEntity(updated);
 
-        // Mantiene cualquier campo que no venga del request (si luego agregas más columnas)
         toSave.setId(existing.getId());
 
         LocationEntity saved = locationRepository.save(toSave);
@@ -71,7 +72,7 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     @Transactional
-    public LocationResponseDTO patchPartial(String id, LocationPatchDTO patch) {
+    public LocationResponseDTO patchPartial(UUID id, LocationPatchDTO patch) {
         validateId(id);
         if (patch == null || isPatchEmpty(patch)) {
             throw new LocationValidationException("Debe enviar al menos un campo para actualizar");
@@ -122,8 +123,8 @@ public class LocationServiceImpl implements LocationService {
                 && patch.getEndTime() == null;
     }
 
-    private void validateId(String id) {
-        if (id == null || id.isBlank()) {
+    private void validateId(UUID id) {
+        if (id == null) {
             throw new LocationValidationException("El id de la sede es obligatorio");
         }
     }
@@ -142,17 +143,17 @@ public class LocationServiceImpl implements LocationService {
 
     private void validateRequest(LocationRequestDTO request) {
         if (request == null) {
-            throw new LocationValidationException("La solicitud no puede estar vacía");
+            throw new LocationValidationException("La solicitud no puede estar vacia");
         }
 
         validateRequired(request.getName(), "El nombre de la sede es obligatorio");
         validateRequired(request.getCity(), "La ciudad es obligatoria");
-        validateRequired(request.getAddress(), "La dirección es obligatoria");
+        validateRequired(request.getAddress(), "La direccion es obligatoria");
         validateRequired(request.getEmail(), "El email es obligatorio");
-        validateRequired(request.getPhoneNumber(), "El teléfono es obligatorio");
-        validateRequired(request.getStartTime(), "La hora de apertura (startTime) es obligatoria");
-        validateRequired(request.getEndTime(), "La hora de cierre (endTime) es obligatoria");
+        validateRequired(request.getPhoneNumber(), "El telefono es obligatorio");
 
         validateNotNull(request.getActive(), "El estado (active) es obligatorio");
+        validateNotNull(request.getStartTime(), "La hora de apertura (startTime) es obligatoria");
+        validateNotNull(request.getEndTime(), "La hora de cierre (endTime) es obligatoria");
     }
 }

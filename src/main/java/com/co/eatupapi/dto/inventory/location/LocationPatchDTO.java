@@ -1,11 +1,14 @@
 package com.co.eatupapi.dto.inventory.location;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalTime;
+
 /**
- * Actualización parcial de una sede.
+ * Actualizacion parcial de una sede.
  * Solo los campos no nulos se aplican; el resto se conserva.
  */
 public class LocationPatchDTO {
@@ -25,9 +28,11 @@ public class LocationPatchDTO {
     @Pattern(regexp = "^\\+?\\d{7,15}$", message = "phoneNumber is not valid")
     private String phoneNumber;
 
-    private String startTime;
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime startTime;
 
-    private String endTime;
+    @JsonFormat(pattern = "HH:mm")
+    private LocalTime endTime;
 
     public String getName() {
         return name;
@@ -77,19 +82,19 @@ public class LocationPatchDTO {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getStartTime() {
+    public LocalTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(String startTime) {
+    public void setStartTime(LocalTime startTime) {
         this.startTime = startTime;
     }
 
-    public String getEndTime() {
+    public LocalTime getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(String endTime) {
+    public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
 }

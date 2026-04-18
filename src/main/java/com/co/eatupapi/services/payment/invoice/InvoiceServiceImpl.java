@@ -171,7 +171,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private LocationResponseDTO resolveLocation(UUID locationId) {
         try {
-            return locationService.findById(locationId.toString());
+            return locationService.findById(locationId);
         } catch (RuntimeException ex) {
             throw new InvoiceValidationException("Location not found with id: " + locationId);
         }

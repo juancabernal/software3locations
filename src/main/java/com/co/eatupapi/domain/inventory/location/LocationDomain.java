@@ -3,8 +3,11 @@ package com.co.eatupapi.domain.inventory.location;
 import com.co.eatupapi.utils.inventory.location.validation.LocationValidator;
 import lombok.Setter;
 
+import java.time.LocalTime;
+import java.util.UUID;
+
 public class LocationDomain {
-    private String id;
+    private UUID id;
     private String name;
     private String city;
     private String address;
@@ -12,10 +15,10 @@ public class LocationDomain {
     private boolean active;
     private String email;
     private String phoneNumber;
-    private String startTime;
-    private String endTime;
+    private LocalTime startTime;
+    private LocalTime endTime;
 
-    public LocationDomain(final String id, final String name, String city, final String address, final boolean active, final String email, final String phoneNumber, final String startTime, final String endTime) {
+    public LocationDomain(final UUID id, final String name, String city, final String address, final boolean active, final String email, final String phoneNumber, final LocalTime startTime, final LocalTime endTime) {
         setId(id);
         setName(name);
         setCity(city);
@@ -71,27 +74,27 @@ public class LocationDomain {
         this.phoneNumber = LocationValidator.validatePhoneNumber(phoneNumber);
     }
 
-    public String getStartTime() {
+    public LocalTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(String startTime) {
+    public void setStartTime(LocalTime startTime) {
         this.startTime = LocationValidator.validateStartTime(startTime);
     }
 
-    public String getEndTime() {
+    public LocalTime getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(String endTime) {
+    public void setEndTime(LocalTime endTime) {
         this.endTime = LocationValidator.validateEndTime(endTime);
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = LocationValidator.validateId(id);
     }
 }

@@ -900,7 +900,7 @@ public class TableServiceImpl implements TableService {
     }
 
     private void validateLocationExists(String locationId) {
-        String normalizedLocationId = normalizeText(locationId);
+        UUID normalizedLocationId = parseUUID(locationId, "locationId");
 
         if (!locationRepository.existsById(normalizedLocationId)) {
             throw new TableValidationException("La sede/location indicada no existe");

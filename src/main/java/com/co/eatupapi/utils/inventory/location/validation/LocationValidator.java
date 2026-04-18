@@ -1,13 +1,17 @@
 package com.co.eatupapi.utils.inventory.location.validation;
 
+import java.time.LocalTime;
+import java.util.UUID;
+
 public class LocationValidator {
 
     private LocationValidator() {}
 
-    private static final String TIME_REGEX = "^([01]\\d|2[0-3]):[0-5]\\d$";
-
-    public static String validateId(String id) {
-        return requireNonBlank(id, "id");
+    public static UUID validateId(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("id must not be null");
+        }
+        return id;
     }
 
     public static String validateName(String name) {
@@ -34,24 +38,19 @@ public class LocationValidator {
         return requireNonBlank(phoneNumber, "phoneNumber");
     }
 
-    public static String validateStartTime(String startTime) {
+    public static LocalTime validateStartTime(LocalTime startTime) {
         return validateTime(startTime, "startTime");
     }
 
-    public static String validateEndTime(String endTime) {
+    public static LocalTime validateEndTime(LocalTime endTime) {
         return validateTime(endTime, "endTime");
     }
 
-    private static String validateTime(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be null or blank");
+    private static LocalTime validateTime(LocalTime value, String fieldName) {
+        if (value == null) {
+            throw new IllegalArgumentException(fieldName + " must not be null");
         }
-        if (!value.trim().matches(TIME_REGEX)) {
-            throw new IllegalArgumentException(
-                    fieldName + " must be in HH:mm format, got: " + value
-            );
-        }
-        return value.trim();
+        return value;
     }
 
     private static String requireNonBlank(String value, String fieldName) {

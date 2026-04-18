@@ -1,0 +1,45 @@
+meta {
+  name: Consultar Proveedor por ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/commercial/api/v1/providers/:key
+  body: none
+  auth: inherit
+}
+
+params:path {
+  key: 481f5bf4-de29-458c-bb6d-d372606a5733
+}
+
+tests {
+  // Status code
+  test("Status code is 200", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  // Parse JSON
+  const jsonData = res.body;
+  
+  // Validar id específico
+  test("Returned provider id is the expected fixed id", () => {
+    expect(jsonData.id).to.equal("481f5bf4-de29-458c-bb6d-d372606a5733");
+  });
+  
+  // Validar businessName existe
+  test("Returned provider has a business name", () => {
+    expect(jsonData.businessName).to.exist;
+  });
+  
+  // Validar email esperado
+  test("Returned provider email is the expected one", () => {
+    expect(jsonData.email).to.equal("contacto@empresa5359.com");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,74 @@
+meta {
+  name: Actualizar Proveedor
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:8080/commercial/api/v1/providers/:key
+  body: json
+  auth: inherit
+}
+
+params:path {
+  key: 4097bbab-2b50-4183-8e28-21a43508e025
+}
+
+body:json {
+  {
+   "businessName": "Distribuidora Alimentos SAS",
+   "documentTypeId": 1,
+   "documentNumber": "900123456",
+   "taxRegimeId": 10,
+   "responsibleFirstName": "Camilo",
+   "responsibleLastName": "Ramirez",
+   "phone": "3004567890",
+   "email": "ventas@logistica.com",
+   "departmentId": 11,
+   "cityId": 11001,
+   "address": "Calle 10 #45-23",
+   "branchId": 1
+  }
+}
+
+tests {
+  // Status code correcto
+  test("Status code is 200 (update successful)", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  // Body parseado
+  const jsonData = res.body;
+  
+  // Se modificó un campo permitido (ej: businessName)
+  test("Business name was updated correctly", () => {
+    expect(jsonData.businessName).to.equal("Distribuidora Alimentos SAS");
+  });
+  
+  // Se mantienen otros campos consistentes
+  test("Document number remains consistent", () => {
+    expect(jsonData.documentNumber).to.equal("900123456");
+  });
+  
+  // el email NO debe cambiar
+  test("Email was NOT modified (business rule)", () => {
+    // Email original esperado (ajústalo al valor real en tu BD)
+    const originalEmail = "ventas@logistica.com";
+    expect(jsonData.email).to.equal(originalEmail);
+  });
+  
+  
+  
+  // Validación general de integridad
+  test("Response contains required fields", () => {
+    expect(jsonData).to.have.property("id");
+    expect(jsonData).to.have.property("businessName");
+    expect(jsonData).to.have.property("email");
+    expect(jsonData).to.have.property("status");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

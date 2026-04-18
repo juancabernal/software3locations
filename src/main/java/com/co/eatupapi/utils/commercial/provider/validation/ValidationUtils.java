@@ -31,7 +31,6 @@ public final class ValidationUtils {
         }
     }
 
-
     public static void validatePhone(String phone) {
         validateNumericValue(phone, "Phone number must contain only digits");
         if (phone.length() != 10) {
@@ -42,6 +41,22 @@ public final class ValidationUtils {
     public static void validateNumericValue(String value, String message) {
         if (!DIGITS_PATTERN.matcher(value).matches()) {
             throw new ValidationException(message);
+        }
+    }
+
+    public static void validateMaxLength(String value, int maxLength, String fieldName) {
+        if (value != null && value.length() > maxLength) {
+            throw new ValidationException(
+                    "Field '" + fieldName + "' must not exceed " + maxLength + " characters"
+            );
+        }
+    }
+
+    public static void validateExactLength(String value, int expectedLength, String fieldName) {
+        if (value != null && value.length() != expectedLength) {
+            throw new ValidationException(
+                    "Field '" + fieldName + "' must contain exactly " + expectedLength + " characters"
+            );
         }
     }
 }

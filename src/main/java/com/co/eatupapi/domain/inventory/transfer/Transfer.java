@@ -47,6 +47,7 @@ public class Transfer {
     private LocalDateTime updatedAt;
 
     public Transfer() {
+        // Required by JPA for entity instantiation
     }
 
     @PrePersist

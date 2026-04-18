@@ -1,0 +1,59 @@
+meta {
+  name: Crear Proveedor
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/commercial/api/v1/providers
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+   "businessName": "Esthereal Organics SAS",
+   "documentTypeId": 1,
+   "documentNumber": "900408536",
+   "taxRegimeId": 10,
+   "responsibleFirstName": "Juan",
+   "responsibleLastName": "Bernal",
+   "phone": "3117133290",
+   "email": "contacto@empresa5359.com",
+   "departmentId": 11,
+   "cityId": 11001,
+   "address": "Calle 10 #45-23",
+   "branchId": 1
+  }
+}
+
+tests {
+  // Status code
+  test("Status code is 201", () => {
+    expect(res.status).to.equal(201);
+  });
+  
+  // Parse JSON
+  const jsonData = res.body;
+  
+  // Validar id
+  test("Provider id is generated", () => {
+    expect(jsonData.id).to.exist;
+    expect(jsonData.id).to.be.a("string");
+  });
+  
+  // Validar status
+  test("New provider is created with ACTIVE status", () => {
+    expect(jsonData.status).to.equal("ACTIVE");
+  });
+  
+  // Guardar variables (equivalente a collectionVariables)
+  bru.setVar("providerId", jsonData.id);
+  bru.setVar("providerEmail", jsonData.email);
+  bru.setVar("providerBusinessName", jsonData.businessName);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

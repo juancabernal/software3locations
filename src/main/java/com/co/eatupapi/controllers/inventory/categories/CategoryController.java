@@ -56,8 +56,6 @@ public class CategoryController {
         CategoryDTO updated = categoryService.updateStatus(categoryId, request.getStatus());
         return ResponseEntity.ok(updated);
     }
-// Agregar al final de CategoryController.java
-
     @GetMapping("/name/{name}")
     public ResponseEntity<List<CategoryDTO>> getCategoriesByName(@PathVariable String name) {
         List<CategoryDTO> categories = categoryService.getCategoriesByName(name);
@@ -70,4 +68,3 @@ public class CategoryController {
         return ResponseEntity.ok(categories);
     }
 }
-

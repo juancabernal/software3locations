@@ -1,0 +1,39 @@
+meta {
+  name: PaginaciondeProductos
+  type: http
+  seq: 9
+}
+
+get {
+  url: http://localhost:8080/inventory/product?page=1&size=10
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 1
+  size: 10
+}
+
+tests {
+  test("Máximo 10 productos", () => {
+    expect(res.body.content.length).to.be.at.most(10);
+  });
+  
+  test("numberOfElements coincide", () => {
+    expect(res.body.numberOfElements).to.equal(res.body.content.length);
+  });
+  
+  test("Tiene total de páginas", () => {
+    expect(res.body.totalPages).to.be.greaterThan(0);
+  });
+  
+  test("Tamaño de página correcto", () => {
+    expect(res.body.size).to.equal(10);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

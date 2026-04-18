@@ -5,9 +5,29 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/inventory/product/location/{id}
+  url: http://localhost:8080/inventory/product/location/00000000-0000-0000-0000-000000000011
   body: none
   auth: inherit
+}
+
+tests {
+  test("Tiene datos", () => {
+    expect(res.body.content.length).to.be.greaterThan(0);
+  });
+  
+  test("Todos tienen locationId", () => {
+    res.body.content.forEach(p => {
+      expect(p.locationId).to.exist;
+    });
+  });
+  
+  test("Todos pertenecen a la misma location", () => {
+    const loc = res.body.content[0].locationId;
+  
+    res.body.content.forEach(p => {
+      expect(p.locationId).to.equal(loc);
+    });
+  });
 }
 
 settings {

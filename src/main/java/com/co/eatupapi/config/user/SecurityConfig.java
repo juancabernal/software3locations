@@ -3,9 +3,8 @@ package com.co.eatupapi.config.user;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -43,27 +42,29 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            throw new UsernameNotFoundException("UserDetailsService no usado directamente; autenticación vía JWT");
+            throw new UsernameNotFoundException(
+                    "UserDetailsService no usado directamente; autenticación vía JWT"
+            );
         };
     }
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain userSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/userapi/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) ->
                                 writeSecurityErrorResponse(
                                         response,
                                         HttpStatus.UNAUTHORIZED,
                                         "Authentication is required to access this resource",
-                                        "USER_UNAUTHORIZED"
+                                        "UNAUTHORIZED"
                                 )
                         )
                         .accessDeniedHandler((request, response, accessDeniedException) ->
@@ -71,33 +72,25 @@ public class SecurityConfig {
                                         response,
                                         HttpStatus.FORBIDDEN,
                                         "You do not have permission to access this resource",
-                                        "USER_FORBIDDEN"
+                                        "FORBIDDEN"
                                 )
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Permitir preflight si manejas frontend/CORS
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Endpoints públicos antes del login
                         .requestMatchers(HttpMethod.POST, "/userapi/v1/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/userapi/v1/users/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/userapi/v1/document-types").permitAll()
                         .requestMatchers(HttpMethod.GET, "/userapi/v1/departments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/userapi/v1/cities").permitAll()
-                        .requestMatchers("/userapi/**").authenticated()
+
+                        // Todo lo demás queda protegido
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    @Bean
-    @Order(99) //Ya que es el publico, para que procese las otras ordenes (Estaba el 2 en vez de 99)
-    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/**")
-                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
         return http.build();
     }

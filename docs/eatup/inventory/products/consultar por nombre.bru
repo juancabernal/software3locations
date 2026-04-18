@@ -5,13 +5,38 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/inventory/product?name=Leche
+  url: http://localhost:8080/inventory/product?name=tomate
   body: none
   auth: inherit
 }
 
 params:query {
-  name: Leche
+  name: tomate
+}
+
+tests {
+  test("Status 200", () => {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Tiene datos", () => {
+    expect(res.body.content.length).to.be.greaterThan(0);
+  });
+  
+  test("Filtra por nombre", () => {
+    const filtro = "Tomate";
+  
+    res.body.content.forEach(p => {
+      expect(p.name.toLowerCase()).to.include(filtro.toLowerCase());
+    });
+  });
+  
+  test("Estructura válida", () => {
+    res.body.content.forEach(p => {
+      expect(p.id).to.exist;
+      expect(p.name).to.exist;
+    });
+  });
 }
 
 settings {

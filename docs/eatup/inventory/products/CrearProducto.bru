@@ -7,7 +7,11 @@ meta {
 post {
   url: http://localhost:8080/inventory/product
   body: json
-  auth: inherit
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
 }
 
 body:json {
@@ -35,7 +39,6 @@ tests {
     expect(res.body.name).to.exist;
   });
   
-  // Guardar ID para siguientes pruebas
   bru.setEnvVar("productId", res.body.id);
 }
 

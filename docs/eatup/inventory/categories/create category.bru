@@ -1,0 +1,58 @@
+meta {
+  name: create category
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/inventory/api/v1/categories
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  categoryType: Bebidas
+}
+
+script:pre-request {
+  const token = bru.getEnvVar("token") || bru.getVar("token");
+
+  if (!token) {
+    throw new Error("Missing variable 'token'. Run the login request first.");
+  }
+
+  bru.setVar("categoryCreateName", `Categoria Bruno ${Date.now()}`);
+}
+
+body:json {
+  {
+    "type": "{{categoryType}}",
+    "name": "{{categoryCreateName}}"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  if (data && data.id) {
+    bru.setVar("categoryId", data.id);
+  }
+
+  if (data && data.name) {
+    bru.setVar("categoryName", data.name);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

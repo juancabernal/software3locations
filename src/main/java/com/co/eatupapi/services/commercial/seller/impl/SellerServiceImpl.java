@@ -235,7 +235,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     private void validateLocation(UUID locationId) {
-        if (!locationRepository.existsById(locationId.toString())) {
+        if (!locationRepository.existsById(locationId)) {
             throw new SellerValidationException("Location not found with id: " + locationId);
         }
     }

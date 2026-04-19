@@ -194,7 +194,7 @@ public class SaleServiceImpl implements SaleService {
             existingSale.setSeller(seller);
         }
 
-        if (request.locationId() != null && !request.locationId().isBlank()) {
+        if (request.locationId() != null) {
             var location = locationRepository.findById(request.locationId())
                     .orElseThrow(() -> new SaleNotFoundException(LOCATION_NOT_FOUND_MSG + request.locationId()));
             existingSale.setLocation(location);
@@ -232,7 +232,7 @@ public class SaleServiceImpl implements SaleService {
         if (request.getSellerId() == null || request.getSellerId().isBlank()) {
             throw new SaleValidationException("Seller ID is required");
         }
-        if (request.getLocationId() == null || request.getLocationId().isBlank()) {
+        if (request.getLocationId() == null) {
             throw new SaleValidationException("Location ID is required");
         }
         if (request.getDetails() == null || request.getDetails().isEmpty()) {

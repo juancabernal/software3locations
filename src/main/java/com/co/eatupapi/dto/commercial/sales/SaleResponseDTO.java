@@ -11,7 +11,7 @@ public class SaleResponseDTO {
     private UUID id;
     private String sellerId;
     private String sellerName;
-    private String locationId;
+    private UUID locationId;
     private String locationName;
     private String tableId;
     private SaleStatus status;
@@ -43,11 +43,11 @@ public class SaleResponseDTO {
         this.sellerName = sellerName;
     }
 
-    public String getLocationId() {
+    public UUID getLocationId() {
         return locationId;
     }
 
-    public void setLocationId(String locationId) {
+    public void setLocationId(UUID locationId) {
         this.locationId = locationId;
     }
 

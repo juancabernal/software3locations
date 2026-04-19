@@ -79,4 +79,22 @@ public class TransferController {
     public ResponseEntity<List<TransferResponseDTO>> getTransfersInTransit() {
         return ResponseEntity.ok(transferService.findAllInTransit());
     }
+
+    @Operation(summary = "Obtener traslados completados",
+               description = "Permite obtener una lista de los traslados que actualmente estan en estado COMPLETADO.")
+    @ApiResponse(responseCode = "200", description = "Lista de traslados completados devuelta exitosamente")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    @GetMapping("/completed")
+    public ResponseEntity<List<TransferResponseDTO>> getCompletedTransfers() {
+        return ResponseEntity.ok(transferService.findAllCompleted());
+    }
+
+    @Operation(summary = "Obtener traslados cancelados",
+               description = "Permite obtener una lista de los traslados que actualmente estan en estado CANCELADO.")
+    @ApiResponse(responseCode = "200", description = "Lista de traslados cancelados devuelta exitosamente")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    @GetMapping("/cancelled")
+    public ResponseEntity<List<TransferResponseDTO>> getCancelledTransfers() {
+        return ResponseEntity.ok(transferService.findAllCancelled());
+    }
 }

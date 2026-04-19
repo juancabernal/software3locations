@@ -16,4 +16,8 @@ public interface TransferService {
     List<TransferResponseDTO> findAll();
 
     List<TransferResponseDTO> findAllInTransit();
+
+    List<TransferResponseDTO> findAllCompleted();
+
+    List<TransferResponseDTO> findAllCancelled();
 }

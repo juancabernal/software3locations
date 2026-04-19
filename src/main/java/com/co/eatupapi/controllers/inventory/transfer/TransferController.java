@@ -70,4 +70,13 @@ public class TransferController {
     public ResponseEntity<List<TransferResponseDTO>> getAllTransfers() {
         return ResponseEntity.ok(transferService.findAll());
     }
+
+    @Operation(summary = "Obtener traslados en transito",
+               description = "Permite obtener una lista de los traslados que actualmente estan en estado EN_TRANSITO.")
+    @ApiResponse(responseCode = "200", description = "Lista de traslados en transito devuelta exitosamente")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    @GetMapping("/in-transit")
+    public ResponseEntity<List<TransferResponseDTO>> getTransfersInTransit() {
+        return ResponseEntity.ok(transferService.findAllInTransit());
+    }
 }

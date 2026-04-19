@@ -78,6 +78,14 @@ public class TransferServiceImpl implements TransferService {
                 .toList();
     }
 
+    @Override
+    public List<TransferResponseDTO> findAllInTransit() {
+        return transferRepository.findByEstado(TransferStatus.EN_TRANSITO)
+                .stream()
+                .map(transferMapper::toResponse)
+                .toList();
+    }
+
     private void validateId(Long id) {
         if (id == null || id <= 0) {
             throw new TransferValidationException("El id de la transferencia es obligatorio y debe ser mayor a cero");

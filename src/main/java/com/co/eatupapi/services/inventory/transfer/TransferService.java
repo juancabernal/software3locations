@@ -14,4 +14,6 @@ public interface TransferService {
     TransferResponseDTO findById(Long id);
 
     List<TransferResponseDTO> findAll();
+
+    List<TransferResponseDTO> findAllInTransit();
 }

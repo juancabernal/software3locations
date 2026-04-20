@@ -16,6 +16,8 @@ import com.co.eatupapi.utils.inventory.transfer.exceptions.TransferValidationExc
 import com.co.eatupapi.utils.inventory.transfer.mapper.TransferMapper;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -174,7 +176,7 @@ public class TransferServiceImpl implements TransferService {
     }
 
     private void validateLocationExistsAndActive(String locationId, String role) {
-        locationRepository.findById(locationId)
+        locationRepository.findById(UUID.fromString(locationId))
                 .filter(com.co.eatupapi.repositories.inventory.location.LocationEntity::isActive)
                 .orElseThrow(() -> new TransferNotFoundException("La sede de " + role + " no existe o está inactiva"));
     }

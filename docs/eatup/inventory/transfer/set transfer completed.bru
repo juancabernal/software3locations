@@ -1,11 +1,11 @@
 meta {
-  name: set transfer completed
+  name: set transfer in transit
   type: http
   seq: 5
 }
 
 patch {
-  url: {{baseUrl}}/inventory/api/v1/transfers/{{transferId}}/status
+  url: {{baseUrl}}/inventory/api/v1/transfers/{{transferId}}/status?sedeOrigen={{sedeOrigenId}}
   body: json
   auth: inherit
 }
@@ -16,6 +16,7 @@ headers {
 
 vars:pre-request {
   baseUrl: http://localhost:8080
+  sedeOrigenId: REPLACE_WITH_ORIGIN_LOCATION_ID
 }
 
 script:pre-request {
@@ -29,11 +30,16 @@ script:pre-request {
   if (!transferId) {
     throw new Error("Missing variable 'transferId'. Run 'create transfer' first.");
   }
+
+  const sedeOrigenId = bru.getVar("sedeOrigenId");
+  if (!sedeOrigenId || sedeOrigenId === "REPLACE_WITH_ORIGIN_LOCATION_ID") {
+    throw new Error("Missing variable 'sedeOrigenId'. Set the origin location id before running this request.");
+  }
 }
 
 body:json {
   {
-    "estado": "COMPLETADO"
+    "estado": "EN_TRANSITO"
   }
 }
 
@@ -44,8 +50,8 @@ script:post-response {
     expect(res.getStatus()).to.equal(200);
   });
 
-  test("Transfer is COMPLETADO", function() {
-    expect(data.estado).to.equal("COMPLETADO");
+  test("Transfer is EN_TRANSITO", function() {
+    expect(data.estado).to.equal("EN_TRANSITO");
   });
 }
 

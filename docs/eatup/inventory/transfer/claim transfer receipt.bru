@@ -1,11 +1,11 @@
 meta {
-  name: set transfer cancelled
+  name: claim transfer receipt
   type: http
-  seq: 6
+  seq: 9
 }
 
 patch {
-  url: {{baseUrl}}/inventory/api/v1/transfers/{{transferId}}/status?sedeOrigen={{sedeOrigenId}}
+  url: {{baseUrl}}/inventory/api/v1/transfers/{{transferId}}/claim?sedeDestino={{sedeDestinoId}}
   body: json
   auth: inherit
 }
@@ -16,7 +16,7 @@ headers {
 
 vars:pre-request {
   baseUrl: http://localhost:8080
-  sedeOrigenId: REPLACE_WITH_ORIGIN_LOCATION_ID
+  sedeDestinoId: REPLACE_WITH_DESTINATION_LOCATION_ID
 }
 
 script:pre-request {
@@ -31,15 +31,15 @@ script:pre-request {
     throw new Error("Missing variable 'transferId'. Run 'create transfer' first.");
   }
 
-  const sedeOrigenId = bru.getVar("sedeOrigenId");
-  if (!sedeOrigenId || sedeOrigenId === "REPLACE_WITH_ORIGIN_LOCATION_ID") {
-    throw new Error("Missing variable 'sedeOrigenId'. Set the origin location id before running this request.");
+  const sedeDestinoId = bru.getVar("sedeDestinoId");
+  if (!sedeDestinoId || sedeDestinoId === "REPLACE_WITH_DESTINATION_LOCATION_ID") {
+    throw new Error("Missing variable 'sedeDestinoId'. Set the destination location id before running this request.");
   }
 }
 
 body:json {
   {
-    "estado": "CANCELADO"
+    "observaciones": "La sede destino reporta novedades en la recepción"
   }
 }
 
@@ -50,8 +50,8 @@ script:post-response {
     expect(res.getStatus()).to.equal(200);
   });
 
-  test("Transfer is CANCELADO", function() {
-    expect(data.estado).to.equal("CANCELADO");
+  test("Transfer is RECLAMADO", function() {
+    expect(data.estado).to.equal("RECLAMADO");
   });
 }
 

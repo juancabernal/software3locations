@@ -1,5 +1,6 @@
 package com.co.eatupapi.controllers.inventory.transfer;
 
+import com.co.eatupapi.dto.inventory.transfer.TransferObservacionUpdateDTO;
 import com.co.eatupapi.dto.inventory.transfer.TransferRequestDTO;
 import com.co.eatupapi.dto.inventory.transfer.TransferResponseDTO;
 import com.co.eatupapi.dto.inventory.transfer.TransferStatusUpdateDTO;
@@ -46,8 +47,9 @@ public class TransferController {
     @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     @PatchMapping("/{id}/status")
     public ResponseEntity<TransferResponseDTO> updateTransferStatus(@PathVariable Long id,
+                                                                    @RequestParam(required = false) String sedeOrigen,
                                                                      @Valid @RequestBody TransferStatusUpdateDTO statusUpdate) {
-        return ResponseEntity.ok(transferService.updateStatus(id, statusUpdate));
+        return ResponseEntity.ok(transferService.updateStatus(id, sedeOrigen, statusUpdate));
     }
 
     @Operation(summary = "Obtener traslado por ID",
@@ -96,5 +98,34 @@ public class TransferController {
     @GetMapping("/cancelled")
     public ResponseEntity<List<TransferResponseDTO>> getCancelledTransfers() {
         return ResponseEntity.ok(transferService.findAllCancelled());
+    }
+
+    @Operation(summary = "Obtener traslados entrantes de la sede destino",
+               description = "Permite consultar los traslados que llegan a una sede destino.")
+    @ApiResponse(responseCode = "200", description = "Lista de traslados entrantes devuelta exitosamente")
+    @GetMapping("/incoming")
+    public ResponseEntity<List<TransferResponseDTO>> getIncomingTransfers(@RequestParam String sedeDestino) {
+        return ResponseEntity.ok(transferService.findIncoming(sedeDestino));
+    }
+
+    @Operation(summary = "Confirmar recepción del traslado",
+               description = "Permite a la sede destino confirmar que el traslado llegó correctamente.")
+    @ApiResponse(responseCode = "200", description = "Traslado confirmado exitosamente")
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida o estado no permitido")
+    @PatchMapping("/{id}/confirm")
+    public ResponseEntity<TransferResponseDTO> confirmTransferReceipt(@PathVariable Long id,
+                                                                      @RequestParam String sedeDestino) {
+        return ResponseEntity.ok(transferService.confirmReceipt(id, sedeDestino));
+    }
+
+    @Operation(summary = "Reclamar recepción del traslado",
+               description = "Permite a la sede destino reclamar novedades o inconsistencias en el traslado recibido.")
+    @ApiResponse(responseCode = "200", description = "Reclamo del traslado registrado exitosamente")
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida o estado no permitido")
+    @PatchMapping("/{id}/claim")
+    public ResponseEntity<TransferResponseDTO> claimTransferReceipt(@PathVariable Long id,
+                                                                    @RequestParam String sedeDestino,
+                                                                    @RequestBody TransferObservacionUpdateDTO observacionUpdate) {
+        return ResponseEntity.ok(transferService.claimReceipt(id, sedeDestino, observacionUpdate));
     }
 }

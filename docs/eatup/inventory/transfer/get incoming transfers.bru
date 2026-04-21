@@ -1,23 +1,30 @@
 meta {
-  name: get all transfers
+  name: get incoming transfers
   type: http
-  seq: 2
+  seq: 7
 }
 
 get {
-  url: {{baseUrl}}/inventory/api/v1/transfers
+  url: {{baseUrl}}/inventory/api/v1/transfers/incoming?sedeDestino={{sedeDestinoId}}
   body: none
   auth: inherit
 }
 
 vars:pre-request {
   baseUrl: http://localhost:8080
+  sedeDestinoId: REPLACE_WITH_DESTINATION_LOCATION_ID
 }
 
 script:pre-request {
   const token = bru.getEnvVar("token") || bru.getVar("token");
+
   if (!token) {
     throw new Error("Missing variable 'token'. Run the login request first.");
+  }
+
+  const sedeDestinoId = bru.getVar("sedeDestinoId");
+  if (!sedeDestinoId || sedeDestinoId === "REPLACE_WITH_DESTINATION_LOCATION_ID") {
+    throw new Error("Missing variable 'sedeDestinoId'. Set the destination location id before running this request.");
   }
 }
 

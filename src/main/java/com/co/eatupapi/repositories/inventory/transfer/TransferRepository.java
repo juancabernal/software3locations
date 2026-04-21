@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TransferRepository extends JpaRepository<Transfer, Long> {
     List<Transfer> findByEstado(TransferStatus estado);
+    List<Transfer> findBySedeDestino(String sedeDestino);
+    List<Transfer> findBySedeDestinoAndEstado(String sedeDestino, TransferStatus estado);
 }

@@ -1,10 +1,10 @@
 meta {
-  name: correct request
+  name: correct request with subrecipe
   type: http
-  seq: 1
+  seq: 3
 }
 
-put {
+post {
   url: http://localhost:8080/api/v1/recipes
   body: json
   auth: inherit
@@ -12,26 +12,19 @@ put {
 
 body:json {
   {
-    "name": "Churrasco Simple",
+    "name": "Churrasco Premium",
     "categoryId": "22222222-2222-2222-2222-222222222222",
     "products": [
       {
         "productId": "33333333-3333-3333-3333-333333333333",
-        "quantity": 3,
-        "price": 15000
-      },
-      {
-        "productId": "44444444-4444-4444-4444-444444444444",
-        "quantity": 2,
-        "price": 20000
-      },
-      {
-        "productId": "55555555-5555-5555-5555-555555555555",
-        "quantity": 2,
-        "price": 18000
+        "quantity": 1.000,
+        "price": 10000.000
       }
     ],
-    "subRecipeIds": [],
+    "subRecipeIds": [
+      "579dc297-44b2-44cb-b06a-453baa283de1",
+      "ce321d12-00a8-43b1-a094-e81c79ec0b0b"
+    ],
     "profitMargin": 30,
     "visibleInMenu": true,
     "active": true
@@ -40,7 +33,7 @@ body:json {
 
 tests {
   test('should create recipe successfully', () => {
-    expect(res.getStatus()).to.equal(200)
+    expect(res.getStatus()).to.equal(201)
   
     expect(res.body).to.equal('')
   })

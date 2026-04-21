@@ -24,6 +24,10 @@ script:pre-request {
   if (!transferId) {
     throw new Error("Missing variable 'transferId'. Run 'create transfer' first.");
   }
+
+  if (!/^\d+$/.test(String(transferId))) {
+    throw new Error("Invalid variable 'transferId'. It must be a numeric transfer id.");
+  }
 }
 
 script:post-response {

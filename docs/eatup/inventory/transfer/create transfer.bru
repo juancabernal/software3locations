@@ -35,13 +35,12 @@ vars:pre-request {
 
 script:pre-request {
   const token = bru.getEnvVar("token") || bru.getVar("token");
-  
+  const transferOriginLocationId = bru.getVar("transferOriginLocationId");
+  const transferDestinationLocationId = bru.getVar("transferDestinationLocationId");
+
   if (!token) {
     throw new Error("Missing variable 'token'. Run the login request first.");
   }
-
-  const transferOriginLocationId = bru.getVar("transferOriginLocationId");
-  const transferDestinationLocationId = bru.getVar("transferDestinationLocationId");
 
   if (!transferOriginLocationId || transferOriginLocationId === "REPLACE_WITH_ORIGIN_LOCATION_ID") {
     throw new Error("Missing variable 'transferOriginLocationId'. Set the origin location id before running this request.");
@@ -49,6 +48,10 @@ script:pre-request {
 
   if (!transferDestinationLocationId || transferDestinationLocationId === "REPLACE_WITH_DESTINATION_LOCATION_ID") {
     throw new Error("Missing variable 'transferDestinationLocationId'. Set the destination location id before running this request.");
+  }
+
+  if (transferOriginLocationId === transferDestinationLocationId) {
+    throw new Error("The variables 'transferOriginLocationId' and 'transferDestinationLocationId' must be different.");
   }
 }
 

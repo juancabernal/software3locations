@@ -1,0 +1,42 @@
+meta {
+  name: Actualizar estado factura
+  type: http
+  seq: 4
+}
+
+patch {
+  url: http://localhost:8080/api/v1/locations/5cc62296-9dd2-4c7b-85bf-2926cd92b549/invoices/ID_FACTURA_AQUI/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: TU_TOKEN_AQUI
+}
+
+body:json {
+  {
+    "status": "CLOSED"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Debe retornar 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Debe actualizar el status", function() {
+    expect(data.status).to.equal("CLOSED");
+  });
+
+  test("Debe conservar el invoiceId", function() {
+    expect(data.invoiceId).to.be.a("string");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

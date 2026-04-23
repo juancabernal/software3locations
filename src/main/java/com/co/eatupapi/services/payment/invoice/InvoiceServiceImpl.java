@@ -30,6 +30,24 @@ import java.util.UUID;
 @Service
 public class InvoiceServiceImpl implements InvoiceService {
 
+    private static final String INVOICE_NOT_FOUND = "Invoice not found";
+    private static final String LOCATION_ID_REQUIRED = "Location ID is required";
+    private static final String INVOICE_ID_REQUIRED = "Invoice ID is required";
+    private static final String SALES_ID_REQUIRED = "Sales ID is required";
+    private static final String CUSTOMER_DISCOUNT_ID_REQUIRED = "Customer discount ID is required";
+    private static final String DISCOUNT_ID_REQUIRED = "Discount ID is required";
+    private static final String REQUEST_REQUIRED = "Request body is required";
+    private static final String STATUS_REQUIRED = "Status is required";
+    private static final String INVOICE_NUMBER_REQUIRED = "Invoice number is required";
+    private static final String LOCATION_ID_MISMATCH = "Location ID must match locationId path parameter";
+    private static final String INVOICE_NUMBER_ALREADY_EXISTS = "Invoice number already exists";
+    private static final String INVOICE_DOES_NOT_BELONG_TO_LOCATION = "Invoice does not belong to this location";
+    private static final String CUSTOMER_DISCOUNT_LOCATION_MISMATCH =
+            "Customer discount does not belong to the requested location";
+    private static final String INVOICE_ALREADY_HAS_STATUS = "Invoice already has this status";
+    private static final String CANCELLED_INVOICE_CANNOT_BE_MODIFIED = "Cancelled invoice cannot be modified";
+    private static final String SALE_TOTAL_REQUIRED = "Sale total amount is required to create invoice";
+
     private final InvoiceRepository invoiceRepository;
     private final InvoiceMapper invoiceMapper;
     private final SaleService saleService;
@@ -53,27 +71,174 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     public InvoiceResponse createInvoice(UUID locationId, InvoiceRequest request) {
+        validateCreateRequest(locationId, request);
 
         String invoiceNumber = normalizeInvoiceNumber(request.getInvoiceNumber());
-
-        if (!locationId.equals(request.getLocationId())) {
-            throw new InvoiceValidationException("Location ID must match locationId path parameter");
-        }
-
-        if (invoiceRepository.existsByInvoiceNumberAndLocationId(invoiceNumber, locationId)) {
-            throw new InvoiceBusinessException("Invoice number already exists");
-        }
+        validateInvoiceNumberUniqueness(invoiceNumber, locationId);
 
         SaleResponseDTO sale = resolveSale(request.getSalesId());
         CustomerDiscountDTO customerDiscount = resolveCustomerDiscount(request.getCustomerDiscountId());
-        LocationResponseDTO location = resolveLocation(request.getLocationId());
-
-        if (!customerDiscount.getLocationId().equals(request.getLocationId())) {
-            throw new InvoiceBusinessException("Customer discount does not belong to the requested location");
-        }
+        validateCustomerDiscountBelongsToLocation(customerDiscount, locationId);
 
         DiscountDTO discount = resolveDiscount(customerDiscount.getDiscountId());
+        LocationResponseDTO location = resolveLocation(locationId);
 
+        Invoice invoice = buildInvoice(
+                invoiceNumber,
+                request,
+                sale,
+                customerDiscount,
+                discount,
+                location
+        );
+
+        return invoiceMapper.toResponse(invoiceRepository.save(invoice));
+    }
+
+    @Override
+    public Page<InvoiceResponse> getInvoicesByLocation(UUID locationId, Pageable pageable) {
+        validateRequired(locationId, LOCATION_ID_REQUIRED);
+
+        return invoiceRepository.findByLocationId(locationId, pageable)
+                .map(invoiceMapper::toResponse);
+    }
+
+    @Override
+    public InvoiceResponse getInvoiceById(UUID locationId, UUID invoiceId) {
+        validateRequired(locationId, LOCATION_ID_REQUIRED);
+        validateRequired(invoiceId, INVOICE_ID_REQUIRED);
+
+        Invoice invoice = findInvoiceById(invoiceId);
+        validateInvoiceBelongsToLocation(invoice, locationId);
+
+        return invoiceMapper.toResponse(invoice);
+    }
+
+    @Override
+    public InvoiceResponse updateStatus(UUID locationId, UUID invoiceId, InvoiceStatusUpdateRequest request) {
+        validateRequired(locationId, LOCATION_ID_REQUIRED);
+        validateRequired(invoiceId, INVOICE_ID_REQUIRED);
+        validateStatusUpdateRequest(request);
+
+        Invoice invoice = findInvoiceById(invoiceId);
+        validateInvoiceBelongsToLocation(invoice, locationId);
+        validateStatusChange(invoice, request.getStatus());
+
+        invoice.setStatus(request.getStatus());
+
+        return invoiceMapper.toResponse(invoiceRepository.save(invoice));
+    }
+
+    private void validateCreateRequest(UUID locationId, InvoiceRequest request) {
+        if (request == null) {
+            throw new InvoiceValidationException(REQUEST_REQUIRED);
+        }
+
+        validateRequired(locationId, LOCATION_ID_REQUIRED);
+        validateRequired(request.getLocationId(), LOCATION_ID_REQUIRED);
+        validateRequired(request.getSalesId(), SALES_ID_REQUIRED);
+        validateRequired(request.getCustomerDiscountId(), CUSTOMER_DISCOUNT_ID_REQUIRED);
+
+        if (!locationId.equals(request.getLocationId())) {
+            throw new InvoiceValidationException(LOCATION_ID_MISMATCH);
+        }
+    }
+
+    private void validateStatusUpdateRequest(InvoiceStatusUpdateRequest request) {
+        if (request == null) {
+            throw new InvoiceValidationException(REQUEST_REQUIRED);
+        }
+
+        if (request.getStatus() == null) {
+            throw new InvoiceValidationException(STATUS_REQUIRED);
+        }
+    }
+
+    private void validateRequired(Object value, String message) {
+        if (value == null) {
+            throw new InvoiceValidationException(message);
+        }
+    }
+
+    private void validateInvoiceNumberUniqueness(String invoiceNumber, UUID locationId) {
+        if (invoiceRepository.existsByInvoiceNumberAndLocationId(invoiceNumber, locationId)) {
+            throw new InvoiceBusinessException(INVOICE_NUMBER_ALREADY_EXISTS);
+        }
+    }
+
+    private void validateCustomerDiscountBelongsToLocation(CustomerDiscountDTO customerDiscount, UUID locationId) {
+        if (!locationId.equals(customerDiscount.getLocationId())) {
+            throw new InvoiceBusinessException(CUSTOMER_DISCOUNT_LOCATION_MISMATCH);
+        }
+    }
+
+    private void validateInvoiceBelongsToLocation(Invoice invoice, UUID locationId) {
+        if (!locationId.equals(invoice.getLocationId())) {
+            throw new InvoiceBusinessException(INVOICE_DOES_NOT_BELONG_TO_LOCATION);
+        }
+    }
+
+    private void validateStatusChange(Invoice invoice, InvoiceStatus newStatus) {
+        if (invoice.getStatus() == newStatus) {
+            throw new InvoiceBusinessException(INVOICE_ALREADY_HAS_STATUS);
+        }
+
+        if (invoice.getStatus() == InvoiceStatus.CANCELLED) {
+            throw new InvoiceBusinessException(CANCELLED_INVOICE_CANNOT_BE_MODIFIED);
+        }
+    }
+
+    private Invoice findInvoiceById(UUID invoiceId) {
+        return invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new InvoiceNotFoundException(INVOICE_NOT_FOUND));
+    }
+
+    private SaleResponseDTO resolveSale(UUID salesId) {
+        validateRequired(salesId, SALES_ID_REQUIRED);
+
+        try {
+            return saleService.getSaleById(salesId);
+        } catch (RuntimeException ex) {
+            throw new InvoiceValidationException("Sale not found with id: " + salesId);
+        }
+    }
+
+    private CustomerDiscountDTO resolveCustomerDiscount(UUID customerDiscountId) {
+        validateRequired(customerDiscountId, CUSTOMER_DISCOUNT_ID_REQUIRED);
+
+        Optional<CustomerDiscountDTO> customerDiscount = customerDiscountService.getAllCustomerDiscounts()
+                .stream()
+                .filter(discount -> customerDiscountId.equals(discount.getId()))
+                .findFirst();
+
+        return customerDiscount.orElseThrow(
+                () -> new InvoiceValidationException("Customer discount not found with id: " + customerDiscountId)
+        );
+    }
+
+    private DiscountDTO resolveDiscount(UUID discountId) {
+        validateRequired(discountId, DISCOUNT_ID_REQUIRED);
+
+        return discountService.getDiscountById(discountId)
+                .orElseThrow(() -> new InvoiceValidationException("Discount not found with id: " + discountId));
+    }
+
+    private LocationResponseDTO resolveLocation(UUID locationId) {
+        validateRequired(locationId, LOCATION_ID_REQUIRED);
+
+        try {
+            return locationService.findById(locationId);
+        } catch (RuntimeException ex) {
+            throw new InvoiceValidationException("Location not found with id: " + locationId);
+        }
+    }
+
+    private Invoice buildInvoice(String invoiceNumber,
+                                 InvoiceRequest request,
+                                 SaleResponseDTO sale,
+                                 CustomerDiscountDTO customerDiscount,
+                                 DiscountDTO discount,
+                                 LocationResponseDTO location) {
 
         Invoice invoice = new Invoice();
         invoice.setInvoiceNumber(invoiceNumber);
@@ -90,103 +255,22 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoice.setDiscountDescription(discount.getDescription());
 
         invoice.setLocationName(location.getName());
-
         invoice.setStatus(InvoiceStatus.OPEN);
         invoice.setInvoiceDate(LocalDateTime.now());
 
-        return invoiceMapper.toResponse(invoiceRepository.save(invoice));
-    }
-
-    @Override
-    public Page<InvoiceResponse> getInvoicesByLocation(UUID locationId, Pageable pageable) {
-
-        return invoiceRepository
-                .findByLocationId(locationId, pageable)
-                .map(invoiceMapper::toResponse);
-    }
-
-    @Override
-    public InvoiceResponse getInvoiceById(UUID locationId, UUID invoiceId) {
-
-        Invoice invoice = invoiceRepository
-                .findById(invoiceId)
-                .orElseThrow(() -> new InvoiceNotFoundException("Invoice not found"));
-
-        if (!invoice.getLocationId().equals(locationId)) {
-            throw new InvoiceBusinessException("Invoice does not belong to this location");
-        }
-
-        return invoiceMapper.toResponse(invoice);
-    }
-
-    @Override
-    public InvoiceResponse updateStatus(UUID locationId, UUID invoiceId, InvoiceStatusUpdateRequest request) {
-
-        Invoice invoice = invoiceRepository
-                .findById(invoiceId)
-                .orElseThrow(() -> new InvoiceNotFoundException("Invoice not found"));
-
-        if (!invoice.getLocationId().equals(locationId)) {
-            throw new InvoiceBusinessException("Invoice does not belong to this location");
-        }
-
-        if (invoice.getStatus() == request.getStatus()) {
-            throw new InvoiceBusinessException("Invoice already has this status");
-        }
-
-        if (invoice.getStatus() == InvoiceStatus.CANCELLED) {
-            throw new InvoiceBusinessException("Cancelled invoice cannot be modified");
-        }
-
-        invoice.setStatus(request.getStatus());
-
-        return invoiceMapper.toResponse(invoiceRepository.save(invoice));
-    }
-
-    private SaleResponseDTO resolveSale(UUID salesId) {
-        try {
-            return saleService.getSaleById(salesId);
-        } catch (RuntimeException ex) {
-            throw new InvoiceValidationException("Sale not found with id: " + salesId);
-        }
-    }
-
-    private CustomerDiscountDTO resolveCustomerDiscount(UUID customerDiscountId) {
-        Optional<CustomerDiscountDTO> customerDiscount = customerDiscountService
-                .getAllCustomerDiscounts()
-                .stream()
-                .filter(discount -> customerDiscountId.equals(discount.getId()))
-                .findFirst();
-
-        return customerDiscount.orElseThrow(
-                () -> new InvoiceValidationException("Customer discount not found with id: " + customerDiscountId)
-        );
-    }
-
-    private DiscountDTO resolveDiscount(UUID discountId) {
-        return discountService
-                .getDiscountById(discountId)
-                .orElseThrow(() -> new InvoiceValidationException("Discount not found with id: " + discountId));
-    }
-
-    private LocationResponseDTO resolveLocation(UUID locationId) {
-        try {
-            return locationService.findById(locationId);
-        } catch (RuntimeException ex) {
-            throw new InvoiceValidationException("Location not found with id: " + locationId);
-        }
+        return invoice;
     }
 
     private String normalizeInvoiceNumber(String invoiceNumber) {
         if (invoiceNumber == null || invoiceNumber.isBlank()) {
-            throw new InvoiceValidationException("Invoice number is required");
+            throw new InvoiceValidationException(INVOICE_NUMBER_REQUIRED);
         }
         return invoiceNumber.trim();
     }
 
     private BigDecimal safeAmount(BigDecimal amount) {
         if (amount == null) {
-            throw new InvoiceValidationException("Sale total amount is required to create invoice");
+            throw new InvoiceValidationException(SALE_TOTAL_REQUIRED);
         }
         return amount;
     }

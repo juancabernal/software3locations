@@ -12,7 +12,7 @@ import com.co.eatupapi.dto.commercial.sales.SaleResponseDTO;
 import com.co.eatupapi.repositories.commercial.sales.SaleRepository;
 import com.co.eatupapi.repositories.commercial.seller.SellerRepository;
 import com.co.eatupapi.repositories.inventory.location.LocationRepository;
-import com.co.eatupapi.repositories.inventory.location.LocationEntity;
+import com.co.eatupapi.domain.inventory.location.LocationDomain;
 import com.co.eatupapi.repositories.inventory.recipe.RecipeRepository;
 import com.co.eatupapi.services.commercial.table.TableService;
 import com.co.eatupapi.utils.commercial.sales.exceptions.SaleBusinessException;
@@ -62,7 +62,7 @@ public class SaleServiceImpl implements SaleService {
         validateSaleLineItems(details);
 
         SellerDomain seller = resolveSellerIfPresent(request.getSellerId());
-        LocationEntity location = resolveLocationIfPresent(request.getLocationId());
+        LocationDomain location = resolveLocationIfPresent(request.getLocationId());
         String tableId = trimToNull(request.getTableId());
         validateTableIfPresent(tableId);
 
@@ -94,7 +94,7 @@ public class SaleServiceImpl implements SaleService {
                 .orElseThrow(() -> new SaleNotFoundException("El vendedor no existe (id: " + sellerId + ")."));
     }
 
-    private LocationEntity resolveLocationIfPresent(UUID locationId) {
+    private LocationDomain resolveLocationIfPresent(UUID locationId) {
         if (locationId == null) {
             return null;
         }
@@ -194,7 +194,7 @@ public class SaleServiceImpl implements SaleService {
         validateSaleLineItems(details);
 
         SellerDomain seller = resolveSellerIfPresent(request.getSellerId());
-        LocationEntity location = resolveLocationIfPresent(request.getLocationId());
+        LocationDomain location = resolveLocationIfPresent(request.getLocationId());
         String tableId = trimToNull(request.getTableId());
         validateTableIfPresent(tableId);
 

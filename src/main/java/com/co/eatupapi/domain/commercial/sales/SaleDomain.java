@@ -1,7 +1,7 @@
 package com.co.eatupapi.domain.commercial.sales;
 
 import com.co.eatupapi.domain.commercial.seller.SellerDomain;
-import com.co.eatupapi.repositories.inventory.location.LocationEntity;
+import com.co.eatupapi.domain.inventory.location.LocationDomain;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ public class SaleDomain {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "location_id")
-    private LocationEntity location;
+    private LocationDomain location;
 
     @Column(name = "table_id")
     private String tableId;
@@ -65,11 +65,11 @@ public class SaleDomain {
         this.seller = seller;
     }
 
-    public LocationEntity getLocation() {
+    public LocationDomain getLocation() {
         return location;
     }
 
-    public void setLocation(LocationEntity location) {
+    public void setLocation(LocationDomain location) {
         this.location = location;
     }
 

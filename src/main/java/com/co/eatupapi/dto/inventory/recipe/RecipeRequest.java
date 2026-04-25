@@ -1,5 +1,6 @@
 package com.co.eatupapi.dto.inventory.recipe;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,36 +14,97 @@ import java.util.UUID;
 @NoArgsConstructor
 public class RecipeRequest {
 
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(min = 3, max = 150, message = "El nombre debe tener entre 3 y 150 caracteres")
+    public static final String NAME_REQUIRED =
+            "RECIPE_NAME_REQUIRED";
+
+    public static final String NAME_LENGTH_INVALID =
+            "RECIPE_NAME_INVALID_LENGTH";
+
+    public static final String NAME_FORMAT_INVALID =
+            "RECIPE_NAME_INVALID_FORMAT";
+
+    public static final String CATEGORY_REQUIRED =
+            "RECIPE_CATEGORY_REQUIRED";
+
+    public static final String PRODUCTS_REQUIRED =
+            "RECIPE_PRODUCTS_REQUIRED";
+
+    public static final String PRODUCTS_EMPTY =
+            "RECIPE_PRODUCTS_EMPTY";
+
+    public static final String PRODUCT_ITEM_NULL =
+            "RECIPE_PRODUCT_ITEM_NULL";
+
+    public static final String SUBRECIPE_ID_NULL =
+            "RECIPE_SUBRECIPE_ID_NULL";
+
+    public static final String PROFIT_MARGIN_REQUIRED =
+            "RECIPE_PROFIT_MARGIN_REQUIRED";
+
+    public static final String PROFIT_MARGIN_NEGATIVE =
+            "RECIPE_PROFIT_MARGIN_NEGATIVE";
+
+    public static final String PROFIT_MARGIN_INVALID =
+            "RECIPE_PROFIT_MARGIN_INVALID";
+
+    public static final String VISIBLE_REQUIRED =
+            "RECIPE_VISIBLE_REQUIRED";
+
+    public static final String ACTIVE_REQUIRED =
+            "RECIPE_ACTIVE_REQUIRED";
+
+
+    @NotBlank(message = NAME_REQUIRED)
+    @Size(
+            min = 3,
+            max = 150,
+            message = NAME_LENGTH_INVALID
+    )
     @Pattern(
             regexp = "^[a-zA-Z0-9ÁÉÍÓÚáéíóúñÑ ]+$",
-            message = "El nombre contiene caracteres inválidos"
+            message = NAME_FORMAT_INVALID
     )
     private String name;
 
-    @NotNull(message = "El categoryId es obligatorio")
+
+    @NotNull(message = CATEGORY_REQUIRED)
     private UUID categoryId;
 
-    @NotNull(message = "El locationId es obligatorio")
-    private UUID locationId;
 
-    @NotNull(message = "Debe enviar al menos un producto")
-    @Size(min = 1, message = "Debe haber al menos un producto")
-    private List<@NotNull(message = "El productId no puede ser null") UUID> productIds;
+    @Valid
+    @NotNull(message = PRODUCTS_REQUIRED)
+    @Size(
+            min = 1,
+            message = PRODUCTS_EMPTY
+    )
+    private List<
+            @NotNull(message = PRODUCT_ITEM_NULL)
+                    RecipeProductRequest
+            > products;
 
-    @NotNull(message = "Debe enviar al menos una subreceta")
-    @Size(min = 1, message = "Debe haber al menos una subreceta")
-    private List<@NotNull(message = "El subRecipeId no puede ser null") UUID> subRecipeIds;
 
-    @NotNull(message = "El margen de ganancia es obligatorio")
-    @PositiveOrZero(message = "El margen de ganancia no puede ser negativo")
-    @Max(value = 100, message = "El margen de ganancia no puede ser mayor a 100")
+    private List<
+            @NotNull(
+                    message = SUBRECIPE_ID_NULL
+            )
+                    UUID
+            > subRecipeIds;
+
+
+    @NotNull(message = PROFIT_MARGIN_REQUIRED)
+    @PositiveOrZero(message = PROFIT_MARGIN_NEGATIVE)
+    @Max(
+            value = 100,
+            message = PROFIT_MARGIN_INVALID
+    )
     private Integer profitMargin;
 
-    @NotNull(message = "Debe indicar si es visible en el menú")
+
+    @NotNull(message = VISIBLE_REQUIRED)
     private Boolean visibleInMenu;
 
-    @NotNull(message = "Debe indicar si la receta está activa")
+
+    @NotNull(message = ACTIVE_REQUIRED)
     private Boolean active;
+
 }

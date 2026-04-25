@@ -14,4 +14,6 @@ public interface SellerRepository extends JpaRepository<SellerDomain, UUID>{
     boolean existsByIdentificationNumber(String identificationNumber);
     boolean existsByIdentificationNumberAndIdNot(String identificationNumber, UUID id);
     List<SellerDomain> findByStatus(SellerStatus status);
+    boolean existsByPhone(String phone);
+    boolean existsByPhoneAndIdNot(String phone, UUID id);
 }

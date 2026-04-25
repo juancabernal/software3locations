@@ -1,7 +1,7 @@
 package com.co.eatupapi.utils.commercial.sales.exceptions;
 
-public class SaleBusinessException extends SaleApiException {
+public class SaleBusinessException extends SaleException {
     public SaleBusinessException(String message) {
-        super(message, "SALE_BUSINESS_ERROR");
+        super(SaleErrorCode.BUSINESS_RULE_VIOLATION, message);
     }
 }

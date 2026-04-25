@@ -1,218 +1,141 @@
 package com.co.eatupapi.services.commercial.purchase.impl;
 
-import com.co.eatupapi.domain.commercial.provider.ProviderDomain;
-import com.co.eatupapi.domain.commercial.provider.ProviderStatus;
 import com.co.eatupapi.domain.commercial.purchase.PurchaseDomain;
 import com.co.eatupapi.domain.commercial.purchase.PurchaseItemDomain;
 import com.co.eatupapi.domain.commercial.purchase.PurchaseStatus;
-import com.co.eatupapi.dto.commercial.purchase.PurchaseDTO;
-import com.co.eatupapi.repositories.commercial.provider.ProviderRepository;
+import com.co.eatupapi.dto.commercial.purchase.CreatePurchaseRequest;
+import com.co.eatupapi.dto.commercial.purchase.PurchaseResponse;
 import com.co.eatupapi.repositories.commercial.purchase.PurchaseRepository;
 import com.co.eatupapi.services.commercial.purchase.PurchaseService;
-import com.co.eatupapi.utils.commercial.provider.exceptions.BusinessException;
-import com.co.eatupapi.utils.commercial.provider.exceptions.ResourceNotFoundException;
-import com.co.eatupapi.utils.commercial.provider.exceptions.ValidationException;
+import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseBusinessException;
+import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseErrorCode;
+import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseNotFoundException;
 import com.co.eatupapi.utils.commercial.purchase.mapper.PurchaseMapper;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class PurchaseServiceImpl implements PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
-    private final ProviderRepository providerRepository;
     private final PurchaseMapper purchaseMapper;
 
-
-    public PurchaseServiceImpl(
-            PurchaseRepository purchaseRepository,
-            ProviderRepository providerRepository,
-            PurchaseMapper purchaseMapper) {
+    public PurchaseServiceImpl(PurchaseRepository purchaseRepository,
+                               PurchaseMapper purchaseMapper) {
         this.purchaseRepository = purchaseRepository;
-        this.providerRepository = providerRepository;
         this.purchaseMapper = purchaseMapper;
     }
 
-    // ── Crear ──────────────────────────────────────────────────────────────────
-
     @Override
     @Transactional
-    public PurchaseDTO createPurchase(PurchaseDTO request) {
-        validatePurchaseRequest(request);
-
-        ProviderDomain provider = resolveActiveProvider(request.getProviderId());
+    public PurchaseResponse createPurchase(UUID locationId, CreatePurchaseRequest request) {
 
         PurchaseDomain domain = new PurchaseDomain();
-        domain.setId(UUID.randomUUID().toString());
         domain.setOrderNumber(generateOrderNumber());
-        domain.setProvider(provider);
-        domain.setBranchId(request.getBranchId());
+        domain.setProviderId(request.getProviderId());
+        domain.setLocationId(locationId);
         domain.setStatus(PurchaseStatus.CREATED);
         domain.setDeleted(false);
-        domain.setCreatedDate(LocalDateTime.now());
-        domain.setModifiedDate(LocalDateTime.now());
+        domain.markAsCreated();
 
-        List<PurchaseItemDomain> items = purchaseMapper.toItemDomainList(request.getItems());
+        List<PurchaseItemDomain> items = request.getItems().stream()
+                .map(purchaseMapper::toItemDomain)
+                .toList();
+
+        items.forEach(PurchaseItemDomain::initialize);
+
         domain.replaceItems(items);
-        domain.setTotal(calculateTotal(domain.getItems()));
 
-        return purchaseMapper.toDto(purchaseRepository.save(domain));
-    }
-
-    // ── Consultar ──────────────────────────────────────────────────────────────
-
-    @Override
-    @Transactional(readOnly = true)
-    public PurchaseDTO getPurchaseById(String purchaseId) {
-        return purchaseMapper.toDto(findByIdOrThrow(purchaseId));
+        return purchaseMapper.toResponse(purchaseRepository.save(domain));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PurchaseDTO> getPurchases(String status) {
-        List<PurchaseDomain> results = (status == null || status.isBlank())
-                ? purchaseRepository.findByDeletedFalse()
-                : purchaseRepository.findByStatusAndDeletedFalse(parseStatus(status));
-
-        return results.stream()
-                .map(purchaseMapper::toDto)
-                .collect(Collectors.toList());
+    public PurchaseResponse getPurchaseById(UUID locationId, UUID purchaseId) {
+        return purchaseMapper.toResponse(findByIdOrThrow(purchaseId, locationId));
     }
 
-    // ── Actualizar ─────────────────────────────────────────────────────────────
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PurchaseResponse> getPurchases(UUID locationId, PurchaseStatus status, Pageable pageable) {
+
+        if (status == null) {
+            return purchaseRepository
+                    .findByLocationIdAndDeletedFalse(locationId, pageable)
+                    .map(purchaseMapper::toResponse);
+        }
+
+        return purchaseRepository
+                .findByLocationIdAndStatusAndDeletedFalse(locationId, status, pageable)
+                .map(purchaseMapper::toResponse);
+    }
 
     @Override
     @Transactional
-    public PurchaseDTO updatePurchase(String purchaseId, PurchaseDTO request) {
-        validatePurchaseRequest(request);
+    public PurchaseResponse updatePurchase(UUID locationId, UUID purchaseId, CreatePurchaseRequest request) {
 
-        PurchaseDomain existing = findByIdOrThrow(purchaseId);
+        PurchaseDomain existing = findByIdOrThrow(purchaseId, locationId);
 
         if (existing.getStatus() != PurchaseStatus.CREATED) {
-            throw new BusinessException("Only purchases in CREATED status can be modified");
+            throw new PurchaseBusinessException(
+                    PurchaseErrorCode.INVALID_STATUS_TRANSITION,
+                    "Only purchases in CREATED status can be modified"
+            );
         }
 
-        ProviderDomain provider = resolveActiveProvider(request.getProviderId());
+        existing.setProviderId(request.getProviderId());
 
-        existing.setProvider(provider);
-        existing.setBranchId(request.getBranchId());
+        List<PurchaseItemDomain> newItems = request.getItems().stream()
+                .map(purchaseMapper::toItemDomain)
+                .toList();
 
-        List<PurchaseItemDomain> newItems = purchaseMapper.toItemDomainList(request.getItems());
+        newItems.forEach(PurchaseItemDomain::initialize);
+
         existing.replaceItems(newItems);
-        existing.setTotal(calculateTotal(existing.getItems()));
-        existing.setModifiedDate(LocalDateTime.now());
+        existing.markAsModified();
 
-        return purchaseMapper.toDto(purchaseRepository.save(existing));
+        return purchaseMapper.toResponse(purchaseRepository.save(existing));
     }
-
-    // ── Cambio de estado ───────────────────────────────────────────────────────
 
     @Override
     @Transactional
-    public PurchaseDTO updateStatus(String purchaseId, String status) {
-        PurchaseDomain existing = findByIdOrThrow(purchaseId);
-        PurchaseStatus newStatus = parseRequiredStatus(status);
+    public PurchaseResponse updateStatus(UUID locationId, UUID purchaseId, PurchaseStatus newStatus) {
 
-        if (!existing.getStatus().canTransitionTo(newStatus)) {
-            throw new BusinessException(
-                    String.format("Cannot transition purchase from %s to %s",
-                            existing.getStatus(), newStatus));
-        }
+        PurchaseDomain existing = findByIdOrThrow(purchaseId, locationId);
 
-        existing.setStatus(newStatus);
-        existing.setModifiedDate(LocalDateTime.now());
+        existing.changeStatus(newStatus);
+        existing.markAsModified();
 
-        return purchaseMapper.toDto(purchaseRepository.save(existing));
+        return purchaseMapper.toResponse(purchaseRepository.save(existing));
     }
-
-    // ── Eliminar (soft-delete) ─────────────────────────────────────────────────
 
     @Override
     @Transactional
-    public void deletePurchase(String purchaseId) {
-        PurchaseDomain existing = findByIdOrThrow(purchaseId);
+    public void deletePurchase(UUID locationId, UUID purchaseId) {
+
+        PurchaseDomain existing = findByIdOrThrow(purchaseId, locationId);
 
         if (existing.getStatus() == PurchaseStatus.APPROVED
                 || existing.getStatus() == PurchaseStatus.RECEIVED) {
-            throw new BusinessException(
-                    "Cannot delete a purchase in " + existing.getStatus() + " status");
+            throw new PurchaseBusinessException(
+                    PurchaseErrorCode.PURCHASE_ALREADY_DELETED,
+                    "Cannot delete a purchase"
+            );
         }
 
-        existing.setDeleted(true);
-        existing.setModifiedDate(LocalDateTime.now());
+        existing.softDelete();
         purchaseRepository.save(existing);
     }
 
-    // ── Métodos privados ───────────────────────────────────────────────────────
-
-    private PurchaseDomain findByIdOrThrow(String id) {
-        return purchaseRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Purchase not found with id: " + id));
-    }
-
-    private ProviderDomain resolveActiveProvider(String providerId) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(providerId);
-        } catch (IllegalArgumentException e) {
-            throw new ResourceNotFoundException("Provider not found with id: " + providerId);
-        }
-
-        ProviderDomain provider = providerRepository.findById(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Provider not found with id: " + providerId));
-
-        if (provider.getStatus() != ProviderStatus.ACTIVE) {
-            throw new BusinessException("Purchases can only be linked to active providers");
-        }
-
-        return provider;
-    }
-
-    private PurchaseStatus parseStatus(String status) {
-        try {
-            return PurchaseStatus.valueOf(status.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new ValidationException("Invalid purchase status: " + status);
-        }
-    }
-
-    private PurchaseStatus parseRequiredStatus(String status) {
-        if (status == null || status.isBlank()) {
-            throw new ValidationException("Status is required");
-        }
-        return parseStatus(status);
-    }
-
-    private void validatePurchaseRequest(PurchaseDTO request) {
-        if (request.getProviderId() == null || request.getProviderId().isBlank()) {
-            throw new ValidationException("providerId is required");
-        }
-        if (request.getBranchId() == null) {
-            throw new ValidationException("branchId is required");
-        }
-        if (request.getItems() == null || request.getItems().isEmpty()) {
-            throw new ValidationException("Purchase must contain at least one item");
-        }
-    }
-
-    private double calculateTotal(List<PurchaseItemDomain> items) {
-        double total = 0;
-        for (PurchaseItemDomain item : items) {
-            if (item.getQuantity() == null || item.getQuantity() <= 0) {
-                throw new ValidationException("Item quantity must be greater than 0");
-            }
-            if (item.getUnitPrice() == null || item.getUnitPrice() <= 0) {
-                throw new ValidationException("Item unit price must be greater than 0");
-            }
-            total += item.getQuantity() * item.getUnitPrice();
-        }
-        return total;
+    private PurchaseDomain findByIdOrThrow(UUID id, UUID locationId) {
+        return purchaseRepository.findByIdAndLocationIdAndDeletedFalse(id, locationId)
+                .orElseThrow(() -> new PurchaseNotFoundException(
+                        "Purchase not found with id: " + id + " for location: " + locationId));
     }
 
     private String generateOrderNumber() {

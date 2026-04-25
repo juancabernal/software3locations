@@ -11,6 +11,8 @@ import org.mapstruct.MappingTarget;
 public interface TransferMapper {
 
     @Mapping(target = "idTraslado", ignore = true)
+    @Mapping(target = "estado", ignore = true)
+    @Mapping(target = "stock", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Transfer toDomain(TransferRequestDTO request);
@@ -18,6 +20,8 @@ public interface TransferMapper {
     TransferResponseDTO toResponse(Transfer transfer);
 
     @Mapping(target = "idTraslado", ignore = true)
+    @Mapping(target = "estado", ignore = true)
+    @Mapping(target = "stock", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateFromRequest(TransferRequestDTO request, @MappingTarget Transfer transfer);

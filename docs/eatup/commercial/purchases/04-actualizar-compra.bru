@@ -5,34 +5,35 @@ meta {
 }
 
 put {
-  url: http://localhost:8080/commercial/api/v1/purchases/{{purchase_id}}
+  url: http://localhost:8080/api/v1/locations/7d03c2c5-4866-4a4a-bb9c-5f118dfe30ad/purchases/{{purchase_id}}
   body: json
-  auth: none
+  auth: bearer
 }
 
 headers {
   Content-Type: application/json
 }
 
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJxYS51c2VyLjE3NzY5MTcwODYwMTlAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzY5MTcxMTgsImV4cCI6MTc3NjkyMDcxOH0.CvslMg6wL3mI49KuSrZd65YuhtmY9OcQ28H5HZBB-3HhxnvbGpczVs7n5e8wPpzR
+}
+
 body:json {
   {
-    "providerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "branchId": 2,
+    "providerId": "11111111-1111-1111-1111-111111111111",
     "items": [
       {
-        "productId": "prod-001",
-        "productName": "Arroz Diana x 500g",
-        "quantity": 20,
-        "unitPrice": 2500
-      },
-      {
-        "productId": "prod-003",
-        "productName": "Leche Entera x 1L",
-        "quantity": 12,
-        "unitPrice": 3200
+        "productId": "PROD-002",
+        "productName": "PANELA",
+        "quantity": 10,
+        "unitPrice": 4500
       }
     ]
   }
+}
+
+vars:pre-request {
+  purchase_id: c2ae6f10-a24e-4fe7-a619-bc519dad07e6
 }
 
 docs {

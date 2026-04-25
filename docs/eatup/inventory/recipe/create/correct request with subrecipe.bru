@@ -1,0 +1,40 @@
+meta {
+  name: correct request with subrecipe
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/v1/recipes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Churrasco Premium",
+    "categoryId": "22222222-2222-2222-2222-222222222222",
+    "products": [
+      {
+        "productId": "33333333-3333-3333-3333-333333333333",
+        "quantity": 1.000,
+        "price": 10000.000
+      }
+    ],
+    "subRecipeIds": [
+      "579dc297-44b2-44cb-b06a-453baa283de1",
+      "ce321d12-00a8-43b1-a094-e81c79ec0b0b"
+    ],
+    "profitMargin": 30,
+    "visibleInMenu": true,
+    "active": true
+  }
+}
+
+tests {
+  test('should create recipe successfully', () => {
+    expect(res.getStatus()).to.equal(201)
+  
+    expect(res.body).to.equal('')
+  })
+}

@@ -1,0 +1,77 @@
+meta {
+  name: create transfer
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/inventory/api/v1/transfers
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "sedeOrigen": "{{transferOriginLocationId}}",
+    "sedeDestino": "{{transferDestinationLocationId}}",
+    "fechaEnvio": "2026-04-22T10:30:00",
+    "fechaLlegada": "2026-04-30T10:30:00",
+    "responsable": "Simon Arias",
+    "producto": "Tomate Fresco",
+    "cantidad": 2,
+    "observaciones": "Transferencia inicial"
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  transferOriginLocationId: REPLACE_WITH_ORIGIN_LOCATION_ID
+  transferDestinationLocationId: REPLACE_WITH_DESTINATION_LOCATION_ID
+}
+
+script:pre-request {
+  const token = bru.getEnvVar("token") || bru.getVar("token");
+  const transferOriginLocationId = bru.getVar("transferOriginLocationId");
+  const transferDestinationLocationId = bru.getVar("transferDestinationLocationId");
+
+  if (!token) {
+    throw new Error("Missing variable 'token'. Run the login request first.");
+  }
+
+  if (!transferOriginLocationId || transferOriginLocationId === "REPLACE_WITH_ORIGIN_LOCATION_ID") {
+    throw new Error("Missing variable 'transferOriginLocationId'. Set the origin location id before running this request.");
+  }
+
+  if (!transferDestinationLocationId || transferDestinationLocationId === "REPLACE_WITH_DESTINATION_LOCATION_ID") {
+    throw new Error("Missing variable 'transferDestinationLocationId'. Set the destination location id before running this request.");
+  }
+
+  if (transferOriginLocationId === transferDestinationLocationId) {
+    throw new Error("The variables 'transferOriginLocationId' and 'transferDestinationLocationId' must be different.");
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Transfer starts in EN_PROCESO", function() {
+    expect(data.estado).to.equal("EN_PROCESO");
+  });
+  
+  if (data && data.idTraslado) {
+    bru.setVar("transferId", data.idTraslado);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

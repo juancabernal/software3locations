@@ -1,0 +1,65 @@
+meta {
+  name: set transfer cancelled
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/inventory/api/v1/transfers/{{transferId}}/status?sedeOrigen={{sedeOrigenId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  sedeOrigenId: REPLACE_WITH_ORIGIN_LOCATION_ID
+}
+
+script:pre-request {
+  const token = bru.getEnvVar("token") || bru.getVar("token");
+  const transferId = bru.getVar("transferId");
+  const sedeOrigenId = bru.getVar("sedeOrigenId");
+
+  if (!token) {
+    throw new Error("Missing variable 'token'. Run the login request first.");
+  }
+
+  if (!transferId) {
+    throw new Error("Missing variable 'transferId'. Run 'create transfer' first.");
+  }
+
+  if (!/^\d+$/.test(String(transferId))) {
+    throw new Error("Invalid variable 'transferId'. It must be a numeric transfer id.");
+  }
+
+  if (!sedeOrigenId || sedeOrigenId === "REPLACE_WITH_ORIGIN_LOCATION_ID") {
+    throw new Error("Missing variable 'sedeOrigenId'. Set the origin location id before running this request.");
+  }
+}
+
+body:json {
+  {
+    "estado": "CANCELADO"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Transfer is CANCELADO", function() {
+    expect(data.estado).to.equal("CANCELADO");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

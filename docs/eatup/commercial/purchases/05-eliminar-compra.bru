@@ -5,22 +5,30 @@ meta {
 }
 
 delete {
-  url: http://localhost:8080/commercial/api/v1/purchases/{{purchase_id}}
+  url: http://localhost:8080/api/v1/locations/{{location_id}}/purchases/{{purchase_id}}
   body: none
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJxYS51c2VyLjE3NzY5MTcwODYwMTlAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzY5MTcxMTgsImV4cCI6MTc3NjkyMDcxOH0.CvslMg6wL3mI49KuSrZd65YuhtmY9OcQ28H5HZBB-3HhxnvbGpczVs7n5e8wPpzR
+}
+
+vars:pre-request {
+  location_id: 7d03c2c5-4866-4a4a-bb9c-5f118dfe30ad
 }
 
 docs {
   Realiza un soft-delete: la compra no se borra físicamente,
   solo se marca como deleted=true y desaparece de todos los listados.
-
+  
   Respuesta esperada: 204 No Content (sin body)
-
+  
   Errores posibles:
   - Compra en APPROVED → 422: "Cannot delete a purchase in APPROVED status"
   - Compra en RECEIVED → 422: "Cannot delete a purchase in RECEIVED status"
   - ID no existe       → 404: "Purchase not found with id: ..."
-
+  
   Flujo recomendado para probar sin errores:
     1. Ejecutar endpoint 01 (crear)  → status CREATED
     2. Ejecutar este endpoint (05)   → 204 ✓

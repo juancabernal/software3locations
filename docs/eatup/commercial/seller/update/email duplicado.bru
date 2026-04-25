@@ -1,0 +1,43 @@
+meta {
+  name: email duplicado
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:8080/comercialapi/v1/sellers/{{sellerId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "documentTypeId": "b49151e1-9b0d-431a-802c-00c88d2228f2",
+    "locationId": "550e8400-e29b-41d4-a716-446655440000",
+    "identificationNumber": "1234567890",
+    "firstName": "Juan",
+    "lastName": "Gomez",
+    "phone": "3009876543",
+    "email": "otro@email.com",
+    "commissionPercentage": 15.0
+  }
+}
+
+tests {
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.getBody()).to.have.property("message");
+  });
+  
+  test("Message mentions email cannot be modified", function() {
+    expect(res.getBody().message).to.contain("Email address cannot be modified");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

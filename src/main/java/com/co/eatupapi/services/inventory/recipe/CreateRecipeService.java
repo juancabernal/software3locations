@@ -9,6 +9,8 @@ import com.co.eatupapi.utils.inventory.recipe.mapper.RecipeMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,37 +23,73 @@ public class CreateRecipeService {
     private final GenerateRecipeIdService idService;
     private final RecipeValidatorService recipeValidator;
     private final RecipeExistenceValidatorService existenceValidator;
+    private final CalculateRecipeCostService costService;
+    private final CalculateRecipeSellingPriceService sellingPriceService;
 
     public CreateRecipeService(
             RecipeRepository repo,
             RecipeMapper mapper,
             GenerateRecipeIdService idService,
             RecipeValidatorService recipeValidator,
-            RecipeExistenceValidatorService existenceValidator
+            RecipeExistenceValidatorService existenceValidator,
+            CalculateRecipeCostService costService,
+            CalculateRecipeSellingPriceService sellingPriceService
     ) {
         this.repo = repo;
         this.mapper = mapper;
         this.idService = idService;
         this.recipeValidator = recipeValidator;
         this.existenceValidator = existenceValidator;
+        this.costService = costService;
+        this.sellingPriceService = sellingPriceService;
     }
 
     @Transactional
     public void run(RecipeRequest request) {
+
         validatePreviousExistence(request.getName());
-        existenceValidator.run(request.getSubRecipeIds());
+        validateSubRecipesIfPresent(request.getSubRecipeIds());
+
         UUID id = idService.run();
+
         RecipeDomain recipe = mapper.toNewDomain(request, id);
+
+        if (recipe.getSubRecipeIds() == null) {
+            recipe.setSubRecipeIds(List.of());
+        }
+
+        BigDecimal baseCost = costService.run(request);
+
+        BigDecimal sellingPrice = sellingPriceService.run(
+                baseCost,
+                request.getProfitMargin()
+        );
+
+        recipe.setBaseCost(baseCost);
+        recipe.setSellingPrice(sellingPrice);
+
         recipeValidator.validate(recipe);
+
         repo.save(recipe);
     }
 
     private void validatePreviousExistence(String name) {
+
         if (repo.existsByName(name)) {
+
             throw new RecipeBusinessException(
                     ErrorCode.RECIPE_ALREADY_EXISTS,
                     String.format(RECIPE_WITH_NAME_EXISTS, name)
             );
         }
+    }
+
+    private void validateSubRecipesIfPresent(List<UUID> subRecipeIds) {
+
+        if (subRecipeIds == null || subRecipeIds.isEmpty()) {
+            return;
+        }
+
+        existenceValidator.run(subRecipeIds);
     }
 }

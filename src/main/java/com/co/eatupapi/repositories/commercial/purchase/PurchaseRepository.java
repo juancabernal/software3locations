@@ -2,19 +2,21 @@ package com.co.eatupapi.repositories.commercial.purchase;
 
 import com.co.eatupapi.domain.commercial.purchase.PurchaseDomain;
 import com.co.eatupapi.domain.commercial.purchase.PurchaseStatus;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface PurchaseRepository extends JpaRepository<PurchaseDomain, String> {
+import java.util.Optional;
+import java.util.UUID;
 
-    List<PurchaseDomain> findByDeletedFalse();
+public interface PurchaseRepository extends JpaRepository<PurchaseDomain, UUID> {
 
+    Page<PurchaseDomain> findByLocationIdAndDeletedFalse(UUID locationId, Pageable pageable);
 
-    List<PurchaseDomain> findByStatusAndDeletedFalse(PurchaseStatus status);
+    Page<PurchaseDomain> findByLocationIdAndStatusAndDeletedFalse(
+            UUID locationId,
+            PurchaseStatus status,
+            Pageable pageable
+    );
 
-
-    Optional<PurchaseDomain> findByIdAndDeletedFalse(String id);
-}
+    Optional<PurchaseDomain> findByIdAndLocationIdAndDeletedFalse(UUID id, UUID locationId);}

@@ -7,36 +7,50 @@ meta {
 post {
   url: http://localhost:8080/comercialapi/v1/sellers
   body: json
-  auth: bearer
-}
-
-auth:bearer {
-  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhbGVqc0Bjb3JyZW8uY29tIiwiaWF0IjoxNzc1OTE4MzQ0LCJleHAiOjE3NzU5MjE5NDR9.cmk4IAOBv8NHEbPzv1XvFXoGYa5CmyfmHjJP2wGtZqoIjE4bd__OSyWq-sbde1_s
+  auth: inherit
 }
 
 body:json {
   {
-    "documentTypeId": "7a72dee3-5674-4929-8b31-6a9ca0282b5b",
-    "locationId": "17f59e2f-b7ce-4da4-8d9d-55af760fffc7",
-    "identificationNumber": "1234560860",
+    "documentTypeId": "b9734b27-272a-418a-aba9-3ceb4864e39b",
+    "locationId": "550e8400-e29b-41d4-a716-446655440000",
+    "identificationNumber": "11221691434",
     "firstName": "Juan",
-    "lastName": "Noreña",
-    "phone": "3001934567",
-    "email": "juan.norena@email.com",
+    "lastName": "Perez",
+    "phone": "3002226322",
+    "email": "juan@gmail.com",
     "commissionPercentage": 10.5
   }
 }
 
 script:post-response {
+  const data = res.getBody();
+  if (data && data.id) {
+    bru.setVar("sellerId", data.id);
+    bru.setVar("sellerPhone", data.phone);
+    bru.setVar("sellerEmail", data.email);
+  }
+}
+
+tests {
   test("Status code is 201", function() {
     expect(res.getStatus()).to.equal(201);
   });
   
-  const data = res.getBody();
-  if (data && data.id) {
-    bru.setVar("sellerId", data.id);
-    console.log("Seller ID guardado: " + data.id);
-  }
+  test("Response has seller id", function() {
+    const body = res.getBody();
+    expect(body).to.have.property("id");
+  });
+  
+  test("Email is saved in lowercase", function() {
+    const body = res.getBody();
+    expect(body.email).to.equal(body.email.toLowerCase());
+  })
+  
+  test("Status is ACTIVE", function() {
+    const body = res.getBody();
+    expect(body.status).to.equal("ACTIVE");
+  });
 }
 
 settings {

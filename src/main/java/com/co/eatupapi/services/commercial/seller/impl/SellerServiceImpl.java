@@ -5,8 +5,6 @@ import com.co.eatupapi.domain.commercial.seller.SellerStatus;
 import com.co.eatupapi.dto.commercial.seller.SellerDTO;
 import com.co.eatupapi.dto.commercial.seller.SellerPatchDTO;
 import com.co.eatupapi.repositories.commercial.seller.SellerRepository;
-import com.co.eatupapi.repositories.inventory.location.LocationRepository;
-import com.co.eatupapi.repositories.user.DocumentTypeRepository;
 import com.co.eatupapi.services.commercial.seller.SellerService;
 import com.co.eatupapi.utils.commercial.seller.exceptions.SellerBusinessException;
 import com.co.eatupapi.utils.commercial.seller.exceptions.SellerNotFoundException;
@@ -32,19 +30,13 @@ public class SellerServiceImpl implements SellerService {
     private static final String FIELD_FIRST_NAME = "firstName";
     private static final String FIELD_LAST_NAME = "lastName";
 
-    private final DocumentTypeRepository documentTypeRepository;
     private final SellerRepository sellerRepository;
     private final SellerMapper sellerMapper;
-    private final LocationRepository locationRepository;
 
     public SellerServiceImpl(SellerRepository sellerRepository,
-                             SellerMapper sellerMapper,
-                             DocumentTypeRepository documentTypeRepository,
-                             LocationRepository locationRepository) {
+                             SellerMapper sellerMapper) {
         this.sellerRepository = sellerRepository;
         this.sellerMapper = sellerMapper;
-        this.documentTypeRepository = documentTypeRepository;
-        this.locationRepository = locationRepository;
     }
 
     @Override
@@ -55,6 +47,7 @@ public class SellerServiceImpl implements SellerService {
         validateSellerPayload(request);
         validateDuplicateEmail(request.getEmail());
         validateDuplicateIdentification(request.getIdentificationNumber());
+        validateDuplicatePhone(request.getPhone());
 
         SellerDomain sellerDomain = sellerMapper.toDomain(request);
         sellerDomain.setFirstName(request.getFirstName().trim());
@@ -102,6 +95,7 @@ public class SellerServiceImpl implements SellerService {
         SellerDomain existing = findSellerById(sellerId);
         validateImmutableEmail(existing.getEmail(), request.getEmail().trim().toLowerCase());
         validateDuplicateIdentificationOnUpdate(request.getIdentificationNumber(), sellerId);
+        validateDuplicatePhoneOnUpdate(request.getPhone(), sellerId);
 
         existing.setDocumentTypeId(request.getDocumentTypeId());
         existing.setLocationId(request.getLocationId());
@@ -150,6 +144,7 @@ public class SellerServiceImpl implements SellerService {
         if (request.getPhone() != null) {
             validateRequiredText(request.getPhone(), "phone");
             validatePhone(request.getPhone());
+            validateDuplicatePhoneOnUpdate(request.getPhone(), sellerId);
             existing.setPhone(request.getPhone().trim());
         }
         if (request.getCommissionPercentage() != null) {
@@ -163,11 +158,9 @@ public class SellerServiceImpl implements SellerService {
             existing.setIdentificationNumber(request.getIdentificationNumber().trim());
         }
         if (request.getLocationId() != null) {
-            validateLocation(request.getLocationId());
             existing.setLocationId(request.getLocationId());
         }
         if (request.getDocumentTypeId() != null) {
-            validateDocumentType(request.getDocumentTypeId());
             existing.setDocumentTypeId(request.getDocumentTypeId());
         }
 
@@ -198,9 +191,7 @@ public class SellerServiceImpl implements SellerService {
 
     private void validateSellerPayload(SellerDTO request) {
         validateRequiredObject(request.getDocumentTypeId(), "documentTypeId");
-        validateDocumentType(request.getDocumentTypeId());
         validateRequiredObject(request.getLocationId(), "locationId");
-        validateLocation(request.getLocationId());
         validateRequiredText(request.getIdentificationNumber(), "identificationNumber");
         validateRequiredText(request.getFirstName(), FIELD_FIRST_NAME);
         validateRequiredText(request.getLastName(), FIELD_LAST_NAME);
@@ -225,18 +216,6 @@ public class SellerServiceImpl implements SellerService {
     private void validateRequiredObject(Object value, String fieldName) {
         if (value == null) {
             throw new SellerValidationException("Field '" + fieldName + "' is required and cannot be empty");
-        }
-    }
-
-    private void validateDocumentType(UUID documentTypeId) {
-        if (!documentTypeRepository.existsById(documentTypeId)) {
-            throw new SellerValidationException("Document type not found with id: " + documentTypeId);
-        }
-    }
-
-    private void validateLocation(UUID locationId) {
-        if (!locationRepository.existsById(locationId.toString())) {
-            throw new SellerValidationException("Location not found with id: " + locationId);
         }
     }
 
@@ -271,6 +250,19 @@ public class SellerServiceImpl implements SellerService {
         }
         if (phone.trim().length() != 10) {
             throw new SellerValidationException("Phone number must contain exactly 10 digits");
+        }
+    }
+    private void validateDuplicatePhone(String phone) {
+        if (sellerRepository.existsByPhone(phone.trim())) {
+            throw new SellerBusinessException(
+                    "A seller with phone '" + phone + "' already exists");
+        }
+    }
+
+    private void validateDuplicatePhoneOnUpdate(String phone, UUID currentSellerId) {
+        if (sellerRepository.existsByPhoneAndIdNot(phone.trim(), currentSellerId)) {
+            throw new SellerBusinessException(
+                    "A seller with phone '" + phone + "' already exists");
         }
     }
 

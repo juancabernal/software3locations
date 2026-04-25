@@ -18,9 +18,12 @@ public class SaleDetailDomain {
     @JoinColumn(name = "sale_id", nullable = false)
     private SaleDomain sale;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipe_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "recipe_id")
     private RecipeDomain recipe;
+
+    @Column(name = "line_display_name", length = 255)
+    private String lineDisplayName;
 
     @Column(nullable = false)
     private BigDecimal quantity;
@@ -30,6 +33,9 @@ public class SaleDetailDomain {
 
     @Column(nullable = false)
     private BigDecimal subtotal;
+
+    @Column(name = "recipe_line_comment", length = 500)
+    private String recipeLineComment;
 
     public SaleDetailDomain() {
         // Empty constructor required by JPA
@@ -59,6 +65,14 @@ public class SaleDetailDomain {
         this.recipe = recipe;
     }
 
+    public String getLineDisplayName() {
+        return lineDisplayName;
+    }
+
+    public void setLineDisplayName(String lineDisplayName) {
+        this.lineDisplayName = lineDisplayName;
+    }
+
     public BigDecimal getQuantity() {
         return quantity;
     }
@@ -81,5 +95,13 @@ public class SaleDetailDomain {
 
     public void setSubtotal(BigDecimal subtotal) {
         this.subtotal = subtotal;
+    }
+
+    public String getRecipeLineComment() {
+        return recipeLineComment;
+    }
+
+    public void setRecipeLineComment(String recipeLineComment) {
+        this.recipeLineComment = recipeLineComment;
     }
 }

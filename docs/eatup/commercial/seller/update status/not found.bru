@@ -7,11 +7,7 @@ meta {
 patch {
   url: http://localhost:8080/comercialapi/v1/sellers/00000000-0000-0000-0000-000000000000/status
   body: json
-  auth: bearer
-}
-
-auth:bearer {
-  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3NzU4ODg5ODQsImV4cCI6MTc3NTkxNzc4NH0.YPepon18Hi1aK5CsUqXkSXTOFKZJfwGXSpROiMkgfCT8ONgC84ewwQrgMOL3yukj
+  auth: inherit
 }
 
 body:json {
@@ -20,9 +16,12 @@ body:json {
   }
 }
 
-script:post-response {
+tests {
   test("Status code is 404", function() {
     expect(res.getStatus()).to.equal(404);
+  });
+  test("Response has error message", function() {
+    expect(res.getBody()).to.have.property("message");
   });
 }
 

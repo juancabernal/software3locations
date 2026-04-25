@@ -1,0 +1,33 @@
+meta {
+  name: Crear venta Generica Sin Nada en el cuerpo
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/commercial/api/v1/sales
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhbGVqc0Bjb3JyZW8uY29tIiwiaWF0IjoxNzc2NzE5NTE0LCJleHAiOjE3NzY3MjMxMTR9.k2JwhUNr-fKZdDYBJYTtc2mIL1PDrnpUOAz8lC1e7xiYkGdfWsYeudNhmS9rzNaH
+}
+
+body:json {
+  {
+    "details": [
+      {
+        "recipeName": "Producto Genérico2",
+        "recipeComment": "Este producto sin cebolla",
+        "unitPrice": 15000,
+        "quantity": 5
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

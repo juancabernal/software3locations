@@ -5,13 +5,9 @@ meta {
 }
 
 patch {
-  url: http://localhost:8080/comercialapi/v1/sellers/132fc041-1759-4b9d-968f-5fea122a1744/status
+  url: http://localhost:8080/comercialapi/v1/sellers/{{sellerId}}/status
   body: json
-  auth: bearer
-}
-
-auth:bearer {
-  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3NzU4ODg5ODQsImV4cCI6MTc3NTkxNzc4NH0.YPepon18Hi1aK5CsUqXkSXTOFKZJfwGXSpROiMkgfCT8ONgC84ewwQrgMOL3yukj
+  auth: inherit
 }
 
 body:json {
@@ -20,9 +16,12 @@ body:json {
   }
 }
 
-script:post-response {
+tests {
   test("Status code is 200", function() {
     expect(res.getStatus()).to.equal(200);
+  });
+  test("Status is ACTIVE", function() {
+    expect(res.getBody().status).to.equal("ACTIVE");
   });
 }
 

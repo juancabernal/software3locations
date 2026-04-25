@@ -1,0 +1,35 @@
+meta {
+  name: Buscar factura por id
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8080/api/v1/locations/5cc62296-9dd2-4c7b-85bf-2926cd92b549/invoices/ID_FACTURA_AQUI
+  auth: bearer
+}
+
+auth:bearer {
+  token: TU_TOKEN_AQUI
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Debe retornar 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Debe retornar invoiceId", function() {
+    expect(data.invoiceId).to.be.a("string");
+  });
+
+  test("Debe retornar un status", function() {
+    expect(data.status).to.be.a("string");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

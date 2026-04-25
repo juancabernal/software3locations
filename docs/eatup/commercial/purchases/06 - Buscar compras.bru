@@ -1,0 +1,20 @@
+meta {
+  name: 06 - Buscar compras
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8080/api/v1/locations/7d03c2c5-4866-4a4a-bb9c-5f118dfe30ad/purchases
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJxYS51c2VyLjE3NzY5MTcwODYwMTlAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzY5MjEyMzUsImV4cCI6MTc3NjkyNDgzNX0.TKduWR2Y8Ya_5S3khxPC97_l1AkOPfLbYX-t8dYRvOZa0XULPiwrpBJ2P9Rg369h
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

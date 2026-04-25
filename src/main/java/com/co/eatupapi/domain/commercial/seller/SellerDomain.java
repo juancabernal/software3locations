@@ -29,7 +29,7 @@ public class SellerDomain {
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    @Column(name = "phone", nullable = false, length = 10)
+    @Column(name = "phone", nullable = false, unique = true, length = 10)
     private String phone;
 
     @Column(name = "email", nullable = false, unique = true, length = 150)

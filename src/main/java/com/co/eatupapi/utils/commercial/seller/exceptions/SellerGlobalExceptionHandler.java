@@ -66,10 +66,9 @@ public class SellerGlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        String rawMessage = ex.getMostSpecificCause() != null && ex.getMostSpecificCause().getMessage() != null
-                ? ex.getMostSpecificCause().getMessage()
-                : ex.getMessage();
-        String normalized = rawMessage == null ? "" : rawMessage.toLowerCase();
+        Throwable cause = ex.getMostSpecificCause();
+        String rawMessage = cause.getMessage() != null ? cause.getMessage() : ex.getMessage();
+        String normalized = rawMessage.toLowerCase();
 
         if (normalized.contains("email")) {
             return buildRawErrorResponse(
@@ -99,6 +98,13 @@ public class SellerGlobalExceptionHandler {
             return buildRawErrorResponse(
                     "The provided documentTypeId does not exist or is not valid",
                     "SELLER_INVALID_DOCUMENT_TYPE",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        if (normalized.contains("phone")) {
+            return buildRawErrorResponse(
+                    "A seller with the same phone already exists",
+                    "SELLER_DUPLICATE_PHONE",
                     HttpStatus.BAD_REQUEST
             );
         }

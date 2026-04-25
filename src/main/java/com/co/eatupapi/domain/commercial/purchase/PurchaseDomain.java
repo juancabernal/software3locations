@@ -1,34 +1,41 @@
 package com.co.eatupapi.domain.commercial.purchase;
 
-import com.co.eatupapi.domain.commercial.provider.ProviderDomain;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "purchase")
 public class PurchaseDomain {
 
     @Id
-    @Column(length = 64)
-    private String id;
+    @GeneratedValue
+    private UUID id;
 
     @Column(name = "order_number", nullable = false, unique = true, length = 64)
     private String orderNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "provider_id", nullable = false)
-    private ProviderDomain provider;
+    @Column(name = "provider_id", nullable = false)
+    private UUID providerId;
 
-    @Column(name = "branch_id", nullable = false)
-    private Long branchId;
+    @Column(name = "location_id", nullable = false)
+    private UUID locationId;
 
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseItemDomain> items = new ArrayList<>();
 
-    @Column(nullable = false)
-    private Double total;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal total;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -43,46 +50,47 @@ public class PurchaseDomain {
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
 
-    public PurchaseDomain() {}
-
-    // ── Getters & Setters ──────────────────────────────────────────────────────
-
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-
-    public String getOrderNumber() { return orderNumber; }
-    public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
-
-    public ProviderDomain getProvider() { return provider; }
-    public void setProvider(ProviderDomain provider) { this.provider = provider; }
-
-    public Long getBranchId() { return branchId; }
-    public void setBranchId(Long branchId) { this.branchId = branchId; }
-
-    public List<PurchaseItemDomain> getItems() { return items; }
+    public void changeStatus(PurchaseStatus newStatus) {
+        if (!this.status.canTransitionTo(newStatus)) {
+            throw new IllegalStateException(
+                    "Cannot transition from " + status + " to " + newStatus
+            );
+        }
+        this.status = newStatus;
+    }
 
     public void replaceItems(List<PurchaseItemDomain> newItems) {
         this.items.clear();
+
         if (newItems != null) {
             for (PurchaseItemDomain item : newItems) {
                 item.setPurchase(this);
+                item.recalculateSubtotal();
                 this.items.add(item);
             }
         }
+
+        recalculateTotal();
     }
 
-    public Double getTotal() { return total; }
-    public void setTotal(Double total) { this.total = total; }
+    public void recalculateTotal() {
+        this.total = items.stream()
+                .map(PurchaseItemDomain::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
-    public PurchaseStatus getStatus() { return status; }
-    public void setStatus(PurchaseStatus status) { this.status = status; }
+    public void softDelete() {
+        this.deleted = true;
+        this.modifiedDate = LocalDateTime.now();
+    }
 
-    public boolean isDeleted() { return deleted; }
-    public void setDeleted(boolean deleted) { this.deleted = deleted; }
+    public void markAsModified() {
+        this.modifiedDate = LocalDateTime.now();
+    }
 
-    public LocalDateTime getCreatedDate() { return createdDate; }
-    public void setCreatedDate(LocalDateTime createdDate) { this.createdDate = createdDate; }
+    public void markAsCreated() {
+        this.createdDate = LocalDateTime.now();
+        this.modifiedDate = LocalDateTime.now();
+    }
 
-    public LocalDateTime getModifiedDate() { return modifiedDate; }
-    public void setModifiedDate(LocalDateTime modifiedDate) { this.modifiedDate = modifiedDate; }
 }

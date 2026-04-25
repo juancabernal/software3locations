@@ -50,8 +50,8 @@ public class SellerController {
             summary = "Listar vendedores",
             description = "Retorna todos los vendedores. Se puede filtrar por status: ACTIVE o INACTIVE."
     )
-    @ApiResponse(responseCode = "201", description = "Vendedor creado exitosamente")
-    @ApiResponse(responseCode = "400", description = "Datos inválidos o vendedor duplicado")
+    @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente")
+    @ApiResponse(responseCode = "400", description = "Valor de status inválido")
 
     @GetMapping
     public ResponseEntity<List<SellerDTO>> getSellers(

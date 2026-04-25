@@ -5,19 +5,22 @@ meta {
 }
 
 post {
-  url: http://localhost:8080/commercial/api/v1/purchases
+  url: http://localhost:8080/api/v1/locations/7d03c2c5-4866-4a4a-bb9c-5f118dfe30ad/purchases
   body: json
-  auth: none
+  auth: bearer
 }
 
 headers {
   Content-Type: application/json
 }
 
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJxYS51c2VyLjE3NzY5MTcwODYwMTlAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzY5MjEyMzUsImV4cCI6MTc3NjkyNDgzNX0.TKduWR2Y8Ya_5S3khxPC97_l1AkOPfLbYX-t8dYRvOZa0XULPiwrpBJ2P9Rg369h
+}
+
 body:json {
   {
     "providerId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-    "branchId": 1,
     "items": []
   }
 }

@@ -1,20 +1,24 @@
 package com.co.eatupapi.services.commercial.purchase;
 
-import com.co.eatupapi.dto.commercial.purchase.PurchaseDTO;
-import java.util.List;
+import com.co.eatupapi.domain.commercial.purchase.PurchaseStatus;
+import com.co.eatupapi.dto.commercial.purchase.CreatePurchaseRequest;
+import com.co.eatupapi.dto.commercial.purchase.PurchaseResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
 
 public interface PurchaseService {
 
-    PurchaseDTO createPurchase(PurchaseDTO request);
+    PurchaseResponse createPurchase(UUID locationId,CreatePurchaseRequest request);
 
-    PurchaseDTO getPurchaseById(String purchaseId);
+    PurchaseResponse getPurchaseById(UUID locationId,UUID purchaseId);
 
-    List<PurchaseDTO> getPurchases(String status);
+    Page<PurchaseResponse> getPurchases(UUID locationId, PurchaseStatus status, Pageable pageable);
 
-    PurchaseDTO updatePurchase(String purchaseId, PurchaseDTO request);
+    PurchaseResponse updatePurchase(UUID locationId,UUID purchaseId, CreatePurchaseRequest request);
 
-    PurchaseDTO updateStatus(String purchaseId, String status);
+    PurchaseResponse updateStatus(UUID locationId,UUID purchaseId, PurchaseStatus status);
 
-    void deletePurchase(String purchaseId);
+    void deletePurchase(UUID locationId,UUID purchaseId);
 }

@@ -5,18 +5,25 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/comercialapi/v1/sellers/132fc041-1759-4b9d-968f-5fea122a1744
+  url: http://localhost:8080/comercialapi/v1/sellers/{{sellerId}}
   body: none
-  auth: bearer
+  auth: inherit
 }
 
-auth:bearer {
-  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3NzU4ODMxNTQsImV4cCI6MTc3NTkxMTk1NH0.MesOKqvJxfGY_aeg9mBoJjNdbLYSI1egosnhgq55jXSgTcefJIQwVvnw3cuZWCQr
-}
-
-script:post-response {
+tests {
   test("Status code is 200", function() {
     expect(res.getStatus()).to.equal(200);
+  });
+  test("Response has id", function() {
+    expect(res.getBody()).to.have.property("id");
+  });
+  test("Response has correct fields", function() {
+    const body = res.getBody();
+    expect(body).to.have.property("firstName");
+    expect(body).to.have.property("lastName");
+    expect(body).to.have.property("email");
+    expect(body).to.have.property("phone");
+    expect(body).to.have.property("status");
   });
 }
 

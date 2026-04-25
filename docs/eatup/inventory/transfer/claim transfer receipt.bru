@@ -1,0 +1,65 @@
+meta {
+  name: claim transfer receipt
+  type: http
+  seq: 9
+}
+
+patch {
+  url: {{baseUrl}}/inventory/api/v1/transfers/{{transferId}}/claim?sedeDestino={{sedeDestinoId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  sedeDestinoId: REPLACE_WITH_DESTINATION_LOCATION_ID
+}
+
+script:pre-request {
+  const token = bru.getEnvVar("token") || bru.getVar("token");
+  const transferId = bru.getVar("transferId");
+  const sedeDestinoId = bru.getVar("sedeDestinoId");
+
+  if (!token) {
+    throw new Error("Missing variable 'token'. Run the login request first.");
+  }
+
+  if (!transferId) {
+    throw new Error("Missing variable 'transferId'. Run 'create transfer' first.");
+  }
+
+  if (!/^\d+$/.test(String(transferId))) {
+    throw new Error("Invalid variable 'transferId'. It must be a numeric transfer id.");
+  }
+
+  if (!sedeDestinoId || sedeDestinoId === "REPLACE_WITH_DESTINATION_LOCATION_ID") {
+    throw new Error("Missing variable 'sedeDestinoId'. Set the destination location id before running this request.");
+  }
+}
+
+body:json {
+  {
+    "observaciones": "La sede destino reporta novedades en la recepción"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Transfer is RECLAMADO", function() {
+    expect(data.estado).to.equal("RECLAMADO");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

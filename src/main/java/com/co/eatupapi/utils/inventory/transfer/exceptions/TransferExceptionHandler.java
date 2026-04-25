@@ -1,5 +1,6 @@
 package com.co.eatupapi.utils.inventory.transfer.exceptions;
 
+import com.co.eatupapi.controllers.inventory.transfer.TransferController;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -7,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -16,7 +18,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice(assignableTypes = TransferController.class)
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class TransferExceptionHandler {
 
@@ -66,6 +68,15 @@ public class TransferExceptionHandler {
         );
     }
 
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingRequestParameter(MissingServletRequestParameterException ex) {
+        return buildRawErrorResponse(
+                "Falta el parámetro requerido '" + ex.getParameterName() + "'.",
+                "MISSING_PARAMETER",
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return buildRawErrorResponse(
@@ -81,6 +92,17 @@ public class TransferExceptionHandler {
                 "La ruta '" + ex.getResourcePath() + "' no existe",
                 "ROUTE_NOT_FOUND",
                 HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleUnexpectedException(Exception ex) {
+        return buildRawErrorResponse(
+                ex.getMessage() == null || ex.getMessage().isBlank()
+                        ? "Ocurrió un error inesperado en el módulo de traslados."
+                        : ex.getMessage(),
+                "INTERNAL_ERROR",
+                HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
 

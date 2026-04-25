@@ -1,7 +1,7 @@
 package com.co.eatupapi.utils.commercial.sales.exceptions;
 
-public class SaleValidationException extends SaleApiException {
+public class SaleValidationException extends SaleException {
     public SaleValidationException(String message) {
-        super(message, "SALE_VALIDATION_ERROR");
+        super(SaleErrorCode.VALIDATION_ERROR, message);
     }
 }

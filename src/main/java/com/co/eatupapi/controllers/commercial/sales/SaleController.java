@@ -5,71 +5,64 @@ import com.co.eatupapi.dto.commercial.sales.SaleRequestDTO;
 import com.co.eatupapi.dto.commercial.sales.SaleResponseDTO;
 import com.co.eatupapi.services.commercial.sales.SaleService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/commercial/api/v1/sales")
-@Tag(name = "Ventas", description = "Gestión de ventas y líneas de pedido con recetas")
 public class SaleController {
+
     private final SaleService saleService;
 
     public SaleController(SaleService saleService) {
         this.saleService = saleService;
     }
 
-    @Operation(summary = "Crear venta", description = "Registra una venta. Vendedor, sede y mesa son opcionales; si se envían, deben existir. "
-            + "Cada línea puede llevar receta (opcional); sin receta hace falta precio unitario. Comentario opcional por línea.")
-    @ApiResponse(responseCode = "201", description = "Venta creada exitosamente")
-    @ApiResponse(responseCode = "400", description = "Datos inválidos en el request")
+    @Operation(summary = "Crear una venta")
     @PostMapping
     public ResponseEntity<SaleResponseDTO> create(@Valid @RequestBody SaleRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(saleService.createSale(request));
     }
 
-    @Operation(summary = "Obtener venta por id")
-    @ApiResponse(responseCode = "200", description = "Venta encontrada")
-    @ApiResponse(responseCode = "404", description = "Venta no encontrada")
+    @Operation(summary = "Obtener una venta por ID")
     @GetMapping("/{id}")
-    public ResponseEntity<SaleResponseDTO> findById(@Parameter(description = "ID de la venta") @PathVariable UUID id) {
+    public ResponseEntity<SaleResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(saleService.getSaleById(id));
     }
 
-    @Operation(summary = "Listar ventas")
+    @Operation(summary = "Listar todas las ventas")
     @GetMapping
     public ResponseEntity<List<SaleResponseDTO>> findAll() {
         return ResponseEntity.ok(saleService.getAllSales());
     }
 
-    @Operation(summary = "Actualizar venta (reemplazo completo)")
-    @ApiResponse(responseCode = "200", description = "Venta actualizada")
-    @ApiResponse(responseCode = "400", description = "Regla de negocio o validación")
+    @Operation(summary = "Actualizar una venta")
     @PutMapping("/{id}")
-    public ResponseEntity<SaleResponseDTO> update(
-            @Parameter(description = "ID de la venta") @PathVariable UUID id,
-            @Valid @RequestBody SaleRequestDTO request) {
+    public ResponseEntity<SaleResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody SaleRequestDTO request) {
         return ResponseEntity.ok(saleService.updateSale(id, request));
     }
 
-    @Operation(summary = "Actualizar venta parcialmente")
+    @Operation(summary = "Actualizar parcialmente una venta")
     @PatchMapping("/{id}")
-    public ResponseEntity<SaleResponseDTO> patch(
-            @Parameter(description = "ID de la venta") @PathVariable UUID id,
-            @Valid @RequestBody SalePatchDTO request) {
+    public ResponseEntity<SaleResponseDTO> patch(@PathVariable UUID id, @Valid @RequestBody SalePatchDTO request) {
         return ResponseEntity.ok(saleService.patchSale(id, request));
     }
 
-    @Operation(summary = "Eliminar venta")
+    @Operation(summary = "Eliminar una venta")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@Parameter(description = "ID de la venta") @PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         saleService.deleteSale(id);
         return ResponseEntity.noContent().build();
     }

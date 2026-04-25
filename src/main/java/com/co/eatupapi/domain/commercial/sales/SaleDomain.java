@@ -1,13 +1,22 @@
 package com.co.eatupapi.domain.commercial.sales;
 
-import com.co.eatupapi.domain.commercial.seller.SellerDomain;
-import com.co.eatupapi.repositories.inventory.location.LocationEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "sales")
@@ -18,15 +27,13 @@ public class SaleDomain {
     @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "seller_id")
-    private SellerDomain seller;
+    @Column(name = "seller_id", nullable = false)
+    private String sellerId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "location_id")
-    private LocationEntity location;
+    @Column(name = "location_id", nullable = false)
+    private UUID locationId;
 
-    @Column(name = "table_id")
+    @Column(name = "table_id", nullable = false)
     private String tableId;
 
     @Column(name = "total_amount", nullable = false)
@@ -39,9 +46,11 @@ public class SaleDomain {
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleDetailDomain> details = new ArrayList<>();
 
-    @Column(name = "created_date", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
+    @UpdateTimestamp
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
 
@@ -57,20 +66,20 @@ public class SaleDomain {
         this.id = id;
     }
 
-    public SellerDomain getSeller() {
-        return seller;
+    public String getSellerId() {
+        return sellerId;
     }
 
-    public void setSeller(SellerDomain seller) {
-        this.seller = seller;
+    public void setSellerId(String sellerId) {
+        this.sellerId = sellerId;
     }
 
-    public LocationEntity getLocation() {
-        return location;
+    public UUID getLocationId() {
+        return locationId;
     }
 
-    public void setLocation(LocationEntity location) {
-        this.location = location;
+    public void setLocationId(UUID locationId) {
+        this.locationId = locationId;
     }
 
     public String getTableId() {
@@ -102,11 +111,12 @@ public class SaleDomain {
     }
 
     public void setDetails(List<SaleDetailDomain> details) {
-        this.details = details;
-        if (details != null) {
-            for (SaleDetailDomain detail : details) {
-                detail.setSale(this);
-            }
+        this.details.clear();
+        if (details == null) {
+            return;
+        }
+        for (SaleDetailDomain detail : details) {
+            addDetail(detail);
         }
     }
 
@@ -119,15 +129,7 @@ public class SaleDomain {
         return createdDate;
     }
 
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
     public LocalDateTime getModifiedDate() {
         return modifiedDate;
-    }
-
-    public void setModifiedDate(LocalDateTime modifiedDate) {
-        this.modifiedDate = modifiedDate;
     }
 }

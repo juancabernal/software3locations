@@ -1,18 +1,34 @@
 package com.co.eatupapi.dto.inventory.product;
 
 import com.co.eatupapi.domain.inventory.product.UnitOfMeasure;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 public class ProductPatchDTO {
 
+    @Pattern(regexp = ".*\\S.*", message = "El nombre no puede estar vacio")
+    @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
     private String name;
     private UUID categoryId;
     private UUID locationId;
     private UnitOfMeasure unitOfMeasure;
+
+    @DecimalMin(value = "0.001", inclusive = true, message = "El precio de venta debe ser mayor a cero")
+    @DecimalMax(value = "99999999.999", message = "El precio de venta no puede superar 99,999,999.999")
     private BigDecimal salePrice;
+
+    @DecimalMin(value = "0.000", inclusive = true, message = "El stock no puede ser negativo")
+    @DecimalMax(value = "99999999.999", message = "El stock no puede superar 99,999,999.999")
     private BigDecimal stock;
+
+    @PastOrPresent(message = "La fecha de inicio no puede ser una fecha futura")
     private LocalDate startDate;
 
     public String getName() { return name; }

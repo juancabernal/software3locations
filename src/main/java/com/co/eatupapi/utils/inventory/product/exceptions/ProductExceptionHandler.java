@@ -1,18 +1,21 @@
 package com.co.eatupapi.utils.inventory.product.exceptions;
 
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -33,6 +36,20 @@ public class ProductExceptionHandler {
         return buildErrorResponse(ex, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        String message = "Datos de entrada invalidos";
+        FieldError fieldError = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .orElse(null);
+
+        if (fieldError != null && fieldError.getDefaultMessage() != null) {
+            message = fieldError.getDefaultMessage();
+        }
+
+        return buildRawErrorResponse(message, "VALIDATION_ERROR", HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
         ValidationException validationException = new ValidationException(ex.getMessage());
@@ -41,25 +58,28 @@ public class ProductExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        String message = "Formato de datos inválido. ";
-        if (ex.getMessage().contains("salePrice")) {
-            message += "El precio de venta solo acepta números. Ejemplo: 2500.00";
-        } else if (ex.getMessage().contains("stock")) {
-            message += "El stock solo acepta números. Ejemplo: 45.000";
-        } else if (ex.getMessage().contains("startDate")) {
-            message += "La fecha de inicio debe tener el formato: YYYY-MM-DD. Ejemplo: 2024-01-10";
-        } else if (ex.getMessage().contains("UUID")) {
-            message += "El id debe ser un UUID válido.";
+        String rawMessage = ex.getMessage();
+        String message = "Formato de datos invalido. ";
+
+        if (rawMessage != null && rawMessage.contains("salePrice")) {
+            message += "El precio de venta solo acepta numeros. Ejemplo: 2500.00";
+        } else if (rawMessage != null && rawMessage.contains("stock")) {
+            message += "El stock solo acepta numeros. Ejemplo: 45.000";
+        } else if (rawMessage != null && rawMessage.contains("startDate")) {
+            message += "La fecha de inicio debe tener el formato YYYY-MM-DD. Ejemplo: 2024-01-10";
+        } else if (rawMessage != null && rawMessage.contains("UUID")) {
+            message += "El id debe ser un UUID valido.";
         } else {
-            message += "Verifica que los campos numéricos solo contengan números y las fechas tengan el formato YYYY-MM-DD";
+            message += "Verifica que los campos numericos solo contengan numeros y las fechas tengan el formato YYYY-MM-DD";
         }
+
         return buildRawErrorResponse(message, "INVALID_FORMAT", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return buildRawErrorResponse(
-                "El id '" + ex.getValue() + "' no es un UUID válido.",
+                "El id '" + ex.getValue() + "' no es un UUID valido.",
                 "INVALID_FORMAT",
                 HttpStatus.BAD_REQUEST
         );
@@ -68,7 +88,7 @@ public class ProductExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return buildRawErrorResponse(
-                "El método '" + ex.getMethod() + "' no está soportado para esta ruta.",
+                "El metodo '" + ex.getMethod() + "' no esta soportado para esta ruta.",
                 "METHOD_NOT_ALLOWED",
                 HttpStatus.METHOD_NOT_ALLOWED
         );

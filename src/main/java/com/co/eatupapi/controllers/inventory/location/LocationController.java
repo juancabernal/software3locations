@@ -27,6 +27,11 @@ public class LocationController {
         return ResponseEntity.ok(locationService.findAll());
     }
 
+
+    @GetMapping("/active")
+    public ResponseEntity<List<LocationResponseDTO>> findAllActive() {
+        return ResponseEntity.ok(locationService.findAllActive());
+    }
     @GetMapping("/{id}")
     public ResponseEntity<LocationResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(locationService.findById(id));

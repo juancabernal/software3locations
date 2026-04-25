@@ -1,22 +1,51 @@
 package com.co.eatupapi.domain.inventory.location;
 
 import com.co.eatupapi.utils.inventory.location.validation.LocationValidator;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Setter;
 
 import java.time.LocalTime;
 import java.util.UUID;
 
+@Entity
+@Table(name = "locations")
 public class LocationDomain {
+
+    @Id
+    @Column(nullable = false, updatable = false)
     private UUID id;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String city;
+
+    @Column(nullable = false)
     private String address;
+
     @Setter
+    @Column(nullable = false)
     private boolean active;
+
+    @Column(nullable = false)
     private String email;
+
+    @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
+
+    @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
+
+    @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
+
+    public LocationDomain() {
+        // Empty constructor required by JPA
+    }
 
     public LocationDomain(final UUID id, final String name, String city, final String address, final boolean active, final String email, final String phoneNumber, final LocalTime startTime, final LocalTime endTime) {
         setId(id);

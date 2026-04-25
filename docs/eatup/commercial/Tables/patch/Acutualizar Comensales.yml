@@ -1,0 +1,21 @@
+info:
+  name: Acutualizar Comensales
+  type: http
+  seq: 1
+
+http:
+  method: PATCH
+  url: http://localhost:8080/commercial/api/v1/tables/fa9f2396-11b1-42bb-b69d-aa7e13f7c330/session/123a1d35-c9b9-4cc3-92d5-087e5d2b967b
+  body:
+    type: json
+    data: |-
+      {
+        "guestCount": 1
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

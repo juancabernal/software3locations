@@ -89,7 +89,7 @@ public class TableGlobalExceptionHandler {
         MismatchedInputException mismatchedInputException = findCause(ex, MismatchedInputException.class);
         if (mismatchedInputException != null) {
             String fieldPath = buildFieldPath(mismatchedInputException);
-            if (fieldPath != null && !fieldPath.isBlank()) {
+            if (!fieldPath.isBlank()) {
                 String message = "El campo '" + fieldPath + "' tiene una estructura inválida o un tipo de dato incorrecto";
                 return ResponseEntity.badRequest().body(
                         baseBody(HttpStatus.BAD_REQUEST, "INVALID_FORMAT", message, fieldPath)
@@ -127,10 +127,17 @@ public class TableGlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        String rawMessage = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
+        Throwable mostSpecificCause = ex.getMostSpecificCause();
+        String rawMessage = mostSpecificCause.getMessage() != null
+                ? mostSpecificCause.getMessage()
+                : ex.getMessage();
+
         String normalized = rawMessage != null ? rawMessage.toLowerCase() : "";
 
-        if (normalized.contains("restaurant_tables") && (normalized.contains("venue") || normalized.contains("table_number") || normalized.contains("tableNumber"))) {
+        if (normalized.contains("restaurant_tables")
+                && (normalized.contains("venue")
+                || normalized.contains("table_number")
+                || normalized.contains("tablenumber"))) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(baseBody(
                     HttpStatus.CONFLICT,
                     "UNIQUE_CONSTRAINT_VIOLATION",

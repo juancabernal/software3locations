@@ -1,0 +1,25 @@
+info:
+  name: Crear Reserva
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: http://localhost:8080/commercial/api/v1/tables/8ec92400-08b1-4038-8233-0386850b8fd6/reservation
+  body:
+    type: json
+    data: |-
+      {
+        "reservationDate": "2026-04-11",
+        "reservationTime": "08:00:00",
+        "guestCount": 2,
+        "guestName": "Andres",
+        "guestDocumentNumber": "43483555"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

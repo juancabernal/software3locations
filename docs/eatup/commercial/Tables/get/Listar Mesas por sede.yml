@@ -1,0 +1,30 @@
+info:
+  name: Listar Mesas por sede
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:8080/commercial/api/v1/tables?venue=550e8400-e29b-41d4-a716-446655440008
+  params:
+    - name: venue
+      value: 550e8400-e29b-41d4-a716-446655440008
+      type: query
+  body:
+    type: json
+    data: |-
+      {
+          "tableNumber": 2,
+          "location": "Terraza Norte",
+          "isVip": true,
+          "hasView": true,
+          "isAccessible": false,
+          "venueId": "550e8400-e29b-41d4-a716-446655440000"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

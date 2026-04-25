@@ -1,0 +1,15 @@
+info:
+  name: Cerrar Mesa
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: http://localhost:8080/commercial/api/v1/tables/8ec92400-08b1-4038-8233-0386850b8fd6/session/f3443157-4ff6-481e-97a5-c552d06d2181/close
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

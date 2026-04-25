@@ -1,0 +1,25 @@
+info:
+  name: Crear Mesa
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/commercial/api/v1/tables
+  body:
+    type: json
+    data: |-
+      {
+        "tableNumber": "12",
+        "location": "Terraza",
+        "venueId": "550e8400-e29b-41d4-a716-446655440008"
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkB0ZXN0LmNvbSIsImlhdCI6MTc3NjUyOTg0NSwiZXhwIjoxNzc2NTMzNDQ1fQ.HotmID2oVwV5YMp0L8VDX6eFRMXXR_FY70I4E_I8kv3uTbdL-ypRiLYCvgiUmqYa
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

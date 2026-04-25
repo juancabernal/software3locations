@@ -3,30 +3,30 @@ package com.co.eatupapi.dto.commercial.sales;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public class SaleDetailDTO {
 
-    /** Opcional: si se envía, debe existir una receta con ese id. */
+    @NotNull(message = "El recipeId es obligatorio en cada línea")
     private UUID recipeId;
 
-    /**
-     * Sin {@code recipeId}, puede usarse como nombre visible del ítem (línea genérica).
-     */
-    @Size(max = 255, message = "El nombre del ítem no puede superar los 255 caracteres")
-    private String recipeName;
+    @Size(max = 255, message = "El lineDisplayName no puede superar los 255 caracteres")
+    private String lineDisplayName;
 
     @NotNull(message = "La cantidad es obligatoria en cada línea")
-    @DecimalMin(value = "0.0000001", inclusive = true, message = "La cantidad debe ser mayor que cero en cada línea")
+    @DecimalMin(value = "0.0000001", message = "La cantidad debe ser mayor que cero")
     private BigDecimal quantity;
 
+    @NotNull(message = "El precio unitario es obligatorio en cada línea")
+    @DecimalMin(value = "0.0000001", message = "El precio unitario debe ser mayor que cero")
     private BigDecimal unitPrice;
+
     private BigDecimal subtotal;
 
-    @Size(max = 500, message = "El comentario de la línea no puede superar los 500 caracteres")
-    private String recipeComment;
+    @NotNull(message = "El recipeLineComment es obligatorio en cada línea")
+    @Size(max = 500, message = "El recipeLineComment no puede superar los 500 caracteres")
+    private String recipeLineComment;
 
     public UUID getRecipeId() {
         return recipeId;
@@ -36,12 +36,12 @@ public class SaleDetailDTO {
         this.recipeId = recipeId;
     }
 
-    public String getRecipeName() {
-        return recipeName;
+    public String getLineDisplayName() {
+        return lineDisplayName;
     }
 
-    public void setRecipeName(String recipeName) {
-        this.recipeName = recipeName;
+    public void setLineDisplayName(String lineDisplayName) {
+        this.lineDisplayName = lineDisplayName;
     }
 
     public BigDecimal getQuantity() {
@@ -68,11 +68,11 @@ public class SaleDetailDTO {
         this.subtotal = subtotal;
     }
 
-    public String getRecipeComment() {
-        return recipeComment;
+    public String getRecipeLineComment() {
+        return recipeLineComment;
     }
 
-    public void setRecipeComment(String recipeComment) {
-        this.recipeComment = recipeComment;
+    public void setRecipeLineComment(String recipeLineComment) {
+        this.recipeLineComment = recipeLineComment;
     }
 }

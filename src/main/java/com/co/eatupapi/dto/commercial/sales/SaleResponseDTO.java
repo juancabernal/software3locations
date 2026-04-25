@@ -18,6 +18,7 @@ public class SaleResponseDTO {
     private BigDecimal totalAmount;
     private List<SaleDetailDTO> details;
     private LocalDateTime createdDate;
+    private LocalDateTime modifiedDate;
 
     public UUID getId() {
         return id;
@@ -97,5 +98,13 @@ public class SaleResponseDTO {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public LocalDateTime getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(LocalDateTime modifiedDate) {
+        this.modifiedDate = modifiedDate;
     }
 }

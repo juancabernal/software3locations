@@ -16,51 +16,35 @@ public class SaleMapper {
 
         SaleResponseDTO dto = new SaleResponseDTO();
         dto.setId(domain.getId());
-        if (domain.getSeller() != null) {
-            dto.setSellerId(domain.getSeller().getId().toString());
-            dto.setSellerName(domain.getSeller().getFirstName() + " " + domain.getSeller().getLastName());
-        } else {
-            dto.setSellerId(null);
-            dto.setSellerName(null);
-        }
-        if (domain.getLocation() != null) {
-            dto.setLocationId(domain.getLocation().getId());
-            dto.setLocationName(domain.getLocation().getName());
-        } else {
-            dto.setLocationId(null);
-            dto.setLocationName(null);
-        }
+        dto.setSellerId(domain.getSellerId());
+        dto.setSellerName(null);
+        dto.setLocationId(domain.getLocationId());
+        dto.setLocationName(null);
         dto.setTableId(domain.getTableId());
         dto.setStatus(domain.getStatus());
         dto.setTotalAmount(domain.getTotalAmount());
         dto.setCreatedDate(domain.getCreatedDate());
+        dto.setModifiedDate(domain.getModifiedDate());
 
         if (domain.getDetails() != null) {
-            dto.setDetails(domain.getDetails().stream()
-                    .map(this::toDetailDto)
-                    .toList());
+            dto.setDetails(domain.getDetails().stream().map(this::toDetailDto).toList());
         }
 
         return dto;
     }
 
-    public SaleDetailDTO toDetailDto(SaleDetailDomain detail) {
+    private SaleDetailDTO toDetailDto(SaleDetailDomain detail) {
         if (detail == null) {
             return null;
         }
 
         SaleDetailDTO dto = new SaleDetailDTO();
-        if (detail.getRecipe() != null) {
-            dto.setRecipeId(detail.getRecipe().getId());
-            dto.setRecipeName(detail.getRecipe().getName());
-        } else {
-            dto.setRecipeId(null);
-            dto.setRecipeName(detail.getLineDisplayName());
-        }
+        dto.setRecipeId(detail.getRecipeId());
+        dto.setLineDisplayName(detail.getLineDisplayName());
         dto.setQuantity(detail.getQuantity());
         dto.setUnitPrice(detail.getUnitPrice());
         dto.setSubtotal(detail.getSubtotal());
-        dto.setRecipeComment(detail.getRecipeLineComment());
+        dto.setRecipeLineComment(detail.getRecipeLineComment());
         return dto;
     }
 }

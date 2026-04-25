@@ -1,20 +1,25 @@
 package com.co.eatupapi.dto.commercial.sales;
 
 import jakarta.validation.Valid;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Cuerpo de venta: vendedor, sede y mesa son opcionales (venta genérica sin enlazar).
- * Si se envían identificadores, deben existir en sus respectivos módulos.
- */
 public class SaleRequestDTO {
 
+    @NotBlank(message = "El sellerId es obligatorio")
     private String sellerId;
+
+    @NotNull(message = "La locationId es obligatoria")
     private UUID locationId;
+
+    @NotBlank(message = "El tableId es obligatorio")
     private String tableId;
 
+    @NotNull(message = "La lista de detalles es obligatoria")
+    @Size(min = 1, message = "La venta debe tener al menos una línea de detalle")
     @Valid
     private List<SaleDetailDTO> details;
 

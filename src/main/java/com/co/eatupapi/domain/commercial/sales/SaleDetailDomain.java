@@ -1,7 +1,14 @@
 package com.co.eatupapi.domain.commercial.sales;
 
-import com.co.eatupapi.domain.inventory.recipe.RecipeDomain;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.util.UUID;
 
@@ -18,9 +25,8 @@ public class SaleDetailDomain {
     @JoinColumn(name = "sale_id", nullable = false)
     private SaleDomain sale;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "recipe_id")
-    private RecipeDomain recipe;
+    @Column(name = "recipe_id")
+    private UUID recipeId;
 
     @Column(name = "line_display_name", length = 255)
     private String lineDisplayName;
@@ -57,12 +63,12 @@ public class SaleDetailDomain {
         this.sale = sale;
     }
 
-    public RecipeDomain getRecipe() {
-        return recipe;
+    public UUID getRecipeId() {
+        return recipeId;
     }
 
-    public void setRecipe(RecipeDomain recipe) {
-        this.recipe = recipe;
+    public void setRecipeId(UUID recipeId) {
+        this.recipeId = recipeId;
     }
 
     public String getLineDisplayName() {

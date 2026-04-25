@@ -8,6 +8,7 @@ import com.co.eatupapi.dto.commercial.purchase.PurchaseResponse;
 import com.co.eatupapi.repositories.commercial.purchase.PurchaseRepository;
 import com.co.eatupapi.services.commercial.purchase.PurchaseService;
 import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseBusinessException;
+import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseConflictException;
 import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseErrorCode;
 import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseNotFoundException;
 import com.co.eatupapi.utils.commercial.purchase.mapper.PurchaseMapper;
@@ -45,9 +46,10 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         List<PurchaseItemDomain> items = request.getItems().stream()
                 .map(purchaseMapper::toItemDomain)
+                .peek(item -> {
+                    item.assignTimestamps();
+                })
                 .toList();
-
-        items.forEach(PurchaseItemDomain::initialize);
 
         domain.replaceItems(items);
 
@@ -92,9 +94,10 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         List<PurchaseItemDomain> newItems = request.getItems().stream()
                 .map(purchaseMapper::toItemDomain)
+                .peek(item -> {
+                    item.assignTimestamps();
+                })
                 .toList();
-
-        newItems.forEach(PurchaseItemDomain::initialize);
 
         existing.replaceItems(newItems);
         existing.markAsModified();
@@ -105,12 +108,16 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     @Transactional
     public PurchaseResponse updateStatus(UUID locationId, UUID purchaseId, PurchaseStatus newStatus) {
-
         PurchaseDomain existing = findByIdOrThrow(purchaseId, locationId);
 
-        existing.changeStatus(newStatus);
-        existing.markAsModified();
+        if (!existing.changeStatus(newStatus)) {
+            throw new PurchaseConflictException(
+                    PurchaseErrorCode.INVALID_STATUS_TRANSITION,
+                    "Cannot transition from " + existing.getStatus() + " to " + newStatus
+            );
+        }
 
+        existing.markAsModified();
         return purchaseMapper.toResponse(purchaseRepository.save(existing));
     }
 
@@ -120,11 +127,18 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         PurchaseDomain existing = findByIdOrThrow(purchaseId, locationId);
 
+        if (existing.isDeleted()) {
+            throw new PurchaseBusinessException(
+                    PurchaseErrorCode.PURCHASE_ALREADY_DELETED,
+                    "Purchase with id: " + purchaseId + " is already deleted"
+            );
+        }
+
         if (existing.getStatus() == PurchaseStatus.APPROVED
                 || existing.getStatus() == PurchaseStatus.RECEIVED) {
             throw new PurchaseBusinessException(
-                    PurchaseErrorCode.PURCHASE_ALREADY_DELETED,
-                    "Cannot delete a purchase"
+                    PurchaseErrorCode.INVALID_STATUS_TRANSITION,
+                    "Cannot delete a purchase in " + existing.getStatus() + " status"
             );
         }
 
@@ -139,6 +153,6 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     private String generateOrderNumber() {
-        return "PO-" + System.currentTimeMillis();
+        return "PO-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 }

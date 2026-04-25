@@ -51,9 +51,13 @@ public class PurchaseItemDomain {
         }
     }
 
-    public void initialize() {
+    public void assignTimestamps() {
         this.createdDate = LocalDateTime.now();
         this.modifiedDate = LocalDateTime.now();
+    }
+
+    public void initialize() {
+        assignTimestamps();
         recalculateSubtotal();
     }
 }

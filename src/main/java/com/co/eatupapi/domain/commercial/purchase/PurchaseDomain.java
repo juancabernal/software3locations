@@ -50,13 +50,12 @@ public class PurchaseDomain {
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
 
-    public void changeStatus(PurchaseStatus newStatus) {
+    public boolean changeStatus(PurchaseStatus newStatus) {
         if (!this.status.canTransitionTo(newStatus)) {
-            throw new IllegalStateException(
-                    "Cannot transition from " + status + " to " + newStatus
-            );
+            return false;
         }
         this.status = newStatus;
+        return true;
     }
 
     public void replaceItems(List<PurchaseItemDomain> newItems) {

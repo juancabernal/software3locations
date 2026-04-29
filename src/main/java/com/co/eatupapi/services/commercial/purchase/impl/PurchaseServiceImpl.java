@@ -5,6 +5,8 @@ import com.co.eatupapi.domain.commercial.purchase.PurchaseItemDomain;
 import com.co.eatupapi.domain.commercial.purchase.PurchaseStatus;
 import com.co.eatupapi.dto.commercial.purchase.CreatePurchaseRequest;
 import com.co.eatupapi.dto.commercial.purchase.PurchaseResponse;
+import com.co.eatupapi.events.commercial.purchase.PurchaseEvent;
+import com.co.eatupapi.events.commercial.purchase.PurchaseEventPublisher;
 import com.co.eatupapi.repositories.commercial.purchase.PurchaseRepository;
 import com.co.eatupapi.services.commercial.purchase.PurchaseService;
 import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseBusinessException;
@@ -25,11 +27,14 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
     private final PurchaseMapper purchaseMapper;
+    private final PurchaseEventPublisher purchaseEventPublisher;
 
     public PurchaseServiceImpl(PurchaseRepository purchaseRepository,
-                               PurchaseMapper purchaseMapper) {
+                               PurchaseMapper purchaseMapper,
+                               PurchaseEventPublisher purchaseEventPublisher) {
         this.purchaseRepository = purchaseRepository;
         this.purchaseMapper = purchaseMapper;
+        this.purchaseEventPublisher = purchaseEventPublisher;
     }
 
     @Override
@@ -108,7 +113,21 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         existing.markAsModified();
-        return purchaseMapper.toResponse(purchaseRepository.save(existing));
+        PurchaseDomain saved = purchaseRepository.save(existing);
+
+        if (newStatus == PurchaseStatus.RECEIVED) {
+            PurchaseEvent event = new PurchaseEvent(
+                    saved.getId(),
+                    saved.getOrderNumber(),
+                    saved.getProviderId(),
+                    saved.getLocationId(),
+                    saved.getTotal(),
+                    saved.getStatus()
+            );
+            purchaseEventPublisher.publishPurchaseReceived(event);
+        }
+
+        return purchaseMapper.toResponse(saved);
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.co.eatupapi.dto.commercial.sales.SalePatchDTO;
 import com.co.eatupapi.dto.commercial.sales.SaleRequestDTO;
 import com.co.eatupapi.dto.commercial.sales.SaleResponseDTO;
 import com.co.eatupapi.repositories.commercial.sales.SaleRepository;
+import com.co.eatupapi.services.commercial.sales.RecipePreparationTraceService;
 import com.co.eatupapi.services.commercial.sales.SaleService;
 import com.co.eatupapi.services.commercial.sales.SaleStockValidatorService;
 import com.co.eatupapi.utils.commercial.sales.exceptions.SaleBusinessException;
@@ -29,13 +30,16 @@ public class SaleServiceImpl implements SaleService {
     private final SaleRepository saleRepository;
     private final SaleMapper saleMapper;
     private final SaleStockValidatorService saleStockValidatorService;
+    private final RecipePreparationTraceService traceService;
 
     public SaleServiceImpl(SaleRepository saleRepository,
                            SaleMapper saleMapper,
-                           SaleStockValidatorService saleStockValidatorService) {
+                           SaleStockValidatorService saleStockValidatorService,
+                           RecipePreparationTraceService traceService) {
         this.saleRepository = saleRepository;
         this.saleMapper = saleMapper;
         this.saleStockValidatorService = saleStockValidatorService;
+        this.traceService = traceService;
     }
 
     @Override
@@ -54,7 +58,10 @@ public class SaleServiceImpl implements SaleService {
         BigDecimal totalAmount = processSaleDetails(sale, request.getDetails());
         sale.setTotalAmount(totalAmount);
 
-        return saleMapper.toDto(saleRepository.save(sale));
+        SaleDomain savedSale = saleRepository.save(sale);
+        traceService.createInitialTraces(savedSale);
+
+        return saleMapper.toDto(savedSale);
     }
 
     @Override
@@ -85,10 +92,17 @@ public class SaleServiceImpl implements SaleService {
         existingSale.setSellerId(request.getSellerId().trim());
         existingSale.setLocationId(request.getLocationId());
         existingSale.setTableId(request.getTableId().trim());
-        existingSale.getDetails().clear();
-        existingSale.setTotalAmount(processSaleDetails(existingSale, request.getDetails()));
 
-        return saleMapper.toDto(saleRepository.save(existingSale));
+        traceService.deleteTracesBySaleId(existingSale.getId());
+        existingSale.getDetails().clear();
+
+        BigDecimal totalAmount = processSaleDetails(existingSale, request.getDetails());
+        existingSale.setTotalAmount(totalAmount);
+
+        SaleDomain savedSale = saleRepository.save(existingSale);
+        traceService.createInitialTraces(savedSale);
+
+        return saleMapper.toDto(savedSale);
     }
 
     @Override
@@ -98,11 +112,17 @@ public class SaleServiceImpl implements SaleService {
         ensureSaleCanBeModified(existingSale);
 
         updateSaleBasicInfo(existingSale, request);
-        updateSaleDetails(existingSale, request.details());
+        boolean detailsUpdated = updateSaleDetails(existingSale, request.details());
 
         validatePersistableSale(existingSale);
 
-        return saleMapper.toDto(saleRepository.save(existingSale));
+        SaleDomain savedSale = saleRepository.save(existingSale);
+
+        if (detailsUpdated) {
+            traceService.createInitialTraces(savedSale);
+        }
+
+        return saleMapper.toDto(savedSale);
     }
 
     @Override
@@ -110,6 +130,8 @@ public class SaleServiceImpl implements SaleService {
     public void deleteSale(UUID id) {
         SaleDomain existingSale = findSaleOrThrow(id);
         ensureSaleCanBeDeleted(existingSale);
+
+        traceService.deleteTracesBySaleId(existingSale.getId());
         saleRepository.delete(existingSale);
     }
 
@@ -148,9 +170,9 @@ public class SaleServiceImpl implements SaleService {
         }
     }
 
-    private void updateSaleDetails(SaleDomain existingSale, List<SaleDetailDTO> details) {
+    private boolean updateSaleDetails(SaleDomain existingSale, List<SaleDetailDTO> details) {
         if (details == null) {
-            return;
+            return false;
         }
 
         if (details.isEmpty()) {
@@ -160,8 +182,13 @@ public class SaleServiceImpl implements SaleService {
         validateSaleLineItems(details);
         saleStockValidatorService.validateStockForSaleDetails(details);
 
+        traceService.deleteTracesBySaleId(existingSale.getId());
         existingSale.getDetails().clear();
-        existingSale.setTotalAmount(processSaleDetails(existingSale, details));
+
+        BigDecimal totalAmount = processSaleDetails(existingSale, details);
+        existingSale.setTotalAmount(totalAmount);
+
+        return true;
     }
 
     private void validateRequiredSalePayload(SaleRequestDTO request) {

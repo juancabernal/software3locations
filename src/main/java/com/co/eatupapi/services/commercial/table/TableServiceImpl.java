@@ -60,7 +60,7 @@ public class TableServiceImpl implements TableService {
 
     @Override
     public TableDTO createTable(TableDTO request) {
-        validateCreateTableRequest(request);
+        validateUpsertTableRequest(request);
         validateLocationExists(request.getVenueId());
         UUID venueId = parseUUID(request.getVenueId(), "venueId");
         validateTableNumberNotDuplicated(venueId, request.getTableNumber(), null);
@@ -124,7 +124,7 @@ public class TableServiceImpl implements TableService {
 
     @Override
     public TableDTO updateTable(String tableId, TableDTO request) {
-        validateUpdateTableRequest(request);
+        validateUpsertTableRequest(request);
         TableDomain existing = findTableById(tableId);
         validateLocationExists(request.getVenueId());
         UUID venueId = parseUUID(request.getVenueId(), "venueId");
@@ -625,13 +625,7 @@ public class TableServiceImpl implements TableService {
         return "AVAILABLE";
     }
 
-    private void validateCreateTableRequest(TableDTO request) {
-        validateRequiredObject(request, "body");
-        validateTableClientManagedFields(request);
-        validateTablePayload(request);
-    }
-
-    private void validateUpdateTableRequest(TableDTO request) {
+    private void validateUpsertTableRequest(TableDTO request) {
         validateRequiredObject(request, "body");
         validateTableClientManagedFields(request);
         validateTablePayload(request);

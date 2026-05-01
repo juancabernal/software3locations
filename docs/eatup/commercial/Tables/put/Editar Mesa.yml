@@ -1,0 +1,23 @@
+info:
+  name: Editar Mesa
+  type: http
+  seq: 1
+
+http:
+  method: PUT
+  url: http://localhost:8080/commercial/api/v1/tables/fb2f0554-b05c-4bc7-a19f-c9948c8bc834
+  body:
+    type: json
+    data: |-
+      {
+        "tableNumber": 10,
+        "location": "Terraza",
+        "venueId": "550e8400-e29b-41d4-a716-446655440008"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -11,6 +11,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface PurchaseMapper {
 
+    @Mapping(target = "items", source = "items")
     PurchaseResponse toResponse(PurchaseDomain domain);
 
     PurchaseItemResponse toItemResponse(PurchaseItemDomain domain);

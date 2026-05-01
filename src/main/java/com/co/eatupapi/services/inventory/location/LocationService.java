@@ -10,6 +10,8 @@ import java.util.UUID;
 public interface LocationService {
     List<LocationResponseDTO> findAll();
 
+    List<LocationResponseDTO> findAllActive();
+
     LocationResponseDTO findById(UUID id);
 
     LocationResponseDTO create(LocationRequestDTO request);

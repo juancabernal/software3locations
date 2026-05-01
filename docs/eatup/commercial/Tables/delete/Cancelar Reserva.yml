@@ -1,0 +1,15 @@
+info:
+  name: Cancelar Reserva
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: http://localhost:8080/commercial/api/v1/tables/ab534e39-0273-4a52-9afc-f846387a492b/reservation/36d1725c-96d3-4283-a791-a097fa5053cc
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

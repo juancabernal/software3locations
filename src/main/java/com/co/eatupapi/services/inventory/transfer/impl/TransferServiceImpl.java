@@ -300,7 +300,7 @@ public class TransferServiceImpl implements TransferService {
         }
 
         locationRepository.findById(parsedLocationId)
-                .filter(com.co.eatupapi.repositories.inventory.location.LocationEntity::isActive)
+                .filter(com.co.eatupapi.domain.inventory.location.LocationDomain::isActive)
                 .orElseThrow(() -> new TransferNotFoundException("La sede de " + role + " no existe o está inactiva"));
     }
 

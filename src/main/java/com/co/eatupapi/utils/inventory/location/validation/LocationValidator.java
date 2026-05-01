@@ -1,5 +1,7 @@
 package com.co.eatupapi.utils.inventory.location.validation;
 
+import com.co.eatupapi.utils.inventory.location.exceptions.LocationValidationException;
+
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -9,7 +11,7 @@ public class LocationValidator {
 
     public static UUID validateId(UUID id) {
         if (id == null) {
-            throw new IllegalArgumentException("id must not be null");
+            throw new LocationValidationException("El id de la sede es obligatorio");
         }
         return id;
     }
@@ -29,7 +31,7 @@ public class LocationValidator {
     public static String validateEmail(String email) {
         requireNonBlank(email, "email");
         if (!email.contains("@")) {
-            throw new IllegalArgumentException("email is not valid: " + email);
+            throw new LocationValidationException("email is not valid: " + email);
         }
         return email;
     }
@@ -48,14 +50,14 @@ public class LocationValidator {
 
     private static LocalTime validateTime(LocalTime value, String fieldName) {
         if (value == null) {
-            throw new IllegalArgumentException(fieldName + " must not be null");
+            throw new LocationValidationException(fieldName + " must not be null");
         }
         return value;
     }
 
     private static String requireNonBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be null or blank");
+            throw new LocationValidationException(fieldName + " must not be null or blank");
         }
         return value;
     }

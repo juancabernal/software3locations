@@ -1,0 +1,22 @@
+info:
+  name: Confirmar Reserva
+  type: http
+  seq: 12
+
+http:
+  method: POST
+  url: http://localhost:8080/commercial/api/v1/tables/reservations/de3a2e7e-d51e-42d3-be62-4b854e359472/seat
+  body:
+    type: json
+    data: |-
+      {
+        "guestCount": 4,
+        "observations": "Llegó el cliente con reserva"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

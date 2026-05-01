@@ -12,8 +12,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice(basePackages = "com.co.eatupapi.controllers.commercial.purchase")
 public class PurchaseExceptionHandler {
 
-    // ── VALIDACIONES AUTOMÁTICAS (400) ─────────────────────────────────────
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
@@ -55,8 +53,6 @@ public class PurchaseExceptionHandler {
                 request);
     }
 
-    // ── NOT FOUND (404) ────────────────────────────────────────────────────
-
     @ExceptionHandler(PurchaseNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(
             PurchaseNotFoundException ex, HttpServletRequest request) {
@@ -67,19 +63,25 @@ public class PurchaseExceptionHandler {
                 request);
     }
 
-    // ── NEGOCIO (422) ─────────────────────────────────────────────────────
+    @ExceptionHandler(PurchaseConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(
+            PurchaseConflictException ex, HttpServletRequest request) {
 
-    @ExceptionHandler(PurchaseBusinessException.class)
-    public ResponseEntity<ApiErrorResponse> handleBusiness(
-            PurchaseBusinessException ex, HttpServletRequest request) {
-
-        return build(HttpStatus.UNPROCESSABLE_ENTITY,
+        return build(HttpStatus.CONFLICT,
                 ex.getErrorCode(),
                 ex.getMessage(),
                 request);
     }
 
-    // ── BUILDER ───────────────────────────────────────────────────────────
+    @ExceptionHandler(PurchaseBusinessException.class)
+    public ResponseEntity<ApiErrorResponse> handleBusiness(
+            PurchaseBusinessException ex, HttpServletRequest request) {
+
+        return build(HttpStatus.UNPROCESSABLE_CONTENT,
+                ex.getErrorCode(),
+                ex.getMessage(),
+                request);
+    }
 
     private ResponseEntity<ApiErrorResponse> build(
             HttpStatus status,

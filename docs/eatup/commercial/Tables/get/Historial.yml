@@ -1,0 +1,15 @@
+info:
+  name: Historial
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: http://localhost:8080/commercial/api/v1/tables/fa9f2396-11b1-42bb-b69d-aa7e13f7c330/history
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

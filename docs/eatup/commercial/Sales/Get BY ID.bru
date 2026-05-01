@@ -5,17 +5,21 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/commercial/api/v1/sales/{{id}}
+  url: http://localhost:8080/commercial/api/v1/sales/:id
   body: none
   auth: bearer
 }
 
+params:path {
+  id: 71fcff35-fc95-47ca-9f1e-cf5d7bfe8411
+}
+
 auth:bearer {
-  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhbGVqc0Bjb3JyZW8uY29tIiwiaWF0IjoxNzc1OTEzODA1LCJleHAiOjE3NzU5MTc0MDV9.08ZQN7AQxldaN_yDsnQBHCh83zOFvSB0fdIuQ5tIyFX_yqUBeVMe_YPEq-JcX57l
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqdWFuLmJlcm5hbEBnbWFpbC5jb20iLCJpYXQiOjE3Nzc2Njc3ODYsImV4cCI6MTc3NzY3MTM4Nn0.locqAebu4x1YQKreDEgbEr9AQ445T-htZT7QDujJYptxIQ5KFSMtn-zodZrJmtL5
 }
 
 vars:pre-request {
-  id: 20ffb3a5-dc5c-4f73-a375-3894b31b7407
+  id: 5410bd50-76a4-49cb-b5d7-2fcae61d5473
 }
 
 script:post-response {

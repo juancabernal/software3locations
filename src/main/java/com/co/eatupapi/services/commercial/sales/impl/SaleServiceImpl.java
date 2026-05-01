@@ -1,4 +1,4 @@
-package com.co.eatupapi.services.commercial.sales;
+package com.co.eatupapi.services.commercial.sales.impl;
 
 import com.co.eatupapi.domain.commercial.sales.SaleDetailDomain;
 import com.co.eatupapi.domain.commercial.sales.SaleDomain;
@@ -8,6 +8,8 @@ import com.co.eatupapi.dto.commercial.sales.SalePatchDTO;
 import com.co.eatupapi.dto.commercial.sales.SaleRequestDTO;
 import com.co.eatupapi.dto.commercial.sales.SaleResponseDTO;
 import com.co.eatupapi.repositories.commercial.sales.SaleRepository;
+import com.co.eatupapi.services.commercial.sales.SaleService;
+import com.co.eatupapi.services.commercial.sales.SaleStockValidatorService;
 import com.co.eatupapi.utils.commercial.sales.exceptions.SaleBusinessException;
 import com.co.eatupapi.utils.commercial.sales.exceptions.SaleNotFoundException;
 import com.co.eatupapi.utils.commercial.sales.exceptions.SaleValidationException;
@@ -26,10 +28,14 @@ public class SaleServiceImpl implements SaleService {
 
     private final SaleRepository saleRepository;
     private final SaleMapper saleMapper;
+    private final SaleStockValidatorService saleStockValidatorService;
 
-    public SaleServiceImpl(SaleRepository saleRepository, SaleMapper saleMapper) {
+    public SaleServiceImpl(SaleRepository saleRepository,
+                           SaleMapper saleMapper,
+                           SaleStockValidatorService saleStockValidatorService) {
         this.saleRepository = saleRepository;
         this.saleMapper = saleMapper;
+        this.saleStockValidatorService = saleStockValidatorService;
     }
 
     @Override
@@ -37,6 +43,7 @@ public class SaleServiceImpl implements SaleService {
     public SaleResponseDTO createSale(SaleRequestDTO request) {
         validateRequiredSalePayload(request);
         validateSaleLineItems(request.getDetails());
+        saleStockValidatorService.validateStockForSaleDetails(request.getDetails());
 
         SaleDomain sale = new SaleDomain();
         sale.setSellerId(request.getSellerId().trim());
@@ -51,15 +58,18 @@ public class SaleServiceImpl implements SaleService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SaleResponseDTO getSaleById(UUID id) {
-        SaleDomain sale = saleRepository.findById(id)
-                .orElseThrow(() -> new SaleNotFoundException(VENTA_NO_ENCONTRADA + id));
+        SaleDomain sale = findSaleOrThrow(id);
         return saleMapper.toDto(sale);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SaleResponseDTO> getAllSales() {
-        return saleRepository.findAll().stream().map(saleMapper::toDto).toList();
+        return saleRepository.findAll().stream()
+                .map(saleMapper::toDto)
+                .toList();
     }
 
     @Override
@@ -70,6 +80,7 @@ public class SaleServiceImpl implements SaleService {
 
         validateRequiredSalePayload(request);
         validateSaleLineItems(request.getDetails());
+        saleStockValidatorService.validateStockForSaleDetails(request.getDetails());
 
         existingSale.setSellerId(request.getSellerId().trim());
         existingSale.setLocationId(request.getLocationId());
@@ -90,25 +101,32 @@ public class SaleServiceImpl implements SaleService {
         updateSaleDetails(existingSale, request.details());
 
         validatePersistableSale(existingSale);
+
         return saleMapper.toDto(saleRepository.save(existingSale));
     }
 
     @Override
     @Transactional
     public void deleteSale(UUID id) {
-        if (!saleRepository.existsById(id)) {
-            throw new SaleNotFoundException(VENTA_NO_ENCONTRADA + id);
-        }
-        saleRepository.deleteById(id);
+        SaleDomain existingSale = findSaleOrThrow(id);
+        ensureSaleCanBeDeleted(existingSale);
+        saleRepository.delete(existingSale);
     }
 
     private SaleDomain findSaleOrThrow(UUID id) {
-        return saleRepository.findById(id).orElseThrow(() -> new SaleNotFoundException(VENTA_NO_ENCONTRADA + id));
+        return saleRepository.findById(id)
+                .orElseThrow(() -> new SaleNotFoundException(VENTA_NO_ENCONTRADA + id));
     }
 
     private void ensureSaleCanBeModified(SaleDomain sale) {
         if (sale.getStatus() == SaleStatus.COMPLETED) {
             throw new SaleBusinessException("No se puede modificar una venta en estado COMPLETED.");
+        }
+    }
+
+    private void ensureSaleCanBeDeleted(SaleDomain sale) {
+        if (sale.getStatus() == SaleStatus.COMPLETED) {
+            throw new SaleBusinessException("No se puede eliminar una venta en estado COMPLETED.");
         }
     }
 
@@ -140,6 +158,8 @@ public class SaleServiceImpl implements SaleService {
         }
 
         validateSaleLineItems(details);
+        saleStockValidatorService.validateStockForSaleDetails(details);
+
         existingSale.getDetails().clear();
         existingSale.setTotalAmount(processSaleDetails(existingSale, details));
     }
@@ -173,6 +193,7 @@ public class SaleServiceImpl implements SaleService {
         ValidationUtils.requireObject(sale.getLocationId(), "La locationId es obligatoria.");
         ValidationUtils.requireText(sale.getTableId(), "tableId");
         ValidationUtils.requireObject(sale.getDetails(), "La lista de detalles es obligatoria.");
+
         if (sale.getDetails().isEmpty()) {
             throw new SaleValidationException("La venta debe tener al menos una línea de detalle.");
         }
@@ -207,6 +228,7 @@ public class SaleServiceImpl implements SaleService {
         if (value == null) {
             return null;
         }
+
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }

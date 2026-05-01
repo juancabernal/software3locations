@@ -11,26 +11,28 @@ put {
 }
 
 auth:bearer {
-  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhbGVqc0Bjb3JyZW8uY29tIiwiaWF0IjoxNzc2NzE5NTE0LCJleHAiOjE3NzY3MjMxMTR9.k2JwhUNr-fKZdDYBJYTtc2mIL1PDrnpUOAz8lC1e7xiYkGdfWsYeudNhmS9rzNaH
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqdWFuLmJlcm5hbEBnbWFpbC5jb20iLCJpYXQiOjE3NzcxMDA1MjIsImV4cCI6MTc3NzEwNDEyMn0.XiMN82nvgsSilhHCKbMXcb6MzlhYsFVSAw5sDB1F7m0XthyGGLmJ0za37DbUiOqZ
 }
 
 body:json {
-  {
-    "sellerId": "f93dd736-efda-4487-a29c-a25a0cefbb1c",
-    "locationId": "0f253722-f522-4b44-b8ae-05266b0ca502",
-    "tableId": "d0fcddad-6b13-4b06-aa60-42bcb856c828",
-    "details": [
-      {
-        "recipeId": "f9e8d7c6-b5a4-3210-fedc-ba9876543210",
-        "recipeComment": "Este producto sin tomate",
-        "quantity": 4
-      }
-    ]
+  { "sellerId": "SELLER-456", 
+   "locationId": "c0a80100-0000-0000-0000-000000000001", 
+   "tableId": "TABLE-12", "details": [ 
+     { "recipeId": "aa1b2c3d-4e5f-6789-abcd-ef0123456789", 
+      "lineDisplayName": "Empanada de carne", 
+      "quantity": 3.5, "unitPrice": 2500.0, 
+      "recipeLineComment": "Bien dorada" }, 
+     { "recipeId": "de2f3a4b-5c6d-7e8f-9a0b-1c2d3e4f5a6b", 
+      "lineDisplayName": "Gaseosa", 
+      "quantity": 1.0, "unitPrice": 2000.0, 
+      "recipeLineComment": "Sin hielo" 
+     } 
+   ] 
   }
 }
 
 vars:pre-request {
-  id: 08189757-02cb-4721-9c85-3414130f80c3
+  id: 5410bd50-76a4-49cb-b5d7-2fcae61d5473
 }
 
 script:post-response {

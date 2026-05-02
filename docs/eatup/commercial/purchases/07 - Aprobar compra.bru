@@ -1,0 +1,31 @@
+meta {
+  name: 07 - Aprobar compra
+  type: http
+  seq: 7
+}
+
+patch {
+  url: http://localhost:8080/api/v1/locations/{{location_id}}/purchases/{{purchase_id}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJxYS51c2VyLjE3NzY5MTcwODYwMTlAZXhhbXBsZS5jb20iLCJpYXQiOjE3Nzc0OTEzODMsImV4cCI6MTc3NzQ5NDk4M30.uKb8cS_wVSxPvHlMNuwBCaISkwjSPGqjUsWB-AbDhB2GVASLLvzilgjvSbV_i2bs
+}
+
+body:json {
+  {
+    "status": "APPROVED"
+  }
+}
+
+vars:pre-request {
+  location_id: 7d03c2c5-4866-4a4a-bb9c-5f118dfe30ad
+  purchase_id: 1af446f0-a08d-4307-a2ae-b801f9f13056
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

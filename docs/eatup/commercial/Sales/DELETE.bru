@@ -5,13 +5,17 @@ meta {
 }
 
 delete {
-  url: http://localhost:8080/commercial/api/v1/sales/{{id}}
+  url: http://localhost:8080/commercial/api/v1/sales/:id
   body: none
   auth: bearer
 }
 
+params:path {
+  id: 71fcff35-fc95-47ca-9f1e-cf5d7bfe8411
+}
+
 auth:bearer {
-  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhbGVqc0Bjb3JyZW8uY29tIiwiaWF0IjoxNzc2NzE5NTE0LCJleHAiOjE3NzY3MjMxMTR9.k2JwhUNr-fKZdDYBJYTtc2mIL1PDrnpUOAz8lC1e7xiYkGdfWsYeudNhmS9rzNaH
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqdWFuLmJlcm5hbEBnbWFpbC5jb20iLCJpYXQiOjE3Nzc2Njc3ODYsImV4cCI6MTc3NzY3MTM4Nn0.locqAebu4x1YQKreDEgbEr9AQ445T-htZT7QDujJYptxIQ5KFSMtn-zodZrJmtL5
 }
 
 vars:pre-request {

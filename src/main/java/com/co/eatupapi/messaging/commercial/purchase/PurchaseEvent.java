@@ -1,4 +1,4 @@
-package com.co.eatupapi.events.commercial.purchase;
+package com.co.eatupapi.messaging.commercial.purchase;
 
 import com.co.eatupapi.domain.commercial.purchase.PurchaseStatus;
 import lombok.Getter;

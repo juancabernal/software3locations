@@ -11,10 +11,10 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -37,12 +37,11 @@ public class CashReceiptController {
     @ApiResponse(responseCode = "400", description = "Datos inválidos en el request")
 
     @PostMapping
-    public ResponseEntity<CashReceiptResponse> createCashReceipt(
+    public ResponseEntity<Map<String, String>> createCashReceipt(
             @Parameter(description = "ID del sitio") @PathVariable UUID locationId,
             @Valid @RequestBody CreateCashReceiptRequest request) {
-
-        CashReceiptResponse response = cashReceiptService.createCashReceipt(locationId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        cashReceiptService.createCashReceipt(locationId, request);
+        return ResponseEntity.accepted().body(Map.of("message", "Cash receipt create command published"));
     }
 
     @Operation(
@@ -73,10 +72,10 @@ public class CashReceiptController {
 
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<CashReceiptResponse> cancelCashReceipt(
+    public ResponseEntity<Map<String, String>> cancelCashReceipt(
             @Parameter(description = "ID del sitio") @PathVariable UUID locationId,
             @Parameter(description = "ID del recibo a anular") @PathVariable UUID id) {
-
-        return ResponseEntity.ok(cashReceiptService.cancelCashReceipt(locationId, id));
+        cashReceiptService.cancelCashReceipt(locationId, id);
+        return ResponseEntity.accepted().body(Map.of("message", "Cash receipt cancel command published"));
     }
 }

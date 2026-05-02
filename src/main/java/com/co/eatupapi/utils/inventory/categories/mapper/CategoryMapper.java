@@ -13,6 +13,7 @@ public class CategoryMapper {
         categoryDTO.setId(categoryDomain.getId() != null ? categoryDomain.getId().toString() : null);
         categoryDTO.setCns(categoryDomain.getCns());
         categoryDTO.setType(categoryDomain.getType());
+        categoryDTO.setSubtype(categoryDomain.getSubtype());
         categoryDTO.setName(categoryDomain.getName());
         categoryDTO.setEntryDate(categoryDomain.getEntryDate());
         categoryDTO.setStatus(categoryDomain.getStatus());
@@ -27,6 +28,7 @@ public class CategoryMapper {
         }
 
         categoryDomain.setType(dto.getType());
+        categoryDomain.setSubtype(dto.getSubtype());
         categoryDomain.setName(dto.getName());
         categoryDomain.setEntryDate(dto.getEntryDate());
         categoryDomain.setStatus(dto.getStatus());
@@ -41,6 +43,7 @@ public class CategoryMapper {
     public CategoryDomain toNewEntity(CategoryDTO dto) {
         CategoryDomain entity = new CategoryDomain();
         entity.setType(dto.getType());
+        entity.setSubtype(dto.getSubtype());
         entity.setName(dto.getName());
         return entity;
     }

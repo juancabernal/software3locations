@@ -107,6 +107,18 @@ public class CategoryServiceImpl implements CategoryService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<CategoryDTO> getCategoriesBySubtype(String subtype) {
+        if (subtype == null || subtype.isBlank()) {
+            throw new ValidationException("Search subtype cannot be empty");
+        }
+
+        return categoryRepository.findBySubtypeIgnoreCase(subtype.trim())
+                .stream()
+                .map(categoryMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
     private UUID parseUuid(String id) {
         try {
             return UUID.fromString(id);
@@ -138,6 +150,7 @@ public class CategoryServiceImpl implements CategoryService {
     private void validateCategoryPayload(CategoryDTO request) {
         validateRequiredObject(request, "request");
         validateRequiredText(request.getType(), "type");
+        validateRequiredText(request.getSubtype(), "subtype");
         validateRequiredText(request.getName(), "name");
     }
 

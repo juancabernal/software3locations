@@ -26,4 +26,6 @@ public interface CategoryRepository extends JpaRepository<CategoryDomain, UUID> 
 
     // Búsqueda flexible por tipo (LIKE %type%) - CAMBIADO A CONTAINING
     List<CategoryDomain> findByTypeContainingIgnoreCase(String type);
+
+    List<CategoryDomain> findBySubtypeIgnoreCase(String subtype);
 }

@@ -12,7 +12,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PurchaseEvent {
+public class PurchaseMessage {
 
     private UUID purchaseId;
     private String orderNumber;
@@ -22,8 +22,8 @@ public class PurchaseEvent {
     private PurchaseStatus status;
     private LocalDateTime eventDate;
 
-    public PurchaseEvent(UUID purchaseId, String orderNumber, UUID providerId,
-                         UUID locationId, BigDecimal total, PurchaseStatus status) {
+    public PurchaseMessage(UUID purchaseId, String orderNumber, UUID providerId,
+                           UUID locationId, BigDecimal total, PurchaseStatus status) {
         this.purchaseId = purchaseId;
         this.orderNumber = orderNumber;
         this.providerId = providerId;

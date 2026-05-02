@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PurchaseEventPublisher {
+public class PurchaseMessagePublisher {
 
     private final RabbitTemplate rabbitTemplate;
 
@@ -15,11 +15,11 @@ public class PurchaseEventPublisher {
     @Value("${rabbitmq.routing-key.purchase}")
     private String routingKey;
 
-    public PurchaseEventPublisher(RabbitTemplate rabbitTemplate) {
+    public PurchaseMessagePublisher(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void publishPurchaseReceived(PurchaseEvent event) {
+    public void publishPurchaseReceived(PurchaseMessage event) {
         rabbitTemplate.convertAndSend(exchange, routingKey, event);
     }
 }

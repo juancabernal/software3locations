@@ -1,4 +1,4 @@
-package com.co.eatupapi.services.commercial.sales;
+package com.co.eatupapi.services.commercial.sales.impl;
 
 import com.co.eatupapi.domain.commercial.sales.SaleDetailDomain;
 import com.co.eatupapi.domain.commercial.sales.SaleDomain;
@@ -8,6 +8,9 @@ import com.co.eatupapi.dto.commercial.sales.SalePatchDTO;
 import com.co.eatupapi.dto.commercial.sales.SaleRequestDTO;
 import com.co.eatupapi.dto.commercial.sales.SaleResponseDTO;
 import com.co.eatupapi.repositories.commercial.sales.SaleRepository;
+import com.co.eatupapi.services.commercial.sales.RecipePreparationTraceService;
+import com.co.eatupapi.services.commercial.sales.SaleService;
+import com.co.eatupapi.services.commercial.sales.SaleStockValidatorService;
 import com.co.eatupapi.utils.commercial.sales.exceptions.SaleBusinessException;
 import com.co.eatupapi.utils.commercial.sales.exceptions.SaleNotFoundException;
 import com.co.eatupapi.utils.commercial.sales.exceptions.SaleValidationException;
@@ -26,10 +29,17 @@ public class SaleServiceImpl implements SaleService {
 
     private final SaleRepository saleRepository;
     private final SaleMapper saleMapper;
+    private final SaleStockValidatorService saleStockValidatorService;
+    private final RecipePreparationTraceService traceService;
 
-    public SaleServiceImpl(SaleRepository saleRepository, SaleMapper saleMapper) {
+    public SaleServiceImpl(SaleRepository saleRepository,
+                           SaleMapper saleMapper,
+                           SaleStockValidatorService saleStockValidatorService,
+                           RecipePreparationTraceService traceService) {
         this.saleRepository = saleRepository;
         this.saleMapper = saleMapper;
+        this.saleStockValidatorService = saleStockValidatorService;
+        this.traceService = traceService;
     }
 
     @Override
@@ -37,6 +47,7 @@ public class SaleServiceImpl implements SaleService {
     public SaleResponseDTO createSale(SaleRequestDTO request) {
         validateRequiredSalePayload(request);
         validateSaleLineItems(request.getDetails());
+        saleStockValidatorService.validateStockForSaleDetails(request.getDetails());
 
         SaleDomain sale = new SaleDomain();
         sale.setSellerId(request.getSellerId().trim());
@@ -47,19 +58,25 @@ public class SaleServiceImpl implements SaleService {
         BigDecimal totalAmount = processSaleDetails(sale, request.getDetails());
         sale.setTotalAmount(totalAmount);
 
-        return saleMapper.toDto(saleRepository.save(sale));
+        SaleDomain savedSale = saleRepository.save(sale);
+        traceService.createInitialTraces(savedSale);
+
+        return saleMapper.toDto(savedSale);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SaleResponseDTO getSaleById(UUID id) {
-        SaleDomain sale = saleRepository.findById(id)
-                .orElseThrow(() -> new SaleNotFoundException(VENTA_NO_ENCONTRADA + id));
+        SaleDomain sale = findSaleOrThrow(id);
         return saleMapper.toDto(sale);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SaleResponseDTO> getAllSales() {
-        return saleRepository.findAll().stream().map(saleMapper::toDto).toList();
+        return saleRepository.findAll().stream()
+                .map(saleMapper::toDto)
+                .toList();
     }
 
     @Override
@@ -70,14 +87,22 @@ public class SaleServiceImpl implements SaleService {
 
         validateRequiredSalePayload(request);
         validateSaleLineItems(request.getDetails());
+        saleStockValidatorService.validateStockForSaleDetails(request.getDetails());
 
         existingSale.setSellerId(request.getSellerId().trim());
         existingSale.setLocationId(request.getLocationId());
         existingSale.setTableId(request.getTableId().trim());
-        existingSale.getDetails().clear();
-        existingSale.setTotalAmount(processSaleDetails(existingSale, request.getDetails()));
 
-        return saleMapper.toDto(saleRepository.save(existingSale));
+        traceService.deleteTracesBySaleId(existingSale.getId());
+        existingSale.getDetails().clear();
+
+        BigDecimal totalAmount = processSaleDetails(existingSale, request.getDetails());
+        existingSale.setTotalAmount(totalAmount);
+
+        SaleDomain savedSale = saleRepository.save(existingSale);
+        traceService.createInitialTraces(savedSale);
+
+        return saleMapper.toDto(savedSale);
     }
 
     @Override
@@ -87,28 +112,43 @@ public class SaleServiceImpl implements SaleService {
         ensureSaleCanBeModified(existingSale);
 
         updateSaleBasicInfo(existingSale, request);
-        updateSaleDetails(existingSale, request.details());
+        boolean detailsUpdated = updateSaleDetails(existingSale, request.details());
 
         validatePersistableSale(existingSale);
-        return saleMapper.toDto(saleRepository.save(existingSale));
+
+        SaleDomain savedSale = saleRepository.save(existingSale);
+
+        if (detailsUpdated) {
+            traceService.createInitialTraces(savedSale);
+        }
+
+        return saleMapper.toDto(savedSale);
     }
 
     @Override
     @Transactional
     public void deleteSale(UUID id) {
-        if (!saleRepository.existsById(id)) {
-            throw new SaleNotFoundException(VENTA_NO_ENCONTRADA + id);
-        }
-        saleRepository.deleteById(id);
+        SaleDomain existingSale = findSaleOrThrow(id);
+        ensureSaleCanBeDeleted(existingSale);
+
+        traceService.deleteTracesBySaleId(existingSale.getId());
+        saleRepository.delete(existingSale);
     }
 
     private SaleDomain findSaleOrThrow(UUID id) {
-        return saleRepository.findById(id).orElseThrow(() -> new SaleNotFoundException(VENTA_NO_ENCONTRADA + id));
+        return saleRepository.findById(id)
+                .orElseThrow(() -> new SaleNotFoundException(VENTA_NO_ENCONTRADA + id));
     }
 
     private void ensureSaleCanBeModified(SaleDomain sale) {
         if (sale.getStatus() == SaleStatus.COMPLETED) {
             throw new SaleBusinessException("No se puede modificar una venta en estado COMPLETED.");
+        }
+    }
+
+    private void ensureSaleCanBeDeleted(SaleDomain sale) {
+        if (sale.getStatus() == SaleStatus.COMPLETED) {
+            throw new SaleBusinessException("No se puede eliminar una venta en estado COMPLETED.");
         }
     }
 
@@ -130,9 +170,9 @@ public class SaleServiceImpl implements SaleService {
         }
     }
 
-    private void updateSaleDetails(SaleDomain existingSale, List<SaleDetailDTO> details) {
+    private boolean updateSaleDetails(SaleDomain existingSale, List<SaleDetailDTO> details) {
         if (details == null) {
-            return;
+            return false;
         }
 
         if (details.isEmpty()) {
@@ -140,8 +180,15 @@ public class SaleServiceImpl implements SaleService {
         }
 
         validateSaleLineItems(details);
+        saleStockValidatorService.validateStockForSaleDetails(details);
+
+        traceService.deleteTracesBySaleId(existingSale.getId());
         existingSale.getDetails().clear();
-        existingSale.setTotalAmount(processSaleDetails(existingSale, details));
+
+        BigDecimal totalAmount = processSaleDetails(existingSale, details);
+        existingSale.setTotalAmount(totalAmount);
+
+        return true;
     }
 
     private void validateRequiredSalePayload(SaleRequestDTO request) {
@@ -173,6 +220,7 @@ public class SaleServiceImpl implements SaleService {
         ValidationUtils.requireObject(sale.getLocationId(), "La locationId es obligatoria.");
         ValidationUtils.requireText(sale.getTableId(), "tableId");
         ValidationUtils.requireObject(sale.getDetails(), "La lista de detalles es obligatoria.");
+
         if (sale.getDetails().isEmpty()) {
             throw new SaleValidationException("La venta debe tener al menos una línea de detalle.");
         }
@@ -207,6 +255,7 @@ public class SaleServiceImpl implements SaleService {
         if (value == null) {
             return null;
         }
+
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }

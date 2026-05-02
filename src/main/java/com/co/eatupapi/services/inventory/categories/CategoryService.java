@@ -16,4 +16,6 @@ public interface CategoryService {
     List<CategoryDTO> getCategoriesByName(String name);
 
     List<CategoryDTO> getCategoriesByType(String type);
+
+    List<CategoryDTO> getCategoriesBySubtype(String subtype);
 }

@@ -37,6 +37,12 @@ public class RecipePreparationTraceServiceImpl implements RecipePreparationTrace
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<RecipePreparationTraceResponseDTO> findAll() {
+        return traceRepository.findAll().stream().map(traceMapper::toDto).toList();
+    }
+
+    @Override
     @Transactional
     public void deleteTracesBySaleId(UUID saleId) {
         traceRepository.deleteBySale_Id(saleId);
@@ -46,6 +52,14 @@ public class RecipePreparationTraceServiceImpl implements RecipePreparationTrace
     @Transactional(readOnly = true)
     public List<RecipePreparationTraceResponseDTO> findBySaleId(UUID saleId) {
         return traceRepository.findBySale_Id(saleId).stream().map(traceMapper::toDto).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RecipePreparationTraceResponseDTO findById(UUID id) {
+        RecipePreparationTraceDomain trace = traceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("No existe una traza de preparación con el id: " + id));
+        return traceMapper.toDto(trace);
     }
 
     @Override
@@ -64,7 +78,7 @@ public class RecipePreparationTraceServiceImpl implements RecipePreparationTrace
         trace.setSale(sale);
         trace.setSaleDetail(detail);
         trace.setRecipeId(detail.getRecipeId());
-        trace.setStatus(RecipePreparationTraceStatus.PENDING_STOCK_DISCOUNT);
+        trace.setStatus(RecipePreparationTraceStatus.ACCEPTED);
         trace.setObservation(null);
         return trace;
     }

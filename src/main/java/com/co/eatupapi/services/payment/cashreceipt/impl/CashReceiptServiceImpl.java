@@ -1,20 +1,17 @@
 package com.co.eatupapi.services.payment.cashreceipt.impl;
 
-import com.co.eatupapi.domain.payment.cashreceipt.CashReceipt;
-import com.co.eatupapi.domain.payment.cashreceipt.CashReceiptStatus;
 import com.co.eatupapi.dto.payment.cashreceipt.CashReceiptResponse;
 import com.co.eatupapi.dto.payment.cashreceipt.CreateCashReceiptRequest;
+import com.co.eatupapi.messaging.payment.cashreceipt.CashReceiptCancelMessage;
+import com.co.eatupapi.messaging.payment.cashreceipt.CashReceiptCreateMessage;
+import com.co.eatupapi.messaging.payment.cashreceipt.CashReceiptMessagePublisher;
 import com.co.eatupapi.repositories.payment.cashreceipt.CashReceiptRepository;
 import com.co.eatupapi.services.payment.cashreceipt.CashReceiptService;
-import com.co.eatupapi.utils.payment.cashreceipt.exceptions.CashReceiptBusinessException;
-import com.co.eatupapi.utils.payment.cashreceipt.exceptions.CashReceiptNotFoundException;
-import com.co.eatupapi.utils.payment.cashreceipt.exceptions.ErrorCode;
 import com.co.eatupapi.utils.payment.cashreceipt.mapper.CashReceiptMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -22,25 +19,25 @@ public class CashReceiptServiceImpl implements CashReceiptService {
 
     private final CashReceiptRepository cashReceiptRepository;
     private final CashReceiptMapper cashReceiptMapper;
+    private final CashReceiptMessagePublisher cashReceiptMessagePublisher;
 
     public CashReceiptServiceImpl(CashReceiptRepository cashReceiptRepository,
-                                  CashReceiptMapper cashReceiptMapper) {
+                                  CashReceiptMapper cashReceiptMapper,
+                                  CashReceiptMessagePublisher cashReceiptMessagePublisher) {
         this.cashReceiptRepository = cashReceiptRepository;
         this.cashReceiptMapper = cashReceiptMapper;
+        this.cashReceiptMessagePublisher = cashReceiptMessagePublisher;
     }
 
     @Override
-    public CashReceiptResponse createCashReceipt(UUID locationId, CreateCashReceiptRequest request) {
-
-        CashReceipt receipt = new CashReceipt();
-        receipt.setLocationId(locationId);
-        receipt.setInvoiceId(request.getInvoiceId());
-        receipt.setAmount(request.getAmount());
-        receipt.setPaymentMethodId(request.getPaymentMethodId());
-        receipt.setStatus(CashReceiptStatus.PAID);
-        receipt.setCreatedAt(LocalDateTime.now());
-
-        return cashReceiptMapper.toResponse(cashReceiptRepository.save(receipt));
+    public void createCashReceipt(UUID locationId, CreateCashReceiptRequest request) {
+        CashReceiptCreateMessage event = new CashReceiptCreateMessage(
+                locationId,
+                request.getInvoiceId(),
+                request.getAmount(),
+                request.getPaymentMethodId()
+        );
+        cashReceiptMessagePublisher.publishCreate(event);
     }
 
     @Override
@@ -52,28 +49,8 @@ public class CashReceiptServiceImpl implements CashReceiptService {
     }
 
     @Override
-    public CashReceiptResponse cancelCashReceipt(UUID locationId, UUID receiptId) {
-        CashReceipt receipt = cashReceiptRepository
-                .findById(receiptId)
-                .orElseThrow(() -> new CashReceiptNotFoundException("Cash receipt not found"));
-
-        if (!receipt.getLocationId().equals(locationId)) {
-            throw new CashReceiptBusinessException(
-                    ErrorCode.RECEIPT_DOES_NOT_BELONG_TO_SITE,
-                    "Receipt does not belong to this site"
-            );
-        }
-
-        if (receipt.getStatus() == CashReceiptStatus.CANCELLED) {
-            throw new CashReceiptBusinessException(
-                    ErrorCode.CASH_RECEIPT_ALREADY_CANCELLED,
-                    "Cash receipt already cancelled"
-            );
-        }
-
-        receipt.setStatus(CashReceiptStatus.CANCELLED);
-        receipt.setCancelledAt(LocalDateTime.now());
-
-        return cashReceiptMapper.toResponse(cashReceiptRepository.save(receipt));
+    public void cancelCashReceipt(UUID locationId, UUID receiptId) {
+        CashReceiptCancelMessage event = new CashReceiptCancelMessage(locationId, receiptId);
+        cashReceiptMessagePublisher.publishCancel(event);
     }
 }

@@ -9,10 +9,10 @@ import java.util.UUID;
 
 public interface CashReceiptService {
 
-    CashReceiptResponse createCashReceipt(UUID locationId, CreateCashReceiptRequest request);
+    void createCashReceipt(UUID locationId, CreateCashReceiptRequest request);
 
     Page<CashReceiptResponse> getCashReceiptsBySite(UUID locationId, Pageable pageable);
 
-    CashReceiptResponse cancelCashReceipt(UUID locationId, UUID receiptId);
+    void cancelCashReceipt(UUID locationId, UUID receiptId);
 
 }

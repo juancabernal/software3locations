@@ -8,6 +8,7 @@ public class CategoryDTO {
     private String id;
     private Long cns;
     private String type;
+    private String subtype;
     private String name;
     private LocalDateTime entryDate;
     private CategoryStatus status;
@@ -37,6 +38,14 @@ public class CategoryDTO {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(String subtype) {
+        this.subtype = subtype;
     }
 
     public String getName() {

@@ -121,4 +121,17 @@ public class CategoryController {
         List<CategoryDTO> categories = categoryService.getCategoriesByType(type);
         return ResponseEntity.ok(categories);
     }
+
+    @Operation(summary = "Buscar categorias por subtipo",
+               description = "Permite buscar categorias segun su subtipo, por ejemplo productos o descuentos.")
+
+    @ApiResponse(responseCode = "200", description = "Lista de categorias que coinciden con el subtipo devuelta exitosamente")
+    @ApiResponse(responseCode = "400", description = "Solicitud invalida, por ejemplo, si el subtipo de busqueda esta vacio o es nulo")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+
+    @GetMapping("/subtype/{subtype}")
+    public ResponseEntity<List<CategoryDTO>> getCategoriesBySubtype(@PathVariable String subtype) {
+        List<CategoryDTO> categories = categoryService.getCategoriesBySubtype(subtype);
+        return ResponseEntity.ok(categories);
+    }
 }

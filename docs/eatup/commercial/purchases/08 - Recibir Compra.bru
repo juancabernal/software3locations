@@ -1,0 +1,31 @@
+meta {
+  name: 08 - Recibir Compra
+  type: http
+  seq: 7
+}
+
+patch {
+  url: http://localhost:8080/api/v1/locations/{{location_Id}}/purchases/{{purchase_Id}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJxYS51c2VyLjE3NzY5MTcwODYwMTlAZXhhbXBsZS5jb20iLCJpYXQiOjE3Nzc0OTIwNDQsImV4cCI6MTc3NzQ5NTY0NH0.XuQyjmBlvc3Xx4b2CV8_05CINa34LgJalQdhaU6MAbEkIfTEn7puJUnzDTI7J9PG
+}
+
+body:json {
+  {
+    "status": "RECEIVED"
+  }
+}
+
+vars:pre-request {
+  location_Id: 7d03c2c5-4866-4a4a-bb9c-5f118dfe30ad
+  purchase_Id: 1af446f0-a08d-4307-a2ae-b801f9f13056
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

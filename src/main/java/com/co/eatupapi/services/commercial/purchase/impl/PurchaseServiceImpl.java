@@ -5,8 +5,8 @@ import com.co.eatupapi.domain.commercial.purchase.PurchaseItemDomain;
 import com.co.eatupapi.domain.commercial.purchase.PurchaseStatus;
 import com.co.eatupapi.dto.commercial.purchase.CreatePurchaseRequest;
 import com.co.eatupapi.dto.commercial.purchase.PurchaseResponse;
-import com.co.eatupapi.events.commercial.purchase.PurchaseEvent;
-import com.co.eatupapi.events.commercial.purchase.PurchaseEventPublisher;
+import com.co.eatupapi.messaging.commercial.purchase.PurchaseMessage;
+import com.co.eatupapi.messaging.commercial.purchase.PurchaseMessagePublisher;
 import com.co.eatupapi.repositories.commercial.purchase.PurchaseRepository;
 import com.co.eatupapi.services.commercial.purchase.PurchaseService;
 import com.co.eatupapi.utils.commercial.purchase.exceptions.PurchaseBusinessException;
@@ -27,11 +27,11 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
     private final PurchaseMapper purchaseMapper;
-    private final PurchaseEventPublisher purchaseEventPublisher;
+    private final PurchaseMessagePublisher purchaseEventPublisher;
 
     public PurchaseServiceImpl(PurchaseRepository purchaseRepository,
                                PurchaseMapper purchaseMapper,
-                               PurchaseEventPublisher purchaseEventPublisher) {
+                               PurchaseMessagePublisher purchaseEventPublisher) {
         this.purchaseRepository = purchaseRepository;
         this.purchaseMapper = purchaseMapper;
         this.purchaseEventPublisher = purchaseEventPublisher;
@@ -116,7 +116,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         PurchaseDomain saved = purchaseRepository.save(existing);
 
         if (newStatus == PurchaseStatus.RECEIVED) {
-            PurchaseEvent event = new PurchaseEvent(
+            PurchaseMessage event = new PurchaseMessage(
                     saved.getId(),
                     saved.getOrderNumber(),
                     saved.getProviderId(),

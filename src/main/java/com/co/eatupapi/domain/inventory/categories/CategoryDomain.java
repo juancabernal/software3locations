@@ -22,6 +22,9 @@ public class CategoryDomain {
     @Column(nullable = false)
     private String type;
 
+    @Column
+    private String subtype;
+
     @Column(nullable = false, unique = true)
     private String name;
 
@@ -63,6 +66,14 @@ public class CategoryDomain {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(String subtype) {
+        this.subtype = subtype;
     }
 
     public String getName() {

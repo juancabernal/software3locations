@@ -1,0 +1,31 @@
+meta {
+  name: 08 - Consultar sesion activa
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/commercial/api/v1/tables/{{tableId}}/sessions/active
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3Nzc4NTM0NjgsImV4cCI6MTc3Nzg1NzA2OH0.t9WviFIMCIDTkZOx_0IywmOWlJZW61f72B6qLf9OqCTkOrmI-n2nnzECVj4YC1R-
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  tableId: 0a2f0f27-cdcb-4793-94c7-d0afb0e409da
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

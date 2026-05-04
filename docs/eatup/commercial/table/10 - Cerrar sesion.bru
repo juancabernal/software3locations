@@ -1,0 +1,28 @@
+meta {
+  name: 10 - Cerrar sesion
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/commercial/api/v1/tables/{{tableId}}/session/{{sessionId}}/close
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  tableId: 0a2f0f27-cdcb-4793-94c7-d0afb0e409da
+  sessionId: a62c7cd9-c44d-4ed4-9885-2c63c3a1e0a2
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

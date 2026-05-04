@@ -1,0 +1,30 @@
+meta {
+  name: 13 - Desactivar mesa
+  type: http
+  seq: 13
+}
+
+delete {
+  url: http://localhost:8080/commercial/api/v1/tables/5cdafa40-6f83-4ef3-98cd-54108bf6122b
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3Nzc2ODkwMjQsImV4cCI6MTc3NzY5MjYyNH0.XJ74Vt0jfPzJQbAl4szWrij_x1TEq9_FEflMpqtvIaewR6qNrFDoghpUsndIR9hk
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,35 @@
+meta {
+  name: 01 - Crear mesa
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/commercial/api/v1/tables
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3Nzc2ODg1MjMsImV4cCI6MTc3NzY5MjEyM30.EfUSTVjciwdKMUcBh1kbv1VFl_ox4xHIOHDxZODnib67IWlW2_4CWBC031TiIBjj
+}
+
+body:json {
+  {
+    "tableNumber": 12,
+    "location": "Terraza",
+    "isVip": false,
+    "hasView": true,
+    "isAccessible": true,
+    "venueId": "11111111-1111-4111-8111-111111111111"
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,67 @@
+meta {
+  name: 03 - Crear reserva
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/commercial/api/v1/tables/{{tableId}}/reservations
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3Nzc4NDk4MzksImV4cCI6MTc3Nzg1MzQzOX0.wqz2aWTVC0Z_2vGSMKMaWnkUVxHuSHnR8-ijNtrNLwal0VgSOAhJ-LIuUcmnGRwY
+}
+
+body:json {
+  {
+    "reservationDate": "{{reservationDate}}",
+    "reservationTime": "{{reservationTime}}",
+    "guestName": "Cliente Bruno",
+    "guestDocumentNumber": "{{guestDocumentNumber}}",
+    "guestCount": 4
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  tableId: e80232a7-6f4c-470d-b378-b2c61ca63637
+}
+
+script:pre-request {
+  const now = new Date();
+  now.setHours(now.getHours() + 2, 0, 0, 0);
+  
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mi = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  
+  bru.setVar("reservationDate", `${yyyy}-${mm}-${dd}`);
+  bru.setVar("reservationTime", `${hh}:${mi}:${ss}`);
+  bru.setVar("guestDocumentNumber", `BRUNO-${Date.now()}`);
+}
+
+script:post-response {
+  const data = res.getBody();
+  
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  if (data && data.id) {
+    bru.setVar("reservationId", data.id);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

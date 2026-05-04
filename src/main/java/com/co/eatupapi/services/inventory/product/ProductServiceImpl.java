@@ -4,6 +4,7 @@ import com.co.eatupapi.domain.inventory.product.Product;
 import com.co.eatupapi.dto.inventory.product.ProductDTO;
 import com.co.eatupapi.dto.inventory.product.ProductPatchDTO;
 import com.co.eatupapi.dto.inventory.product.ProductRequestDTO;
+import com.co.eatupapi.messaging.inventory.product.ProductEventPublisher;
 import com.co.eatupapi.repositories.inventory.product.ProductRepository;
 import com.co.eatupapi.utils.inventory.product.exceptions.BusinessException;
 import com.co.eatupapi.utils.inventory.product.exceptions.ResourceNotFoundException;
@@ -25,11 +26,13 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final ProductEventPublisher productEventPublisher;
 
     public ProductServiceImpl(ProductRepository productRepository,
-                              ProductMapper productMapper) {
+                              ProductMapper productMapper, ProductEventPublisher productEventPublisher) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
+        this.productEventPublisher = productEventPublisher;
     }
 
     @Override
@@ -76,15 +79,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductDTO create(ProductRequestDTO request) {
+
         validateRequestNotNull(request);
 
         String normalizedName = normalizeName(request.getName());
         validateDuplicateNameAndLocation(null, normalizedName, request.getLocationId());
 
         Product product = productMapper.toDomain(request);
-        product.setName(normalizedName);
 
-        return productMapper.toDto(productRepository.save(product));
+        productEventPublisher.publishCreateRequested(request);
+
+        return productMapper.toDto(product);
     }
 
     @Override

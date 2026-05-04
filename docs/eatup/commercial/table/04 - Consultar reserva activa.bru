@@ -1,0 +1,31 @@
+meta {
+  name: 04 - Consultar reserva activa
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/commercial/api/v1/tables/{{tableId}}/reservation
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3Nzc2OTU5MzcsImV4cCI6MTc3NzY5OTUzN30.VGpfZetb4W3_YzTDc5m2Ptf3HQB3QGU1Wewtk6mtgAdQWYEPptUi8r-_ZZmocne7
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  tableId: 3bd37eb3-d734-4520-83fb-a471d316c8d3
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

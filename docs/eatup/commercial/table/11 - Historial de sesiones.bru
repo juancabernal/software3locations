@@ -1,0 +1,31 @@
+meta {
+  name: 11 - Historial de sesiones
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/commercial/api/v1/tables/{{tableId}}/history
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJpYXQiOjE3Nzc4NTA0MDgsImV4cCI6MTc3Nzg1NDAwOH0.-Mrt5J3akSuAqWd89xmHrhDSSbPCB0Ox2Uo6GNuvyT7gDKBNxmgIEj3bubYZ6UbA
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  tableId: 3bd37eb3-d734-4520-83fb-a471d316c8d3
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

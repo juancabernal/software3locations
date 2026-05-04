@@ -1,0 +1,55 @@
+meta {
+  name: 06 - Editar reserva
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/commercial/api/v1/tables/{{tableId}}/reservation/{{reservationId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+script:pre-request {
+  const now = new Date();
+  now.setHours(now.getHours() + 3, 0, 0, 0);
+
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mi = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+
+  bru.setVar("reservationDateUpdated", `${yyyy}-${mm}-${dd}`);
+  bru.setVar("reservationTimeUpdated", `${hh}:${mi}:${ss}`);
+}
+
+body:json {
+  {
+    "reservationDate": "{{reservationDateUpdated}}",
+    "reservationTime": "{{reservationTimeUpdated}}",
+    "guestName": "Cliente Bruno Editado",
+    "guestDocumentNumber": "{{guestDocumentNumber}}",
+    "guestCount": 5
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

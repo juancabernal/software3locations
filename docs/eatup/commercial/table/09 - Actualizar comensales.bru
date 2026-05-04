@@ -1,0 +1,36 @@
+meta {
+  name: 09 - Actualizar comensales
+  type: http
+  seq: 9
+}
+
+patch {
+  url: {{baseUrl}}/commercial/api/v1/tables/{{tableId}}/session/{{sessionId}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+}
+
+body:json {
+  {
+    "guestCount": 6
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

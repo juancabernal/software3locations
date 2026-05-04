@@ -1,0 +1,27 @@
+meta {
+  name: 05 - Buscar reserva por documento
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/commercial/api/v1/tables/reservations/search?guestDocumentNumber={{guestDocumentNumber}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080
+  guestDocumentNumber: 2
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -41,16 +41,15 @@ public class DiscountServiceImpl implements DiscountService {
 
     @Override
     public DiscountDTO createDiscount(DiscountDTO discount) {
-        DiscountDTO validated = validate(discount);
+        DiscountDTO validated = validate(discount, null);
         DiscountDomain domain = discountMapper.toDomain(validated);
-        domain.setCreatedAt(LocalDateTime.now());
         DiscountDomain saved = discountRepository.save(domain);
         return discountMapper.toDto(saved);
     }
 
     @Override
     public Optional<DiscountDTO> updateDiscount(UUID id, DiscountDTO discount) {
-        DiscountDTO validated = validate(discount);
+        DiscountDTO validated = validate(discount, id);
         return discountRepository.findById(id)
                 .map(existing -> {
                     discountMapper.updateDomain(existing, validated);
@@ -83,7 +82,7 @@ public class DiscountServiceImpl implements DiscountService {
         return true;
     }
 
-    private DiscountDTO validate(DiscountDTO discount) {
+    private DiscountDTO validate(DiscountDTO discount,  UUID excludeId) {
 
         if (discount.getPercentage() == null)
             throw new IllegalArgumentException("percentage es obligatorio");
@@ -102,6 +101,16 @@ public class DiscountServiceImpl implements DiscountService {
         }
         if (discount.getStatus() == null) {
             discount.setStatus(Boolean.TRUE);
+        }
+        boolean duplicado = excludeId != null
+                ? discountRepository.existsByCategoryIdAndDescriptionAndIdNot(
+                discount.getCategoryId(), discount.getDescription(), excludeId)
+                : discountRepository.existsByCategoryIdAndDescription(
+                discount.getCategoryId(), discount.getDescription());
+
+        if (duplicado) {
+            throw new IllegalArgumentException(
+                    "Ya existe un descuento con esa descripcion en esta categoria");
         }
         return discount;
     }

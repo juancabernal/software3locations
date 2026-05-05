@@ -1,7 +1,7 @@
 meta {
-  name: get by customer
+  name: get by customer only
   type: http
-  seq: 4
+  seq: 7
 }
 
 get {
@@ -17,6 +17,12 @@ tests {
 
   test("Response is an array", function() {
     expect(res.getBody()).to.be.an("array");
+  });
+
+  test("All results belong to the customer", function() {
+    res.getBody().forEach(function(item) {
+      expect(item.customerId).to.equal(bru.getVar("customerId"));
+    });
   });
 }
 

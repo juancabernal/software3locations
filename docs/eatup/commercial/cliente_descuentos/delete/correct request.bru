@@ -16,11 +16,7 @@ tests {
   });
 
   test("Response has success message", function() {
-    expect(res.getBody()).to.have.property("message");
-  });
-
-  test("Message confirms deletion", function() {
-    expect(res.getBody().message).to.equal("Se eliminó el descuento al cliente con éxito");
+    expect(res.getBody().message).to.equal("Se elimino el descuento al cliente con exito");
   });
 }
 

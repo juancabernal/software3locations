@@ -55,6 +55,12 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
     }
 
     @Override
+    public List<CustomerDiscountDTO> getDiscountsByCustomerAndLocation(UUID customerId, UUID locationId) {
+        return customerDiscountRepository.findByCustomerIdAndLocationId(customerId, locationId)
+                .stream().map(customerDiscountMapper::toDto).toList();
+    }
+
+    @Override
     public CustomerDiscountDTO getApplicableCustomerDiscount(
             UUID customerDiscountId,
             UUID customerId,
@@ -85,19 +91,19 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
 
         if (!Boolean.TRUE.equals(discount.getStatus())) {
             throw new IllegalArgumentException(
-                    "El descuento asociado no está activo");
+                    "El descuento asociado no esta activo");
         }
         // 5. Valida vigencia si tiene fechas definidas
         LocalDate hoy = LocalDate.now();
 
         if (domain.getStartDate() != null && hoy.isBefore(domain.getStartDate())) {
             throw new IllegalArgumentException(
-                    "El descuento aún no está vigente");
+                    "El descuento aun no esta vigente");
         }
 
         if (domain.getEndDate() != null && hoy.isAfter(domain.getEndDate())) {
             throw new IllegalArgumentException(
-                    "El descuento ya venció");
+                    "El descuento ya vencio");
         }
 
         return customerDiscountMapper.toDto(domain);
@@ -105,7 +111,7 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
 
     @Override
     public CustomerDiscountDTO createCustomerDiscount(CustomerDiscountDTO customerDiscount) {
-        CustomerDiscountDTO validated = validate(customerDiscount);
+        CustomerDiscountDTO validated = validate(customerDiscount, null);
         CustomerDiscountDomain domain = customerDiscountMapper.toDomain(validated);
         CustomerDiscountDomain saved = customerDiscountRepository.save(domain);
         return customerDiscountMapper.toDto(saved);
@@ -113,7 +119,7 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
 
     @Override
     public Optional<CustomerDiscountDTO> updateCustomerDiscount(UUID id, CustomerDiscountDTO customerDiscount) {
-        CustomerDiscountDTO validated = validate(customerDiscount);
+        CustomerDiscountDTO validated = validate(customerDiscount, id);
         return customerDiscountRepository.findById(id)
                 .map(existing -> {
                     customerDiscountMapper.updateDomain(existing, validated);
@@ -132,28 +138,38 @@ public class CustomerDiscountServiceImpl implements CustomerDiscountService {
         return true;
     }
 
-    private CustomerDiscountDTO validate(CustomerDiscountDTO customerDiscount) {
-        if (customerDiscount.getLocationId() == null) {
+    private CustomerDiscountDTO validate(CustomerDiscountDTO customerDiscount, UUID excludeId) {
+        if (customerDiscount.getLocationId() == null)
             throw new IllegalArgumentException("locationId es obligatorio");
-        }
-        if (customerDiscount.getCustomerId() == null) {
+        if (customerDiscount.getCustomerId() == null)
             throw new IllegalArgumentException("customerId es obligatorio");
-        }
-        if (customerDiscount.getDiscountId() == null) {
+        if (customerDiscount.getDiscountId() == null)
             throw new IllegalArgumentException("discountId es obligatorio");
-        }
         if (customerDiscount.getAssignedAt() != null
-                && customerDiscount.getAssignedAt().isAfter(LocalDate.now())) {
+                && customerDiscount.getAssignedAt().isAfter(LocalDate.now()))
             throw new IllegalArgumentException("assignedAt no puede ser una fecha futura");
-        }
-        if (customerDiscount.getAssignedAt() == null) {
+        if (customerDiscount.getAssignedAt() == null)
             customerDiscount.setAssignedAt(LocalDate.now());
-        }
         if (customerDiscount.getStartDate() != null && customerDiscount.getEndDate() != null
-                && customerDiscount.getEndDate().isBefore(customerDiscount.getStartDate())) {
+                && customerDiscount.getEndDate().isBefore(customerDiscount.getStartDate()))
+            throw new IllegalArgumentException("endDate no puede ser anterior a startDate");
+
+        boolean duplicado = excludeId != null
+                ? customerDiscountRepository
+                .existsByCustomerIdAndLocationIdAndDiscountIdAndStartDateAndEndDateAndIdNot(
+                        customerDiscount.getCustomerId(), customerDiscount.getLocationId(),
+                        customerDiscount.getDiscountId(), customerDiscount.getStartDate(),
+                        customerDiscount.getEndDate(), excludeId)
+                : customerDiscountRepository
+                .existsByCustomerIdAndLocationIdAndDiscountIdAndStartDateAndEndDate(
+                        customerDiscount.getCustomerId(), customerDiscount.getLocationId(),
+                        customerDiscount.getDiscountId(), customerDiscount.getStartDate(),
+                        customerDiscount.getEndDate());
+
+        if (duplicado)
             throw new IllegalArgumentException(
-                    "endDate no puede ser anterior a startDate");
-        }
+                    "Ya existe un descuento asignado a este cliente en esta sede con las mismas fechas");
+
         return customerDiscount;
     }
 }

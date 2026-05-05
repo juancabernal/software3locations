@@ -11,8 +11,12 @@ delete {
 }
 
 tests {
-  test("Status code is 204", function() {
-    expect(res.getStatus()).to.equal(204);
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.equal("Descuento eliminado con exito");
   });
 }
 

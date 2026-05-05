@@ -69,7 +69,7 @@ public class DiscountController {
     @DeleteMapping("/{discountId}")
     public ResponseEntity<?> deleteDiscount(@PathVariable UUID discountId) {
         if (discountService.deleteDiscount(discountId)) {
-            return ResponseEntity.ok(Map.of("message", "Descuento eliminado con éxito"));
+            return ResponseEntity.ok(Map.of("message", "Descuento eliminado con exito"));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", "Descuento no encontrado con id: " + discountId));

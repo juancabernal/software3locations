@@ -25,11 +25,6 @@ public class CustomerDiscountController {
         return ResponseEntity.ok(customerDiscountService.getAllCustomerDiscounts());
     }
 
-    @GetMapping("/customers/{customerId}/discounts")
-    public ResponseEntity<List<CustomerDiscountDTO>> getDiscountsByCustomerId(@PathVariable UUID customerId) {
-        List<CustomerDiscountDTO> discounts = customerDiscountService.getDiscountsByCustomerId(customerId);
-        return ResponseEntity.ok(discounts);
-    }
 
     @GetMapping("/customer-discounts/{id}")
     public ResponseEntity<CustomerDiscountDTO> getCustomerDiscountById(@PathVariable UUID id) {
@@ -42,6 +37,18 @@ public class CustomerDiscountController {
         return ResponseEntity.ok(
                 customerDiscountService.getCustomersByDiscountId(discountId));
     }
+
+    @GetMapping("/customers/{customerId}/discounts")
+    public ResponseEntity<List<CustomerDiscountDTO>> getDiscountsByCustomerId(
+            @PathVariable UUID customerId,
+            @RequestParam(required = false) UUID locationId) {
+        if (locationId != null) {
+            return ResponseEntity.ok(
+                    customerDiscountService.getDiscountsByCustomerAndLocation(customerId, locationId));
+        }
+        return ResponseEntity.ok(customerDiscountService.getDiscountsByCustomerId(customerId));
+    }
+
     @GetMapping("/customer-discounts/{id}/validate")
     public ResponseEntity<CustomerDiscountDTO> getApplicableCustomerDiscount(
             @PathVariable UUID id,
@@ -71,7 +78,7 @@ public class CustomerDiscountController {
     @DeleteMapping("/customer-discounts/{id}")
     public ResponseEntity<?> deleteCustomerDiscount(@PathVariable UUID id) {
         if (customerDiscountService.deleteCustomerDiscount(id)) {
-            return ResponseEntity.ok(Map.of("message", "Se eliminó el descuento al cliente con éxito"));
+            return ResponseEntity.ok(Map.of("message", "Se elimino el descuento al cliente con exito"));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", "Descuento de cliente no encontrado con id: " + id));

@@ -1,0 +1,30 @@
+meta {
+  name: correct request
+  type: http
+  seq: 1
+}
+
+delete {
+  url: http://localhost:8080/comercial/api/v1/customer-discounts/{{customerDiscountId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody()).to.have.property("message");
+  });
+
+  test("Message confirms deletion", function() {
+    expect(res.getBody().message).to.equal("Se eliminó el descuento al cliente con éxito");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

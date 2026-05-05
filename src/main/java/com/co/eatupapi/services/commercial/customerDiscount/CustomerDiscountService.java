@@ -11,9 +11,19 @@ public interface CustomerDiscountService {
 
     List<CustomerDiscountDTO> getAllCustomerDiscounts();
 
+    CustomerDiscountDTO getCustomerDiscountById(UUID customerDiscountId);
+
     List<CustomerDiscountDTO> getDiscountsByCustomerId(UUID customerId);
 
     CustomerDiscountDTO createCustomerDiscount(CustomerDiscountDTO customerDiscount);
+
+    CustomerDiscountDTO getApplicableCustomerDiscount(
+            UUID customerDiscountId,
+            UUID customerId,
+            UUID locationId
+    );
+
+    List<CustomerDiscountDTO> getCustomersByDiscountId(UUID discountId);
 
     Optional<CustomerDiscountDTO> updateCustomerDiscount(UUID id, CustomerDiscountDTO customerDiscount);
 

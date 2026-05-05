@@ -1,13 +1,13 @@
 package com.co.eatupapi.utils.commercial.customerDiscount.exceptions;
 
-import com.co.eatupapi.controllers.commercial.discount.DiscountController;
+import com.co.eatupapi.controllers.commercial.customerDiscount.CustomerDiscountController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
 
-@RestControllerAdvice(assignableTypes = DiscountController.class)
+@RestControllerAdvice(assignableTypes = CustomerDiscountController.class)
 public class CustomerDiscountGlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)

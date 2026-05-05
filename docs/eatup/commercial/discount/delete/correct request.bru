@@ -1,0 +1,22 @@
+meta {
+  name: correct request
+  type: http
+  seq: 1
+}
+
+delete {
+  url: http://localhost:8080/comercial/api/v1/discounts/{{discountId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("Status code is 204", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

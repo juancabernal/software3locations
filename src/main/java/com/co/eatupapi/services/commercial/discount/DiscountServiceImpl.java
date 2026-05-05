@@ -84,17 +84,21 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
     private DiscountDTO validate(DiscountDTO discount) {
-        if (discount.getPercentage() == null || discount.getPercentage() < 0 || discount.getPercentage() > 100) {
-            throw new IllegalArgumentException("percentage debe estar entre 0 y 100");
-        }
+
+        if (discount.getPercentage() == null)
+            throw new IllegalArgumentException("percentage es obligatorio");
+
+        if (discount.getPercentage() < 1 || discount.getPercentage() > 100)
+            throw new IllegalArgumentException("percentage debe estar entre 1 y 100");
+
         if (discount.getCategoryId() == null) {
             throw new IllegalArgumentException("categoryId es obligatorio");
         }
         if (discount.getDescription() == null || discount.getDescription().isBlank()) {
             throw new IllegalArgumentException("description es obligatoria");
         }
-        if (discount.getDescription().length() < 5 || discount.getDescription().length() > 30) {
-            throw new IllegalArgumentException("description debe tener entre 5 y 30 caracteres");
+        if (discount.getDescription().length() < 5 || discount.getDescription().length() > 100) {
+            throw new IllegalArgumentException("description debe tener entre 5 y 100 caracteres");
         }
         if (discount.getStatus() == null) {
             discount.setStatus(Boolean.TRUE);

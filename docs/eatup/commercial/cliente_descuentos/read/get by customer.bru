@@ -1,0 +1,26 @@
+meta {
+  name: get by customer
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/comercial/api/v1/customers/{{customerId}}/discounts
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an("array");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

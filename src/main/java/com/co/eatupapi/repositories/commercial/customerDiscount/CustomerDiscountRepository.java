@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface CustomerDiscountRepository extends JpaRepository<CustomerDiscountDomain, UUID> {
 
     List<CustomerDiscountDomain> findByCustomerId(UUID customerId);
+
+    List<CustomerDiscountDomain> findByDiscountId(UUID discountId);
 }

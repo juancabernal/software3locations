@@ -5,6 +5,8 @@ import com.co.eatupapi.domain.commercial.purchase.PurchaseItemDomain;
 import com.co.eatupapi.domain.commercial.purchase.PurchaseStatus;
 import com.co.eatupapi.dto.commercial.purchase.CreatePurchaseRequest;
 import com.co.eatupapi.dto.commercial.purchase.PurchaseResponse;
+import com.co.eatupapi.messaging.commercial.purchase.PurchaseAction;
+import com.co.eatupapi.messaging.commercial.purchase.PurchaseItemMessage;
 import com.co.eatupapi.messaging.commercial.purchase.PurchaseMessage;
 import com.co.eatupapi.messaging.commercial.purchase.PurchaseMessagePublisher;
 import com.co.eatupapi.repositories.commercial.purchase.PurchaseRepository;
@@ -19,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,33 +31,40 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
     private final PurchaseMapper purchaseMapper;
-    private final PurchaseMessagePublisher purchaseEventPublisher;
+    private final PurchaseMessagePublisher purchaseMessagePublisher;
 
     public PurchaseServiceImpl(PurchaseRepository purchaseRepository,
                                PurchaseMapper purchaseMapper,
-                               PurchaseMessagePublisher purchaseEventPublisher) {
+                               PurchaseMessagePublisher purchaseMessagePublisher) {
         this.purchaseRepository = purchaseRepository;
         this.purchaseMapper = purchaseMapper;
-        this.purchaseEventPublisher = purchaseEventPublisher;
+        this.purchaseMessagePublisher = purchaseMessagePublisher;
     }
 
     @Override
-    @Transactional
     public PurchaseResponse createPurchase(UUID locationId, CreatePurchaseRequest request) {
 
-        PurchaseDomain domain = new PurchaseDomain();
-        domain.setOrderNumber(generateOrderNumber());
-        domain.setProviderId(request.getProviderId());
-        domain.setLocationId(locationId);
-        domain.setStatus(PurchaseStatus.CREATED);
-        domain.setDeleted(false);
-        domain.markAsCreated();
+        String orderNumber = generateOrderNumber();
+        UUID purchaseId = UUID.randomUUID();
 
-        List<PurchaseItemDomain> items = mapItems(request);
+        List<PurchaseItemMessage> itemMessages = buildItemMessages(request);
+        BigDecimal total = calculateTotal(itemMessages);
 
-        domain.replaceItems(items);
+        PurchaseMessage message = new PurchaseMessage(
+                purchaseId,
+                orderNumber,
+                request.getProviderId(),
+                locationId,
+                itemMessages,
+                total,
+                PurchaseStatus.CREATED,
+                PurchaseAction.CREATED
+        );
 
-        return purchaseMapper.toResponse(purchaseRepository.save(domain));
+        purchaseMessagePublisher.publishPurchaseReceived(message);
+
+        return buildResponse(purchaseId, orderNumber, request.getProviderId(),
+                locationId, itemMessages, total, PurchaseStatus.CREATED);
     }
 
     @Override
@@ -65,20 +76,18 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     @Transactional(readOnly = true)
     public Page<PurchaseResponse> getPurchases(UUID locationId, PurchaseStatus status, Pageable pageable) {
-
         if (status == null) {
             return purchaseRepository
                     .findByLocationIdAndDeletedFalse(locationId, pageable)
                     .map(purchaseMapper::toResponse);
         }
-
         return purchaseRepository
                 .findByLocationIdAndStatusAndDeletedFalse(locationId, status, pageable)
                 .map(purchaseMapper::toResponse);
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PurchaseResponse updatePurchase(UUID locationId, UUID purchaseId, CreatePurchaseRequest request) {
 
         PurchaseDomain existing = findByIdOrThrow(purchaseId, locationId);
@@ -90,48 +99,70 @@ public class PurchaseServiceImpl implements PurchaseService {
             );
         }
 
-        existing.setProviderId(request.getProviderId());
+        List<PurchaseItemMessage> itemMessages = buildItemMessages(request);
+        BigDecimal total = calculateTotal(itemMessages);
 
-        List<PurchaseItemDomain> newItems = mapItems(request);
+        PurchaseMessage message = new PurchaseMessage(
+                purchaseId,
+                existing.getOrderNumber(),
+                request.getProviderId(),
+                locationId,
+                itemMessages,
+                total,
+                existing.getStatus(),
+                PurchaseAction.UPDATED
+        );
 
-        existing.replaceItems(newItems);
-        existing.markAsModified();
+        purchaseMessagePublisher.publishPurchaseReceived(message);
 
-        return purchaseMapper.toResponse(purchaseRepository.save(existing));
+        return buildResponse(purchaseId, existing.getOrderNumber(), request.getProviderId(),
+                locationId, itemMessages, total, existing.getStatus());
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PurchaseResponse updateStatus(UUID locationId, UUID purchaseId, PurchaseStatus newStatus) {
+
         PurchaseDomain existing = findByIdOrThrow(purchaseId, locationId);
 
-        if (!existing.changeStatus(newStatus)) {
+        if (!existing.getStatus().canTransitionTo(newStatus)) {
             throw new PurchaseConflictException(
                     PurchaseErrorCode.INVALID_STATUS_TRANSITION,
                     "Cannot transition from " + existing.getStatus() + " to " + newStatus
             );
         }
 
-        existing.markAsModified();
-        PurchaseDomain saved = purchaseRepository.save(existing);
+        List<PurchaseItemMessage> itemMessages = existing.getItems().stream()
+                .map(item -> {
+                    PurchaseItemMessage itemMessage = new PurchaseItemMessage();
+                    itemMessage.setProductId(item.getProductId());
+                    itemMessage.setProductName(item.getProductName());
+                    itemMessage.setQuantity(item.getQuantity());
+                    itemMessage.setUnitPrice(item.getUnitPrice());
+                    itemMessage.setSubtotal(item.getSubtotal());
+                    return itemMessage;
+                })
+                .toList();
 
-        if (newStatus == PurchaseStatus.RECEIVED) {
-            PurchaseMessage event = new PurchaseMessage(
-                    saved.getId(),
-                    saved.getOrderNumber(),
-                    saved.getProviderId(),
-                    saved.getLocationId(),
-                    saved.getTotal(),
-                    saved.getStatus()
-            );
-            purchaseEventPublisher.publishPurchaseReceived(event);
-        }
+        PurchaseMessage message = new PurchaseMessage(
+                purchaseId,
+                existing.getOrderNumber(),
+                existing.getProviderId(),
+                locationId,
+                itemMessages,
+                existing.getTotal(),
+                newStatus,
+                PurchaseAction.STATUS_UPDATED
+        );
 
-        return purchaseMapper.toResponse(saved);
+        purchaseMessagePublisher.publishPurchaseReceived(message);
+
+        return buildResponse(purchaseId, existing.getOrderNumber(), existing.getProviderId(),
+                locationId, itemMessages, existing.getTotal(), newStatus);
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public void deletePurchase(UUID locationId, UUID purchaseId) {
 
         PurchaseDomain existing = findByIdOrThrow(purchaseId, locationId);
@@ -151,15 +182,55 @@ public class PurchaseServiceImpl implements PurchaseService {
             );
         }
 
-        existing.softDelete();
-        purchaseRepository.save(existing);
+        PurchaseMessage message = new PurchaseMessage(
+                purchaseId,
+                existing.getOrderNumber(),
+                existing.getProviderId(),
+                locationId,
+                List.of(),
+                existing.getTotal(),
+                existing.getStatus(),
+                PurchaseAction.DELETED
+        );
+
+        purchaseMessagePublisher.publishPurchaseReceived(message);
     }
 
-    private List<PurchaseItemDomain> mapItems(CreatePurchaseRequest request) {
+    // ── HELPERS ───────────────────────────────────────────────────────────
+
+    private List<PurchaseItemMessage> buildItemMessages(CreatePurchaseRequest request) {
         return request.getItems().stream()
-                .map(purchaseMapper::toItemDomain)
-                .map(PurchaseItemDomain::initialize)
+                .map(item -> {
+                    PurchaseItemMessage itemMessage = new PurchaseItemMessage();
+                    itemMessage.setProductId(item.getProductId());
+                    itemMessage.setProductName(item.getProductName());
+                    itemMessage.setQuantity(item.getQuantity());
+                    itemMessage.setUnitPrice(item.getUnitPrice());
+                    itemMessage.setSubtotal(item.getQuantity().multiply(item.getUnitPrice()));
+                    return itemMessage;
+                })
                 .toList();
+    }
+
+    private BigDecimal calculateTotal(List<PurchaseItemMessage> items) {
+        return items.stream()
+                .map(PurchaseItemMessage::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private PurchaseResponse buildResponse(UUID purchaseId, String orderNumber, UUID providerId,
+                                           UUID locationId, List<PurchaseItemMessage> itemMessages,
+                                           BigDecimal total, PurchaseStatus status) {
+        PurchaseResponse response = new PurchaseResponse();
+        response.setId(purchaseId);
+        response.setOrderNumber(orderNumber);
+        response.setProviderId(providerId);
+        response.setLocationId(locationId);
+        response.setTotal(total);
+        response.setStatus(status);
+        response.setCreatedDate(LocalDateTime.now());
+        response.setModifiedDate(LocalDateTime.now());
+        return response;
     }
 
     private PurchaseDomain findByIdOrThrow(UUID id, UUID locationId) {

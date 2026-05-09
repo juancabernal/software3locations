@@ -5,18 +5,18 @@ import java.util.UUID;
 public class LocationPatchRequestedMessage {
 
     private final UUID id;
-    private final LocationPatchDTO data;
+    private final LocationPatchDTO patch;
 
-    public LocationPatchRequestedMessage(UUID id, LocationPatchDTO data) {
+    public LocationPatchRequestedMessage(UUID id, LocationPatchDTO patch) {
         this.id = id;
-        this.data = data;
+        this.patch = patch;
     }
 
     public UUID getId() {
         return id;
     }
 
-    public LocationPatchDTO getData() {
-        return data;
+    public LocationPatchDTO getPatch() {
+        return patch;
     }
 }

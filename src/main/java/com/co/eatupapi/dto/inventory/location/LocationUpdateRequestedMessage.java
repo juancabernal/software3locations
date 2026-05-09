@@ -5,18 +5,18 @@ import java.util.UUID;
 public class LocationUpdateRequestedMessage {
 
     private final UUID id;
-    private final LocationRequestDTO data;
+    private final LocationRequestDTO request;
 
-    public LocationUpdateRequestedMessage(UUID id, LocationRequestDTO data) {
+    public LocationUpdateRequestedMessage(UUID id, LocationRequestDTO request) {
         this.id = id;
-        this.data = data;
+        this.request = request;
     }
 
     public UUID getId() {
         return id;
     }
 
-    public LocationRequestDTO getData() {
-        return data;
+    public LocationRequestDTO getRequest() {
+        return request;
     }
 }
